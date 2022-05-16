@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js'
-import LiezerotaDarkImage from './assets/Nintendo Switch - Disgaea 5 Complete - LiezerotaDark.png';
+import LiezerotaDarkImage from './assets/Nintendo Switch - Disgaea 5 Complete - LiezerotaDark.rgba.png';
 import LiezerotaDarkInfo from './assets/Nintendo Switch - Disgaea 5 Complete - LiezerotaDark.marked.json';
 
 console.log(LiezerotaDarkImage, LiezerotaDarkInfo);
@@ -8,7 +8,9 @@ console.log(LiezerotaDarkImage, LiezerotaDarkInfo);
 // The application will create a renderer using WebGL, if possible,
 // with a fallback to a canvas render. It will also setup the ticker
 // and the root stage PIXI.Container
-const app = new PIXI.Application();
+const app = new PIXI.Application({
+    backgroundColor: 0x1099bb,
+});
 
 // The application will create a canvas element for you that you
 // can then insert into the DOM
@@ -25,7 +27,7 @@ app.loader.add('LiezerotaDark',
         seqs1: [7, 8, 10, 11, 9, 6],
         seqs2: [1, 2, 3, 0, 4, 5],
         seqs3: [20, 21, 13, 14, 24, 25],
-        seqs4: [17, 15, 18, 16, 22, 23, 12, 19],
+        seqs4: [17, 15, 18, 16, 22, 23],
         seqs5: [28, 29, 35, 32, 38, 40],
     };
 
