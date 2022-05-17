@@ -18,6 +18,8 @@
   },
   "homepage": "https://github.com/ssddi456/rouge_game#readme",
   "dependencies": {
+    "@flyover/box2d": "^1.0.1",
+    "pixi-viewport": "^4.34.4",
     "pixi.js": "^6.3.2"
   },
   "devDependencies": {

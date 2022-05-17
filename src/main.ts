@@ -1,37 +1,52 @@
 import * as PIXI from 'pixi.js'
 import LiezerotaDarkImage from './assets/Nintendo Switch - Disgaea 5 Complete - LiezerotaDark.rgba.png';
 import LiezerotaDarkInfo from './assets/Nintendo Switch - Disgaea 5 Complete - LiezerotaDark.marked.json';
+import './user_input';
 
-console.log(LiezerotaDarkImage, LiezerotaDarkInfo);
-
+import { Viewport } from 'pixi-viewport'
+import { Player } from './player';
+import { AnimatedSprite } from 'pixi.js';
 
 // The application will create a renderer using WebGL, if possible,
 // with a fallback to a canvas render. It will also setup the ticker
 // and the root stage PIXI.Container
 const app = new PIXI.Application({
     backgroundColor: 0x1099bb,
-});
+}); 
 
 // The application will create a canvas element for you that you
 // can then insert into the DOM
 document.body.appendChild(app.view);
+
+// create viewport
+const viewport = new Viewport({
+    screenWidth: window.innerWidth,
+    screenHeight: window.innerHeight,
+    worldWidth: 1000,
+    worldHeight: 1000,
+
+    interaction: app.renderer.plugins.interaction // the interaction module is important for wheel to work properly when renderer.view is placed or scaled
+})
+
+// add the viewport to the stage
+app.stage.addChild(viewport)
 
 // load the texture we need
 app.loader.add('LiezerotaDark', 
     LiezerotaDarkImage
 ).load((loader, resources) => {
     // This creates a texture from a 'bunny.png' image
-    const LiezerotaDark = resources.LiezerotaDark.texture;
+    const LiezerotaDark = resources.LiezerotaDark.texture!;
 
-    const animateIndexMap = {
-        seqs1: [7, 8, 10, 11, 9, 6],
-        seqs2: [1, 2, 3, 0, 4, 5],
+    const animateIndexMap: Record<string, number[]> = {
+        idle: [7, 8, 10, 11, 9, 6],
+        idle_back: [1, 2, 3, 0, 4, 5],
         seqs3: [20, 21, 13, 14, 24, 25],
         seqs4: [17, 15, 18, 16, 22, 23],
         seqs5: [28, 29, 35, 32, 38, 40],
     };
 
-    const animateMap = {};
+    const animateMap: Record<string, AnimatedSprite> = {};
     let offsetLeft = 0;
     for (const key in animateIndexMap) {
         if (Object.prototype.hasOwnProperty.call(animateIndexMap, key)) {
@@ -43,21 +58,24 @@ app.loader.add('LiezerotaDark',
                         new PIXI.Rectangle(...LiezerotaDarkInfo[index]))
                 })
             );
-            LiezerotaDarkAnimate.x = offsetLeft;
+            LiezerotaDarkAnimate.anchor.set(0.5, 0.5);
+            LiezerotaDarkAnimate.x = 0;
+            LiezerotaDarkAnimate.y = 0;
             LiezerotaDarkAnimate.animationSpeed = 1 / 6;
             LiezerotaDarkAnimate.play();
             animateMap[key] = LiezerotaDarkAnimate;
-            
-            app.stage.addChild(LiezerotaDarkAnimate);
 
             const offset = Math.max(...element.map(x => LiezerotaDarkInfo[x][2]));
             offsetLeft += offset;
         }
     }
 
+    const player = new Player(animateMap, 100);
 
+    viewport.addChild(player.spirte);
     // Listen for frame updates
     app.ticker.add(() => {
         // each frame we spin the bunny around a bit
+        player.update();
     });
 });

@@ -12,6 +12,9 @@ module.exports = {
         path: path.join(__dirname, "/dist"),
         
     },
+    resolve: {
+        extensions: [".ts", ".js"],
+    },
     
     devServer: {
         host: "0.0.0.0",
@@ -36,6 +39,8 @@ module.exports = {
                         },
                     },
                 },
+            },
+            {
                 test: /\.tsx$/,
                 exclude: /(node_modules|bower_components)/,
                 use: {
