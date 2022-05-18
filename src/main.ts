@@ -1,5 +1,7 @@
 import * as PIXI from 'pixi.js'
 import LiezerotaDarkImage from './assets/Nintendo Switch - Disgaea 5 Complete - LiezerotaDark.rgba.png';
+import GrassImage from './assets/THX0.png';
+
 import LiezerotaDarkInfo from './assets/Nintendo Switch - Disgaea 5 Complete - LiezerotaDark.marked.json';
 import './user_input';
 
@@ -34,7 +36,8 @@ app.stage.addChild(viewport)
 // load the texture we need
 app.loader.add('LiezerotaDark',
     LiezerotaDarkImage
-).load((loader, resources) => {
+).add('grass', GrassImage)
+.load((loader, resources) => {
     // This creates a texture from a 'bunny.png' image
     const LiezerotaDark = resources.LiezerotaDark.texture!;
 
@@ -75,9 +78,15 @@ app.loader.add('LiezerotaDark',
         }
     }
 
+    const grass = new PIXI.TilingSprite(resources.grass.texture!, 1000, 1000);
+
+    viewport.addChild(grass);
+
     const player = new Player(animateMap, 100);
 
     viewport.addChild(player.spirte);
+
+
     // Listen for frame updates
     app.ticker.add(() => {
         // each frame we spin the bunny around a bit

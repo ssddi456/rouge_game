@@ -1,5 +1,5 @@
 import * as PIXI from "pixi.js";
-import { AnimatedSprite, Container, Sprite } from "pixi.js";
+import { AnimatedSprite, Container, Graphics, Sprite } from "pixi.js";
 import { Vector } from "./vector";
 import { keypressed } from "./user_input";
 
@@ -16,16 +16,33 @@ export class Player {
 
     speed = 4;
 
+    shadow: Graphics;
+    pointer: Graphics;
+
+    mainSpirtIndex = 1;
+
     constructor(
         public spirtes: Record<string, AnimatedSprite>,
         public hp: number,
     ) {
-        this.spirte.addChild(spirtes.idle);
-        // center point
-        const sprite = this.spirte.addChild(new PIXI.Sprite(PIXI.Texture.WHITE));
-        sprite.tint = 0xff0000;
-        sprite.width = sprite.height = 10;
+        // soft shadow
+        const shadow = new PIXI.Graphics();
+        this.spirte.addChild(shadow);
+        this.shadow = shadow;
+        shadow.beginFill(0x000000);
+        shadow.drawEllipse(-10, 80, 30, 10);
+        shadow.endFill();
+        shadow.filters = [new PIXI.filters.BlurFilter(5, 5)];
 
+        // main character
+        this.spirte.addChild(spirtes.idle);
+
+        // center point indicator
+        const pointer = this.spirte.addChild(new PIXI.Graphics());
+        this.pointer = pointer
+        pointer.beginFill(0xff0000);
+        pointer.drawCircle(0, 0, 10);
+        pointer.endFill();
     }
 
     getInput() {
@@ -79,19 +96,19 @@ export class Player {
         this.prev_facing = this.facing;
 
         if (this.costing && !this.prev_costing) {
-            this.spirte.removeChildAt(0);
+            this.spirte.removeChildAt(this.mainSpirtIndex);
             const attack_animation = this.facing == "top" ? this.spirtes.attack_back : this.spirtes.attack;
-            this.spirte.addChildAt(attack_animation, 0);
+            this.spirte.addChildAt(attack_animation, this.mainSpirtIndex);
             attack_animation.play();
         }
 
         if (!this.costing && this.prev_costing) {
-            this.spirte.removeChildAt(0);
+            this.spirte.removeChildAt(this.mainSpirtIndex);
             if (this.facing == "top") {
-                this.spirte.addChildAt(this.spirtes.idle_back, 0);
+                this.spirte.addChildAt(this.spirtes.idle_back, this.mainSpirtIndex);
             }
             if (this.facing == "bottom") {
-                this.spirte.addChildAt(this.spirtes.idle, 0);
+                this.spirte.addChildAt(this.spirtes.idle, this.mainSpirtIndex);
             }
         }
 
@@ -117,12 +134,12 @@ export class Player {
         }
 
         if (this.facing != this.prev_facing) {
-            this.spirte.removeChildAt(0);
+            this.spirte.removeChildAt(this.mainSpirtIndex);
             if (this.facing == "top") {
-                this.spirte.addChildAt(this.spirtes.idle_back, 0);
+                this.spirte.addChildAt(this.spirtes.idle_back, this.mainSpirtIndex);
             }
             if (this.facing == "bottom") {
-                this.spirte.addChildAt(this.spirtes.idle, 0);
+                this.spirte.addChildAt(this.spirtes.idle, this.mainSpirtIndex);
             }
         }
     }
