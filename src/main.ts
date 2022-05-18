@@ -48,7 +48,8 @@ app.loader.add('LiezerotaDark',
         attack: [20, 21, 13, 14, 24, 25, 25, 25],
         attack_back: [17, 15, 18, 16, 22, 23, 23, 23],
 
-        seqs5: [28, 29, 35, 32, 38, 40],
+        heavy_attack: [28, 29, 35, 32, 38, 40, 40, 40],
+        heavy_attack_back: [30, 31, 34, 36, 39, 37, 37, 37],
     };
 
     const animateMap: Record<string, AnimatedSprite> = {};

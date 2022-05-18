@@ -7,7 +7,8 @@ function keyAlias() {
     keypressed.left = keypressed.ArrowLeft || keypressed.a;
     keypressed.right = keypressed.ArrowRight || keypressed.d;
 
-    keypressed.attack = keypressed.x;
+    keypressed.attack = keypressed.z;
+    keypressed.heavy_attack = keypressed.x;
 }
 
 

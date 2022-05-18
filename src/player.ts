@@ -73,7 +73,10 @@ export class Player {
                 animated.gotoAndStop(0);
             }
         } else {
-            if (keypressed.attack) {
+            if (
+                keypressed.attack
+                || keypressed.heavy_attack
+            ) {
                 this.costing = true;
             }
         }
@@ -97,7 +100,9 @@ export class Player {
 
         if (this.costing && !this.prev_costing) {
             this.spirte.removeChildAt(this.mainSpirtIndex);
-            const attack_animation = this.facing == "top" ? this.spirtes.attack_back : this.spirtes.attack;
+            const attack_animation = keypressed.heavy_attack
+                ? (this.facing == "top" ? this.spirtes.heavy_attack_back : this.spirtes.heavy_attack)
+                : (this.facing == "top" ? this.spirtes.attack_back : this.spirtes.attack);
             this.spirte.addChildAt(attack_animation, this.mainSpirtIndex);
             attack_animation.play();
         }
