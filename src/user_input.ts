@@ -1,7 +1,7 @@
 export const keypressed: Record<string, 0 | 1> = {};
 
-function keyAlias () {
-    
+function keyAlias() {
+
     keypressed.up = keypressed.ArrowUp || keypressed.w;
     keypressed.down = keypressed.ArrowDown || keypressed.s;
     keypressed.left = keypressed.ArrowLeft || keypressed.a;
@@ -22,4 +22,10 @@ window.addEventListener('keyup', (e) => {
     keypressed[e.code] = 0;
 
     keyAlias();
+});
+
+export const mouse = { x: 0, y: 0 };
+window.addEventListener('mousemove', (e) => {
+    mouse.x = e.screenX;
+    mouse.y = e.screenY;
 });

@@ -67,7 +67,7 @@ export class Player {
         }
 
         if (this.prev_costing) {
-            const animated = this.spirte.children[0] as AnimatedSprite;
+            const animated = this.spirte.children[this.mainSpirtIndex] as AnimatedSprite;
             if (animated.currentFrame == animated.totalFrames - 1) {
                 this.costing = false;
                 animated.gotoAndStop(0);
