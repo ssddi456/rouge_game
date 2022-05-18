@@ -1,24 +1,26 @@
 import * as PIXI from "pixi.js";
-import { Container, Sprite } from "pixi.js";
+import { AnimatedSprite, Container, Sprite } from "pixi.js";
 import { Vector } from "./vector";
 import { keypressed } from "./user_input";
 
 export class Player {
-    spirte: Container;
-    direct: Vector;
-    prev_direct: Vector;
-    
+    spirte: Container = new Container();
+    prev_direct: Vector = new Vector(0, 0);
+    direct: Vector = new Vector(0, 0);
+
+    prev_costing: boolean = false;
+    costing: boolean = false;
+
+    prev_facing: string = "top";
+    facing: string = "top";
+
     speed = 4;
 
     constructor(
-        public spirtes: Record<string, Sprite>,
+        public spirtes: Record<string, AnimatedSprite>,
         public hp: number,
     ) {
-        this.spirte = new Container();
-        this.direct = new Vector(0, 0);
-        this.prev_direct = new Vector(0, 0);
         this.spirte.addChild(spirtes.idle);
-
         // center point
         const sprite = this.spirte.addChild(new PIXI.Sprite(PIXI.Texture.WHITE));
         sprite.tint = 0xff0000;
@@ -29,6 +31,7 @@ export class Player {
     getInput() {
         this.prev_direct.x = this.direct.x;
         this.prev_direct.y = this.direct.y;
+        this.prev_costing = this.costing;
 
         if (keypressed.up) {
             this.direct.y = -1 * this.speed;
@@ -46,6 +49,25 @@ export class Player {
             this.direct.x = 0;
         }
 
+        if (this.prev_costing) {
+            const animated = this.spirte.children[0] as AnimatedSprite;
+            if (animated.currentFrame == animated.totalFrames - 1) {
+                this.costing = false;
+                animated.gotoAndStop(0);
+            }
+        } else {
+            if (keypressed.attack) {
+                this.costing = true;
+            }
+        }
+
+
+
+        if (this.costing) {
+            this.direct.x = 0;
+            this.direct.y = 0;
+            return;
+        }
     }
 
     updatePosition() {
@@ -54,24 +76,54 @@ export class Player {
     }
 
     updateSpirte() {
+        this.prev_facing = this.facing;
+
+        if (this.costing && !this.prev_costing) {
+            this.spirte.removeChildAt(0);
+            const attack_animation = this.facing == "top" ? this.spirtes.attack_back : this.spirtes.attack;
+            this.spirte.addChildAt(attack_animation, 0);
+            attack_animation.play();
+        }
+
+        if (!this.costing && this.prev_costing) {
+            this.spirte.removeChildAt(0);
+            if (this.facing == "top") {
+                this.spirte.addChildAt(this.spirtes.idle_back, 0);
+            }
+            if (this.facing == "bottom") {
+                this.spirte.addChildAt(this.spirtes.idle, 0);
+            }
+        }
+
+        if (this.costing) {
+            return;
+        }
+
         if (this.direct.x > 0 && this.prev_direct.y <= 0) {
             this.spirte.scale.x = -1;
         } else if (this.direct.x < 0 && this.prev_direct.y >= 0) {
             this.spirte.scale.x = 1;
         }
+
         if ((this.direct.y > 0 && this.prev_direct.y <= 0)
             || (this.direct.y < 0 && this.prev_direct.y >= 0)
         ) {
-            this.spirte.removeChildAt(0);
-            if (this.direct.y > 0 ){
-                this.spirte.addChildAt(this.spirtes.idle, 0);
+            if (this.direct.y > 0) {
+                this.facing = "bottom";
             }
             if (this.direct.y < 0) {
+                this.facing = "top";
+            }
+        }
+
+        if (this.facing != this.prev_facing) {
+            this.spirte.removeChildAt(0);
+            if (this.facing == "top") {
                 this.spirte.addChildAt(this.spirtes.idle_back, 0);
             }
-
-            console.log(this.spirte.children.length);
-            
+            if (this.facing == "bottom") {
+                this.spirte.addChildAt(this.spirtes.idle, 0);
+            }
         }
     }
 

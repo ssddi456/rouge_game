@@ -6,6 +6,8 @@ function keyAlias () {
     keypressed.down = keypressed.ArrowDown || keypressed.s;
     keypressed.left = keypressed.ArrowLeft || keypressed.a;
     keypressed.right = keypressed.ArrowRight || keypressed.d;
+
+    keypressed.attack = keypressed.x;
 }
 
 
