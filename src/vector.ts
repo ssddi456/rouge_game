@@ -99,6 +99,12 @@ export class Vector {
         return this;
     };
 
+    setV(v: Vector) {
+        this.x = v.x;
+        this.y = v.y;
+        return this;
+    }
+
     set length(l: number) {
         var oldLength = this.length;
         if (oldLength !== 0 && l !== oldLength) {

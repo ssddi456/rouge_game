@@ -2,6 +2,7 @@ import * as PIXI from "pixi.js";
 import { AnimatedSprite, Container, Graphics, Sprite } from "pixi.js";
 import { Vector } from "./vector";
 import { keypressed } from "./user_input";
+import { AmmoPool } from "./ammo";
 
 export class Player {
     spirte: Container = new Container();
@@ -21,9 +22,15 @@ export class Player {
 
     mainSpirtIndex = 1;
 
+    lastShootTime = 0;
+    shootCd = 400;
+
+    ammoPools: AmmoPool;
+
     constructor(
         public spirtes: Record<string, AnimatedSprite>,
         public hp: number,
+        public container: Container,
     ) {
         // soft shadow
         const shadow = new PIXI.Graphics();
@@ -43,12 +50,18 @@ export class Player {
         pointer.beginFill(0xff0000);
         pointer.drawCircle(0, 0, 10);
         pointer.endFill();
+
+        this.ammoPools = new AmmoPool(this.spirtes.ammo, this.container);
     }
 
-    getInput() {
+    cacheProperty() {
         this.prev_direct.x = this.direct.x;
         this.prev_direct.y = this.direct.y;
         this.prev_costing = this.costing;
+        this.prev_facing = this.facing;
+    }
+
+    getInput() {
 
         if (keypressed.up) {
             this.direct.y = -1 * this.speed;
@@ -88,6 +101,13 @@ export class Player {
             this.direct.y = 0;
             return;
         }
+
+        if (this.shootCd + this.lastShootTime < Date.now()) {
+            if (keypressed.shoot) {
+                this.lastShootTime = Date.now();
+                this.doShoot();
+            }
+        }
     }
 
     updatePosition() {
@@ -95,8 +115,15 @@ export class Player {
         this.spirte.y += this.direct.y;
     }
 
+    doShoot() {
+        this.ammoPools.emit(
+            new Vector(20, 20),
+            new Vector(this.spirte.x, this.spirte.y),
+            2000,
+        );
+    }
+
     updateSpirte() {
-        this.prev_facing = this.facing;
 
         if (this.costing && !this.prev_costing) {
             this.spirte.removeChildAt(this.mainSpirtIndex);
@@ -150,9 +177,10 @@ export class Player {
     }
 
     update() {
+        this.cacheProperty();
         this.getInput();
         this.updatePosition();
         this.updateSpirte();
-
+        this.ammoPools.update();
     }
 }

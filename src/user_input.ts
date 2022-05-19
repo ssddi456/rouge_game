@@ -9,6 +9,7 @@ function keyAlias() {
 
     keypressed.attack = keypressed.z;
     keypressed.heavy_attack = keypressed.x;
+    keypressed.shoot = keypressed.c;
 }
 
 

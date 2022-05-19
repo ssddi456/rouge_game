@@ -78,12 +78,17 @@ app.loader.add('LiezerotaDark',
             }
         }
     }
+    const ammo = new PIXI.Graphics();
+    ammo.beginFill(0xffffff);
+    ammo.drawCircle(0, 0, 10);
+    ammo.endFill();
+    animateMap.ammo = ammo as any;
 
     const grass = new PIXI.TilingSprite(resources.grass.texture!, 1000, 1000);
 
     viewport.addChild(grass);
 
-    const player = new Player(animateMap, 100);
+    const player = new Player(animateMap, 100, viewport);
 
     viewport.addChild(player.spirte);
 
