@@ -7,7 +7,8 @@ import './user_input';
 
 import { Viewport } from 'pixi-viewport'
 import { Player } from './player';
-import { AnimatedSprite } from 'pixi.js';
+import { AnimatedSprite, Sprite } from 'pixi.js';
+import { Curser } from './curser';
 
 // The application will create a renderer using WebGL, if possible,
 // with a fallback to a canvas render. It will also setup the ticker
@@ -19,6 +20,8 @@ const app = new PIXI.Application({
 // The application will create a canvas element for you that you
 // can then insert into the DOM
 document.body.appendChild(app.view);
+document.body.style.margin = "0";
+document.documentElement.style.margin = "0";
 
 // create viewport
 const viewport = new Viewport({
@@ -78,24 +81,44 @@ app.loader.add('LiezerotaDark',
             }
         }
     }
-    const ammo = new PIXI.Graphics();
-    ammo.beginFill(0xffffff);
-    ammo.drawCircle(0, 0, 10);
-    ammo.endFill();
-    animateMap.ammo = ammo as any;
+    const ammoG = new PIXI.Graphics();
+    ammoG.beginFill(0xffffff);
+    ammoG.drawCircle(0, 0, 10);
+    ammoG.drawEllipse(-10, 0, 20, 10);
+    ammoG.endFill();
+    const ammoT = app.renderer.generateTexture(ammoG);
+    const ammoA = new AnimatedSprite([ammoT]);
+    ammoA.anchor.set(0.5, 0.5)
+    animateMap.ammo = ammoA;
+
+
 
     const grass = new PIXI.TilingSprite(resources.grass.texture!, 1000, 1000);
 
     viewport.addChild(grass);
 
+    const ammoDemo = new Sprite(ammoT);
+    ammoDemo.x = 100;
+    ammoDemo.y = 200;
+    viewport.addChild(ammoDemo);
+
     const player = new Player(animateMap, 100, viewport);
 
-    viewport.addChild(player.spirte);
+    viewport.addChild(player.sprite);
 
+    const curserG = new PIXI.Graphics();
+    curserG.beginFill(0xffffff);
+    curserG.drawCircle(0, 0, 10);
+    curserG.endFill();
+    const curserA = new AnimatedSprite([app.renderer.generateTexture(curserG)]);
+    curserA.anchor.set(0.5, 0.5)
 
+    const curser = new Curser(curserA, viewport);
+    viewport.addChild(curser.sprite);
     // Listen for frame updates
     app.ticker.add(() => {
         // each frame we spin the bunny around a bit
         player.update();
+        curser.update();
     });
 });

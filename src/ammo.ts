@@ -1,4 +1,4 @@
-import { Container, Sprite, Texture } from "pixi.js";
+import { AnimatedSprite, Container, Sprite, Texture } from "pixi.js";
 import { Vector } from "./vector";
 
 
@@ -9,12 +9,12 @@ export class Ammo {
 
     direct = new Vector(0, 0);
     position = new Vector(0, 0);
-    range = 100;
+    range = 1000;
 
     constructor(
-        public spirte: Sprite,
+        public sprite: AnimatedSprite,
         public container: Container,
-    ) {}
+    ) { }
 
     init(
         direct: Vector,
@@ -23,9 +23,14 @@ export class Ammo {
     ) {
         this.direct.setV(direct);
         this.position.setV(position);
+        this.sprite.x = position.x;
+        this.sprite.y = position.y;
+        this.sprite.rotation = -1 * (direct.rad() -  Math.PI / 2);
+        console.log('rad', direct.rad() / Math.PI, this.sprite.rotation / Math.PI);
+        
         this.range = range;
         this.dead = false;
-        this.container.addChild(this.spirte);
+        this.container.addChild(this.sprite);
     }
 
     cacheProperty() {
@@ -34,15 +39,15 @@ export class Ammo {
         this.prev_direct.y = this.direct.y;
     }
 
-    updatePosition () {
-        this.spirte.x += this.direct.x;
-        this.spirte.y += this.direct.y;
-        this.current_position.x = this.spirte.x;
-        this.current_position.y = this.spirte.y;
-        
+    updatePosition() {
+        this.sprite.x += this.direct.x;
+        this.sprite.y += this.direct.y;
+        this.current_position.x = this.sprite.x;
+        this.current_position.y = this.sprite.y;
+
         if (this.position.distanceTo(this.current_position) >= this.range) {
             this.dead = true;
-            this.container.removeChild(this.spirte);
+            this.container.removeChild(this.sprite);
         }
     }
 
@@ -56,10 +61,10 @@ export class Ammo {
 }
 
 export class AmmoPool {
-    spirte: Sprite;
+    spirte: AnimatedSprite;
     ammos: Ammo[] = [];
     constructor(
-        spirte: Sprite,
+        spirte: AnimatedSprite,
         public container: Container,
     ) {
         this.spirte = spirte;
@@ -71,7 +76,7 @@ export class AmmoPool {
         range: number
     ) {
         if (this.ammos.length < 100) {
-            const ammo = new Ammo(this.spirte., this.container);
+            const ammo = new Ammo(new AnimatedSprite(this.spirte.textures), this.container);
             this.ammos.push(ammo);
             ammo.init(
                 direct,

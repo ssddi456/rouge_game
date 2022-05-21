@@ -1,11 +1,11 @@
 import * as PIXI from "pixi.js";
 import { AnimatedSprite, Container, Graphics, Sprite } from "pixi.js";
 import { Vector } from "./vector";
-import { keypressed } from "./user_input";
+import { keypressed, mouse } from "./user_input";
 import { AmmoPool } from "./ammo";
 
 export class Player {
-    spirte: Container = new Container();
+    sprite: Container = new Container();
     prev_direct: Vector = new Vector(0, 0);
     direct: Vector = new Vector(0, 0);
 
@@ -34,7 +34,7 @@ export class Player {
     ) {
         // soft shadow
         const shadow = new PIXI.Graphics();
-        this.spirte.addChild(shadow);
+        this.sprite.addChild(shadow);
         this.shadow = shadow;
         shadow.beginFill(0x000000);
         shadow.drawEllipse(-10, 80, 30, 10);
@@ -42,10 +42,10 @@ export class Player {
         shadow.filters = [new PIXI.filters.BlurFilter(5, 5)];
 
         // main character
-        this.spirte.addChild(spirtes.idle);
+        this.sprite.addChild(spirtes.idle);
 
         // center point indicator
-        const pointer = this.spirte.addChild(new PIXI.Graphics());
+        const pointer = this.sprite.addChild(new PIXI.Graphics());
         this.pointer = pointer
         pointer.beginFill(0xff0000);
         pointer.drawCircle(0, 0, 10);
@@ -80,7 +80,7 @@ export class Player {
         }
 
         if (this.prev_costing) {
-            const animated = this.spirte.children[this.mainSpirtIndex] as AnimatedSprite;
+            const animated = this.sprite.children[this.mainSpirtIndex] as AnimatedSprite;
             if (animated.currentFrame == animated.totalFrames - 1) {
                 this.costing = false;
                 animated.gotoAndStop(0);
@@ -111,14 +111,20 @@ export class Player {
     }
 
     updatePosition() {
-        this.spirte.x += this.direct.x;
-        this.spirte.y += this.direct.y;
+        this.sprite.x += this.direct.x;
+        this.sprite.y += this.direct.y;
     }
 
     doShoot() {
+        const direct = new Vector(
+            mouse.x - this.sprite.x,
+            mouse.y - this.sprite.y
+        )
+            .normalize()
+            .multiplyScalar(1);
         this.ammoPools.emit(
-            new Vector(20, 20),
-            new Vector(this.spirte.x, this.spirte.y),
+            direct,
+            new Vector(this.sprite.x, this.sprite.y),
             2000,
         );
     }
@@ -126,21 +132,21 @@ export class Player {
     updateSpirte() {
 
         if (this.costing && !this.prev_costing) {
-            this.spirte.removeChildAt(this.mainSpirtIndex);
+            this.sprite.removeChildAt(this.mainSpirtIndex);
             const attack_animation = keypressed.heavy_attack
                 ? (this.facing == "top" ? this.spirtes.heavy_attack_back : this.spirtes.heavy_attack)
                 : (this.facing == "top" ? this.spirtes.attack_back : this.spirtes.attack);
-            this.spirte.addChildAt(attack_animation, this.mainSpirtIndex);
+            this.sprite.addChildAt(attack_animation, this.mainSpirtIndex);
             attack_animation.play();
         }
 
         if (!this.costing && this.prev_costing) {
-            this.spirte.removeChildAt(this.mainSpirtIndex);
+            this.sprite.removeChildAt(this.mainSpirtIndex);
             if (this.facing == "top") {
-                this.spirte.addChildAt(this.spirtes.idle_back, this.mainSpirtIndex);
+                this.sprite.addChildAt(this.spirtes.idle_back, this.mainSpirtIndex);
             }
             if (this.facing == "bottom") {
-                this.spirte.addChildAt(this.spirtes.idle, this.mainSpirtIndex);
+                this.sprite.addChildAt(this.spirtes.idle, this.mainSpirtIndex);
             }
         }
 
@@ -149,9 +155,9 @@ export class Player {
         }
 
         if (this.direct.x > 0 && this.prev_direct.y <= 0) {
-            this.spirte.scale.x = -1;
+            this.sprite.scale.x = -1;
         } else if (this.direct.x < 0 && this.prev_direct.y >= 0) {
-            this.spirte.scale.x = 1;
+            this.sprite.scale.x = 1;
         }
 
         if ((this.direct.y > 0 && this.prev_direct.y <= 0)
@@ -166,12 +172,12 @@ export class Player {
         }
 
         if (this.facing != this.prev_facing) {
-            this.spirte.removeChildAt(this.mainSpirtIndex);
+            this.sprite.removeChildAt(this.mainSpirtIndex);
             if (this.facing == "top") {
-                this.spirte.addChildAt(this.spirtes.idle_back, this.mainSpirtIndex);
+                this.sprite.addChildAt(this.spirtes.idle_back, this.mainSpirtIndex);
             }
             if (this.facing == "bottom") {
-                this.spirte.addChildAt(this.spirtes.idle, this.mainSpirtIndex);
+                this.sprite.addChildAt(this.spirtes.idle, this.mainSpirtIndex);
             }
         }
     }
