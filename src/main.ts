@@ -9,6 +9,7 @@ import { Viewport } from 'pixi-viewport'
 import { Player } from './player';
 import { AnimatedSprite, Sprite } from 'pixi.js';
 import { Curser } from './curser';
+import { EnemyPool } from './enemy';
 
 // The application will create a renderer using WebGL, if possible,
 // with a fallback to a canvas render. It will also setup the ticker
@@ -115,10 +116,14 @@ app.loader.add('LiezerotaDark',
 
     const curser = new Curser(curserA, viewport);
     viewport.addChild(curser.sprite);
+
+    const enemys = new EnemyPool(animateMap, viewport, player);
+
     // Listen for frame updates
     app.ticker.add(() => {
         // each frame we spin the bunny around a bit
         player.update();
+        enemys.update();
         curser.update();
     });
 });

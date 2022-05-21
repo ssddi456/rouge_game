@@ -118,6 +118,7 @@ def process_sheet(name):
 
 process_sheet('Nintendo Switch - Disgaea 5 Complete - LiezerotaDark')
 process_sheet('Nintendo Switch - Disgaea 5 Complete - Weapons Bow')
+process_sheet('Nintendo Switch - Disgaea 5 Complete - Miscellaneous Monsters')
 
 def show_ui():
     cv2.namedWindow("marked", cv2.WINDOW_NORMAL)

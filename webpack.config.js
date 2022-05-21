@@ -6,6 +6,7 @@ module.exports = {
     mode: "development",
     entry: {
         main: "./src/main.ts",
+        editor: './src/editor.ts'
     },
     output: {
         // publicPath: './dist'

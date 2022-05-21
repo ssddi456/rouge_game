@@ -1,0 +1,10 @@
+GET http://localhost:7001/list HTTP/1.1
+
+
+###
+GET http://localhost:7001/get_marked?name=Nintendo Switch - Disgaea 5 Complete - Miscellaneous Monsters HTTP/1.1
+
+
+
+###
+GET http://localhost:7001/get_animation?name=Nintendo Switch - Disgaea 5 Complete - Miscellaneous Monsters HTTP/1.1

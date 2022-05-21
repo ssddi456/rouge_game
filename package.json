@@ -19,8 +19,16 @@
   "homepage": "https://github.com/ssddi456/rouge_game#readme",
   "dependencies": {
     "@flyover/box2d": "^1.0.1",
+    "@types/fs-extra": "^9.0.13",
+    "antd": "^4.20.5",
+    "body-parser": "^1.20.0",
+    "fs-extra": "^10.1.0",
     "pixi-viewport": "^4.34.4",
-    "pixi.js": "^6.3.2"
+    "pixi.js": "^6.3.2",
+    "react": "^18.1.0",
+    "react-dom": "^18.1.0",
+    "react-router": "^6.3.0",
+    "react-router-dom": "^6.3.0"
   },
   "devDependencies": {
     "@swc/core": "^1.2.183",
@@ -35,5 +43,13 @@
     "webpack": "^5.72.1",
     "webpack-cli": "^4.9.2",
     "webpack-dev-server": "^4.9.0"
+  },
+  "nodemonConfig": {
+    "execMap": {
+      "ts": "ts-node"
+    },
+    "watch": [
+      "editor_server_src"
+    ]
   }
 }
