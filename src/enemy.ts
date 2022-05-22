@@ -1,7 +1,21 @@
-import { AnimatedSprite, Container, Sprite, Texture } from "pixi.js";
+import { AnimatedSprite, Container, Graphics, Sprite, Texture } from "pixi.js";
 import { CountDown } from "./countdown";
 import { Player } from "./player";
 import { Vector } from "./vector";
+import * as PIXI from 'pixi.js';
+
+
+function cloneAnimationSprites( spriteMap: Record<string, AnimatedSprite>){
+    const ret: Record<string, AnimatedSprite> = {};
+    for (const key in spriteMap) {
+        if (Object.prototype.hasOwnProperty.call(spriteMap, key)) {
+            const element = spriteMap[key];
+            
+            ret[key] = new AnimatedSprite(element.textures);
+        }
+    }
+    return ret;
+}
 
 
 export class Enemy {
@@ -16,10 +30,25 @@ export class Enemy {
     sprite = new Container();
     facing = "bottom";
     prev_facing = "prev_facing";
+
+    shadow: Graphics;
+
     constructor(
         public spirtes: Record<string, AnimatedSprite>,
         public container: Container,
-    ) { }
+    ) {
+        // soft shadow
+        const shadow = new PIXI.Graphics();
+        this.sprite.addChild(shadow);
+        this.shadow = shadow;
+        shadow.beginFill(0x000000);
+        shadow.drawEllipse(40, 120, 30, 10);
+        shadow.endFill();
+        shadow.filters = [new PIXI.filters.BlurFilter(5, 5)];
+
+        this.sprite.addChild(this.spirtes.idle);
+
+     }
 
     init(
         position: Vector,
@@ -54,7 +83,7 @@ export class Enemy {
         this.sprite.y = this.position.y;
     }
 
-    udateSprite() {
+    updateSprite() {
 
         if (this.direct.x > 0 && this.prev_direct.y <= 0) {
             this.sprite.scale.x = -1;
@@ -90,6 +119,7 @@ export class Enemy {
         }
         this.cacheProperty();
         this.updatePosition();
+        this.updateSprite();
     }
 }
 
@@ -110,7 +140,7 @@ export class EnemyPool {
         position: Vector,
     ) {
         if (this.enemys.length < 100) {
-            const enemy = new Enemy(this.spirtes, this.container);
+            const enemy = new Enemy(cloneAnimationSprites(this.spirtes), this.container);
             this.enemys.push(enemy);
             enemy.init(
                 position,

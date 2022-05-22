@@ -6,6 +6,8 @@ import bodyParser from 'body-parser';
 const configRoot = path.join(__dirname, '../src/assets/');
 const animationConfig = (name: string) => path.join(configRoot, `${name}.animation.json`);
 const markedConfig = (name: string) => path.join(configRoot, `${name}.marked.json`);
+const rgbaImage = (name: string) => path.join(configRoot, `${name}.rgba.png`);
+
 const resOk = (data: any) => {
     return {
         code: 0,
@@ -14,9 +16,6 @@ const resOk = (data: any) => {
     };
 }
 const app = express();
-app.use('/public', express.static('public',));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded());
 app.use((req, res, next) => {
     res.set('Access-Control-Allow-Origin', '*');
     res.set('Access-Control-Allow-Headers', '*');
@@ -27,6 +26,10 @@ app.use((req, res, next) => {
     }
     next();
 });
+app.use('/public', express.static(configRoot));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded());
+
 
 app.get('/list', (req, res,) => {
     const list = fs.readdirSync(configRoot);
@@ -39,6 +42,7 @@ app.get('/list', (req, res,) => {
             const x = path.basename(_x, path.extname(_x));
             return {
                 name: x,
+                resource: path.basename(rgbaImage(x)),
                 marked: fs.existsSync(markedConfig(x)),
                 markedName: markedConfig(x),
                 animation: fs.existsSync(animationConfig(x)),
@@ -58,7 +62,7 @@ app.get('/get_animation', (req, res, next) => {
     res.json(resOk({config}));
 });
 
-app.post('/write_animation', (req, res, next) => {
+app.post('/save_animation', (req, res, next) => {
 
     if (!req.body.name || !req.body.config) {
         throw new Error('name or config is not found');
