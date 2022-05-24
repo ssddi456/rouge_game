@@ -8,6 +8,7 @@ import { AnimatedSprite, Sprite } from 'pixi.js';
 import { Curser } from './curser';
 import { EnemyPool } from './enemy';
 import { loadSpriteSheet } from './loadAnimation';
+import { CollisionView } from './drawCollisions';
 
 // The application will create a renderer using WebGL, if possible,
 // with a fallback to a canvas render. It will also setup the ticker
@@ -80,11 +81,18 @@ app.loader.add('grass', GrassImage)
 
         const enemys = new EnemyPool(enemyAnimateMap, viewport, player);
 
+        const collisionView = new CollisionView(viewport, [
+            player,
+            enemys
+        ]);
+
         // Listen for frame updates
         app.ticker.add(() => {
             // each frame we spin the bunny around a bit
             player.update();
             enemys.update();
             curser.update();
+            // for debugers
+            collisionView.update();
         });
     });

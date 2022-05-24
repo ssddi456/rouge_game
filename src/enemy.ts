@@ -3,6 +3,7 @@ import { CountDown } from "./countdown";
 import { Player } from "./player";
 import { Vector } from "./vector";
 import * as PIXI from 'pixi.js';
+import { IMovable, ICollisionable, EFacing, IObjectPools } from "./types";
 
 
 function cloneAnimationSprites( spriteMap: Record<string, AnimatedSprite>){
@@ -12,24 +13,33 @@ function cloneAnimationSprites( spriteMap: Record<string, AnimatedSprite>){
             const element = spriteMap[key];
             
             ret[key] = new AnimatedSprite(element.textures);
+            ret[key].anchor.set(element.anchor._x, element.anchor._y);
         }
     }
     return ret;
 }
 
 
-export class Enemy {
+export class Enemy implements IMovable, ICollisionable {
 
     dead = false;
-    direct = new Vector(0, 0);
     prev_direct = new Vector(0, 0);
-    position = new Vector(0, 0);
+    direct = new Vector(0, 0);
+
+    prev_position = new Vector(0, 0);
+    start_position = new Vector(0, 0);
+    
+    prev_facing = EFacing.bottom;
+    facing = EFacing.bottom;
+
     speed = 1;
+    size: number = 50;
+
     player: Player | undefined;
+    
     mainSpirtIndex = 1
     sprite = new Container();
-    facing = "bottom";
-    prev_facing = "prev_facing";
+
 
     shadow: Graphics;
 
@@ -42,19 +52,20 @@ export class Enemy {
         this.sprite.addChild(shadow);
         this.shadow = shadow;
         shadow.beginFill(0x000000);
-        shadow.drawEllipse(40, 120, 30, 10);
+        shadow.drawEllipse(0, 60, 30, 10);
         shadow.endFill();
         shadow.filters = [new PIXI.filters.BlurFilter(5, 5)];
 
         this.sprite.addChild(this.spirtes.idle);
 
-     }
+    }
+    
 
     init(
         position: Vector,
         player: Player
     ) {
-        this.position.setV(position);
+        this.start_position.setV(position);
         this.sprite.x = position.x;
         this.sprite.y = position.y;
 
@@ -66,6 +77,8 @@ export class Enemy {
     cacheProperty() {
         this.prev_direct.x = this.direct.x;
         this.prev_direct.y = this.direct.y;
+        this.prev_position.x = this.start_position.x;
+        this.prev_position.y = this.start_position.y;
         this.prev_facing = this.facing;
     }
 
@@ -73,14 +86,14 @@ export class Enemy {
         this.direct.setV(new Vector(
             this.player!.sprite.x, 
             this.player!.sprite.y)
-            .sub(this.position)
+            .sub(this.start_position)
             .normalize()
             .multiplyScalar(this.speed));
 
-        this.position.x += this.direct.x;
-        this.position.y += this.direct.y;
-        this.sprite.x = this.position.x;
-        this.sprite.y = this.position.y;
+        this.start_position.x += this.direct.x;
+        this.start_position.y += this.direct.y;
+        this.sprite.x = this.start_position.x;
+        this.sprite.y = this.start_position.y;
     }
 
     updateSprite() {
@@ -95,19 +108,19 @@ export class Enemy {
             || (this.direct.y < 0 && this.prev_direct.y >= 0)
         ) {
             if (this.direct.y > 0) {
-                this.facing = "bottom";
+                this.facing = EFacing.bottom;
             }
             if (this.direct.y < 0) {
-                this.facing = "top";
+                this.facing = EFacing.top;
             }
         }
 
         if (this.facing != this.prev_facing) {
             this.sprite.removeChildAt(this.mainSpirtIndex);
-            if (this.facing == "top") {
+            if (this.facing == EFacing.top) {
                 this.sprite.addChildAt(this.spirtes.idle_back, this.mainSpirtIndex);
             }
-            if (this.facing == "bottom") {
+            if (this.facing == EFacing.bottom) {
                 this.sprite.addChildAt(this.spirtes.idle, this.mainSpirtIndex);
             }
         }
@@ -123,9 +136,9 @@ export class Enemy {
     }
 }
 
-export class EnemyPool {
+export class EnemyPool implements IObjectPools {
 
-    enemys: Enemy[] = [];
+    pools: Enemy[] = [];
     spawnTimer: CountDown;
     
     constructor(
@@ -139,15 +152,15 @@ export class EnemyPool {
     emit(
         position: Vector,
     ) {
-        if (this.enemys.length < 100) {
+        if (this.pools.length < 100) {
             const enemy = new Enemy(cloneAnimationSprites(this.spirtes), this.container);
-            this.enemys.push(enemy);
+            this.pools.push(enemy);
             enemy.init(
                 position,
                 this.player
             );
         } else {
-            this.enemys.find(Enemy => {
+            this.pools.find(Enemy => {
                 if (Enemy.dead) {
                     Enemy.init(
                         position,
@@ -161,10 +174,10 @@ export class EnemyPool {
 
     update() {
         this.spawnTimer.update();
-        this.enemys.forEach(x => x.update());
+        this.pools.forEach(x => x.update());
     }
     spawn = () => {
-        const living_enemys = this.enemys.filter(x => !x.dead).length;
+        const living_enemys = this.pools.filter(x => !x.dead).length;
 
         if (living_enemys < 10) {
 

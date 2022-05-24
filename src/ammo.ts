@@ -1,13 +1,16 @@
 import { AnimatedSprite, Container, Sprite, Texture } from "pixi.js";
+import { EFacing, ICollisionable, IMovable, IObjectPools } from "./types";
 import { Vector } from "./vector";
 
 
-export class Ammo {
-    prev_direct = new Vector(0, 0);
-    current_position = new Vector(0, 0);
+export class Ammo implements IMovable, ICollisionable {
+    start_position = new Vector(0, 0);
     dead = false;
-
+    
+    prev_direct = new Vector(0, 0);
     direct = new Vector(0, 0);
+    
+    prev_position = new Vector(0, 0);
     position = new Vector(0, 0);
     range = 1000;
 
@@ -16,15 +19,25 @@ export class Ammo {
         public container: Container,
     ) { }
 
+    size: number = 10;
+    speed: number = 10;
+
+    prev_facing: EFacing = EFacing.top;
+    facing: EFacing = EFacing.top;
+
+    updateSprite(): void {
+        throw new Error("Method not implemented.");
+    }
+
     init(
         direct: Vector,
         position: Vector,
         range: number
     ) {
         this.direct.setV(direct);
+        this.start_position.setV(position);
         this.position.setV(position);
-        this.sprite.x = position.x;
-        this.sprite.y = position.y;
+
         this.sprite.rotation = -1 * (direct.rad() -  Math.PI / 2);
         console.log('rad', direct.rad() / Math.PI, this.sprite.rotation / Math.PI);
         
@@ -40,12 +53,13 @@ export class Ammo {
     }
 
     updatePosition() {
-        this.sprite.x += this.direct.x;
-        this.sprite.y += this.direct.y;
-        this.current_position.x = this.sprite.x;
-        this.current_position.y = this.sprite.y;
+        this.position.x += this.direct.x;
+        this.position.y += this.direct.y;
 
-        if (this.position.distanceTo(this.current_position) >= this.range) {
+        this.sprite.x = this.position.x;
+        this.sprite.y = this.position.y;
+
+        if (this.start_position.distanceTo(this.position) >= this.range) {
             this.dead = true;
             this.container.removeChild(this.sprite);
         }
@@ -60,9 +74,9 @@ export class Ammo {
     }
 }
 
-export class AmmoPool {
+export class AmmoPool implements IObjectPools {
     spirte: AnimatedSprite;
-    ammos: Ammo[] = [];
+    pools: Ammo[] = [];
     constructor(
         spirte: AnimatedSprite,
         public container: Container,
@@ -75,16 +89,16 @@ export class AmmoPool {
         position: Vector,
         range: number
     ) {
-        if (this.ammos.length < 100) {
+        if (this.pools.length < 100) {
             const ammo = new Ammo(new AnimatedSprite(this.spirte.textures), this.container);
-            this.ammos.push(ammo);
+            this.pools.push(ammo);
             ammo.init(
                 direct,
                 position,
                 range
             );
         } else {
-            this.ammos.find(ammo => {
+            this.pools.find(ammo => {
                 if (ammo.dead) {
                     ammo.init(
                         direct,
@@ -98,6 +112,6 @@ export class AmmoPool {
     }
 
     update() {
-        this.ammos.forEach(x => x.update());
+        this.pools.forEach(x => x.update());
     }
 }

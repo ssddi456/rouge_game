@@ -33,6 +33,7 @@
     "tslib": "^2.4.0"
   },
   "devDependencies": {
+    "@swc-node/loader": "^1.2.1",
     "@swc/core": "^1.2.183",
     "@types/fs-extra": "^9.0.13",
     "@types/react": "^18.0.9",

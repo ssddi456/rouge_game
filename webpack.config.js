@@ -2,13 +2,18 @@ var path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 module.exports = function ({ entry }) {
+    const entrys = (entry || {}).editor
+        ? {
+              editor: "./src/editor.ts",
+          }
+        : {
+              main: "./src/main.ts",
+          };
+
     /** @type {import("webpack").Configuration} */
     return {
         mode: "development",
-        entry: {
-            main: "./src/main.ts",
-            editor: "./src/editor.tsx",
-        },
+        entry: entrys,
         output: {
             // publicPath: './dist'
             path: path.join(__dirname, "/dist"),
@@ -25,14 +30,7 @@ module.exports = function ({ entry }) {
         module: {
             rules: [
                 {
-                    test: /\.ts$/,
-                    exclude: /(node_modules|bower_components)/,
-                    use: {
-                        loader: "swc-loader",
-                    },
-                },
-                {
-                    test: /\.tsx$/,
+                    test: /\.tsx?$/,
                     exclude: /(node_modules|bower_components)/,
                     use: {
                         loader: "swc-loader",
@@ -66,7 +64,6 @@ module.exports = function ({ entry }) {
         },
         plugins: [
             new HtmlWebpackPlugin({
-                chunks: [entry || "main"],
                 template: "./src/template/index.html",
             }),
         ],

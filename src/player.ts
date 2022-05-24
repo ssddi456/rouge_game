@@ -3,17 +3,23 @@ import { AnimatedSprite, Container, Graphics, Sprite } from "pixi.js";
 import { Vector } from "./vector";
 import { keypressed, mouse } from "./user_input";
 import { AmmoPool } from "./ammo";
+import { EFacing, ICollisionable, IMovable, Shootable } from "./types";
 
-export class Player {
+export class Player implements IMovable, Shootable, ICollisionable {
     sprite: Container = new Container();
+    dead: boolean = false;
+    start_position: Vector = new Vector(0, 0);
+    prev_position: Vector = new Vector(0, 0);
+    size = 100;
+
     prev_direct: Vector = new Vector(0, 0);
     direct: Vector = new Vector(0, 0);
 
     prev_costing: boolean = false;
     costing: boolean = false;
 
-    prev_facing: string = "top";
-    facing: string = "top";
+    prev_facing = EFacing.top;
+    facing = EFacing.bottom;
 
     speed = 4;
 
@@ -57,6 +63,8 @@ export class Player {
     cacheProperty() {
         this.prev_direct.x = this.direct.x;
         this.prev_direct.y = this.direct.y;
+        this.prev_position.x = this.start_position.x;
+        this.prev_position.y = this.start_position.y;
         this.prev_costing = this.costing;
         this.prev_facing = this.facing;
     }
@@ -111,6 +119,8 @@ export class Player {
     }
 
     updatePosition() {
+        this.start_position.add(this.direct);
+
         this.sprite.x += this.direct.x;
         this.sprite.y += this.direct.y;
     }
@@ -129,7 +139,7 @@ export class Player {
         );
     }
 
-    updateSpirte() {
+    updateSprite() {
 
         if (this.costing && !this.prev_costing) {
             this.sprite.removeChildAt(this.mainSpirtIndex);
@@ -164,10 +174,10 @@ export class Player {
             || (this.direct.y < 0 && this.prev_direct.y >= 0)
         ) {
             if (this.direct.y > 0) {
-                this.facing = "bottom";
+                this.facing = EFacing.bottom;
             }
             if (this.direct.y < 0) {
-                this.facing = "top";
+                this.facing = EFacing.top;
             }
         }
 
@@ -176,7 +186,7 @@ export class Player {
             if (this.facing == "top") {
                 this.sprite.addChildAt(this.spirtes.idle_back, this.mainSpirtIndex);
             }
-            if (this.facing == "bottom") {
+            if (this.facing == EFacing.bottom) {
                 this.sprite.addChildAt(this.spirtes.idle, this.mainSpirtIndex);
             }
         }
@@ -186,7 +196,7 @@ export class Player {
         this.cacheProperty();
         this.getInput();
         this.updatePosition();
-        this.updateSpirte();
+        this.updateSprite();
         this.ammoPools.update();
     }
 }
