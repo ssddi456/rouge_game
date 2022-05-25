@@ -12,10 +12,16 @@ export enum EFacing {
     top = "top",
     bottom = "bottom",
 }
+export enum ECollisionType {
+    none = "none",
+    player = "player",
+    enemy = "enemy",
+}
 
 export interface ICollisionable extends GameObject {
     size: number;
     position: Vector;
+    collisison_type: ECollisionType;
 }
 
 export interface IMovable extends GameObject {
@@ -37,5 +43,9 @@ export interface Shootable {
 }
 
 export interface IObjectPools {
-    pools: ICollisionable[]
+    pool: ICollisionable[]
+}
+
+export interface EntityManager {
+    getEntities(options: { collisionTypes: ECollisionType[]}): ICollisionable[];
 }

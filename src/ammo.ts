@@ -1,5 +1,5 @@
 import { AnimatedSprite, Container, Sprite, Texture } from "pixi.js";
-import { EFacing, ICollisionable, IMovable, IObjectPools } from "./types";
+import { ECollisionType, EFacing, ICollisionable, IMovable, IObjectPools } from "./types";
 import { Vector } from "./vector";
 
 
@@ -18,10 +18,12 @@ export class Ammo implements IMovable, ICollisionable {
         public sprite: AnimatedSprite,
         public container: Container,
     ) {
-        this.sprite.visible = false;
+        this.sprite.anchor.set(0.8, 0.5);
     }
 
-    size: number = 10;
+    size: number = 20;
+    collisison_type: ECollisionType = ECollisionType.none;
+
     speed: number = 10;
 
     prev_facing: EFacing = EFacing.top;
@@ -41,7 +43,6 @@ export class Ammo implements IMovable, ICollisionable {
         this.position.setV(position);
 
         this.sprite.rotation = -1 * (direct.rad() -  Math.PI / 2);
-        console.log('rad', direct.rad() / Math.PI, this.sprite.rotation / Math.PI);
         
         this.range = range;
         this.dead = false;
@@ -78,7 +79,7 @@ export class Ammo implements IMovable, ICollisionable {
 
 export class AmmoPool implements IObjectPools {
     spirte: AnimatedSprite;
-    pools: Ammo[] = [];
+    pool: Ammo[] = [];
     constructor(
         spirte: AnimatedSprite,
         public container: Container,
@@ -91,19 +92,19 @@ export class AmmoPool implements IObjectPools {
         position: Vector,
         range: number
     ) {
-        if (this.pools.length < 100) {
+        if (this.pool.length < 100) {
             const ammo = new Ammo(new AnimatedSprite(this.spirte.textures), this.container);
-            this.pools.push(ammo);
+            this.pool.push(ammo);
             ammo.init(
                 direct,
                 position,
                 range
             );
         } else {
-            this.pools.find(ammo => {
+            this.pool.find(ammo => {
                 if (ammo.dead) {
                     ammo.init(
-                        direct,
+                        direct, 
                         position,
                         range
                     );
@@ -114,6 +115,6 @@ export class AmmoPool implements IObjectPools {
     }
 
     update() {
-        this.pools.forEach(x => x.update());
+        this.pool.forEach(x => x.update());
     }
 }

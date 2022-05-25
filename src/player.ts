@@ -3,14 +3,17 @@ import { AnimatedSprite, Container, Graphics, Sprite } from "pixi.js";
 import { Vector } from "./vector";
 import { keypressed, mouse } from "./user_input";
 import { AmmoPool } from "./ammo";
-import { EFacing, ICollisionable, IMovable, Shootable } from "./types";
+import { ECollisionType, EFacing, EntityManager, ICollisionable, IMovable, Shootable } from "./types";
+import { checkCollision } from "./collision_helper";
 
 export class Player implements IMovable, Shootable, ICollisionable {
     sprite: Container = new Container();
     dead: boolean = false;
     prev_position: Vector = new Vector(0, 0);
     position: Vector = new Vector(0, 0);
-    size = 100;
+    size = 70;
+
+    collisison_type: ECollisionType = ECollisionType.player;
 
     prev_direct: Vector = new Vector(0, 0);
     direct: Vector = new Vector(0, 0);
@@ -37,6 +40,7 @@ export class Player implements IMovable, Shootable, ICollisionable {
         public spirtes: Record<string, AnimatedSprite>,
         public hp: number,
         public container: Container,
+        public entityManager: EntityManager,
     ) {
         // soft shadow
         const shadow = new PIXI.Graphics();
@@ -121,8 +125,18 @@ export class Player implements IMovable, Shootable, ICollisionable {
     updatePosition() {
         this.position.add(this.direct);
 
-        this.sprite.x += this.direct.x;
-        this.sprite.y += this.direct.y;
+        const enemies = this.entityManager.getEntities({
+            collisionTypes: [ECollisionType.enemy],
+        });
+
+        for (let index = 0; index < enemies.length; index++) {
+            const enemy = enemies[index];
+            const checkRes = checkCollision(this, enemy);
+            if (checkRes) {
+                this.position.setV(checkRes.collisionPos);
+            }
+        }
+
     }
 
     doShoot() {
@@ -140,6 +154,9 @@ export class Player implements IMovable, Shootable, ICollisionable {
     }
 
     updateSprite() {
+
+        this.sprite.x = this.position.x;
+        this.sprite.y = this.position.y;
 
         if (this.costing && !this.prev_costing) {
             this.sprite.removeChildAt(this.mainSpirtIndex);

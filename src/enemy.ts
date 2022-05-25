@@ -3,7 +3,8 @@ import { CountDown } from "./countdown";
 import { Player } from "./player";
 import { Vector } from "./vector";
 import * as PIXI from 'pixi.js';
-import { IMovable, ICollisionable, EFacing, IObjectPools } from "./types";
+import { IMovable, ICollisionable, EFacing, IObjectPools, ECollisionType, EntityManager } from "./types";
+import { checkCollision } from "./collision_helper";
 
 
 function cloneAnimationSprites( spriteMap: Record<string, AnimatedSprite>){
@@ -34,6 +35,7 @@ export class Enemy implements IMovable, ICollisionable {
 
     speed = 1;
     size: number = 50;
+    collisison_type: ECollisionType = ECollisionType.enemy;
 
     player: Player | undefined;
     
@@ -46,6 +48,7 @@ export class Enemy implements IMovable, ICollisionable {
     constructor(
         public spirtes: Record<string, AnimatedSprite>,
         public container: Container,
+        public entityManager: EntityManager,
     ) {
         // soft shadow
         const shadow = new PIXI.Graphics();
@@ -92,11 +95,25 @@ export class Enemy implements IMovable, ICollisionable {
 
         this.position.x += this.direct.x;
         this.position.y += this.direct.y;
-        this.sprite.x = this.position.x;
-        this.sprite.y = this.position.y;
+
+        const nodes = this.entityManager.getEntities({
+            collisionTypes: [ECollisionType.enemy, ECollisionType.player],
+        });
+
+        for (let index = 0; index < nodes.length; index++) {
+            const enemy = nodes[index];
+            if (enemy !== this) {
+                const checkRes = checkCollision(this, enemy);
+                if (checkRes) {
+                    this.position.setV(checkRes.collisionPos);
+                }
+            }
+        }
     }
 
     updateSprite() {
+        this.sprite.x = this.position.x;
+        this.sprite.y = this.position.y;
 
         if (this.direct.x > 0 && this.prev_direct.y <= 0) {
             this.sprite.scale.x = -1;
@@ -138,13 +155,14 @@ export class Enemy implements IMovable, ICollisionable {
 
 export class EnemyPool implements IObjectPools {
 
-    pools: Enemy[] = [];
+    pool: Enemy[] = [];
     spawnTimer: CountDown;
     
     constructor(
         public spirtes: Record<string, AnimatedSprite>,
         public container: Container,
         public player: Player,
+        public entityManager: EntityManager,
     ) {
         this.spawnTimer = new CountDown(1000, this.spawn);
     }
@@ -152,15 +170,15 @@ export class EnemyPool implements IObjectPools {
     emit(
         position: Vector,
     ) {
-        if (this.pools.length < 100) {
-            const enemy = new Enemy(cloneAnimationSprites(this.spirtes), this.container);
-            this.pools.push(enemy);
+        if (this.pool.length < 100) {
+            const enemy = new Enemy(cloneAnimationSprites(this.spirtes), this.container, this.entityManager);
+            this.pool.push(enemy);
             enemy.init(
                 position,
                 this.player
             );
         } else {
-            this.pools.find(Enemy => {
+            this.pool.find(Enemy => {
                 if (Enemy.dead) {
                     Enemy.init(
                         position,
@@ -174,12 +192,12 @@ export class EnemyPool implements IObjectPools {
 
     update() {
         this.spawnTimer.update();
-        this.pools.forEach(x => x.update());
+        this.pool.forEach(x => x.update());
     }
     spawn = () => {
-        const living_enemys = this.pools.filter(x => !x.dead).length;
+        const living_enemys = this.pool.filter(x => !x.dead).length;
 
-        if (living_enemys < 10) {
+        if (living_enemys < 3) {
 
             const pos = new Vector(
                 200 + Math.floor(Math.random() * 100),

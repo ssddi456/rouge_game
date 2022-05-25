@@ -9,6 +9,7 @@ import { Curser } from './curser';
 import { EnemyPool } from './enemy';
 import { loadSpriteSheet } from './loadAnimation';
 import { CollisionView } from './drawCollisions';
+import { ECollisionType, EntityManager, ICollisionable } from './types';
 
 // The application will create a renderer using WebGL, if possible,
 // with a fallback to a canvas render. It will also setup the ticker
@@ -32,7 +33,8 @@ const viewport = new Viewport({
     worldHeight: 1000,
 
     interaction: app.renderer.plugins.interaction // the interaction module is important for wheel to work properly when renderer.view is placed or scaled
-})
+});
+viewport.sortableChildren = true;
 
 // add the viewport to the stage
 app.stage.addChild(viewport);
@@ -52,20 +54,39 @@ app.loader.add('grass', GrassImage)
         ammoG.endFill();
         const ammoT = app.renderer.generateTexture(ammoG);
         const ammoA = new AnimatedSprite([ammoT]);
-        ammoA.anchor.set(0.5, 0.5)
         playerAnimateMap.ammo = ammoA;
 
 
-        const grass = new PIXI.TilingSprite(resources.grass.texture!, 1000, 1000);
+        const grass = new PIXI.TilingSprite(resources.grass.texture!, app.view.width, app.view.height);
+        app.stage.addChildAt(grass, 0);
 
-        viewport.addChild(grass);
+        window.addEventListener('resize', () => {
+            grass.width = app.view.width;
+            grass.height = app.view.height;
+        });
 
-        const ammoDemo = new Sprite(ammoT);
-        ammoDemo.x = 100;
-        ammoDemo.y = 200;
-        viewport.addChild(ammoDemo);
-
-        const player = new Player(playerAnimateMap, 100, viewport);
+        const runnerApp: EntityManager = {
+            getEntities: ({
+                collisionTypes
+            }: {
+                    collisionTypes: ECollisionType[]
+            }) => {
+                return collisionTypes.reduce((acc, type) => {
+                    switch (type) {
+                        case ECollisionType.player:
+                            return [...acc, player];
+                        case ECollisionType.enemy:
+                            return [...acc, ...enemys.pool.filter(e => !e.dead)];
+                        case ECollisionType.none:
+                            return [...acc, ...player.ammoPools.pool];
+                        default:
+                            return acc;
+                    }
+                }, [] as ICollisionable[]);
+            }
+        };
+    
+        const player = new Player(playerAnimateMap, 100, viewport, runnerApp);
 
         viewport.addChild(player.sprite);
 
@@ -79,15 +100,15 @@ app.loader.add('grass', GrassImage)
         const curser = new Curser(curserA, viewport);
         viewport.addChild(curser.sprite);
 
-        const enemys = new EnemyPool(enemyAnimateMap, viewport, player);
+        const enemys = new EnemyPool(enemyAnimateMap, viewport, player, runnerApp);
 
         const collisionView = new CollisionView(
             app.renderer as PIXI.Renderer,
             viewport, 
             [
                 player,
+                enemys,
                 // player.ammoPools,
-                enemys
             ]);
 
         // Listen for frame updates

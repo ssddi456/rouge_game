@@ -17,7 +17,7 @@ export class CollisionView {
         circle.drawCircle(0, 0, 300);
         circle.endFill();
         circle.beginHole();
-        circle.drawCircle(0, 0, 290);
+        circle.drawCircle(0, 0, 200);
         circle.endHole();
         this.texture = renderer.generateTexture(circle);
 
@@ -31,6 +31,7 @@ export class CollisionView {
         if (!this.collisions[this.collisionsIndex]) {
             const sprite = new PIXI.Sprite(this.texture);
             sprite.anchor.set(0.5, 0.5);
+            sprite.zIndex = 2000;
             this.container.addChild(sprite);
             this.collisions[this.collisionsIndex] = sprite;
 
@@ -38,8 +39,8 @@ export class CollisionView {
         const collision = this.collisions[this.collisionsIndex];
         collision.x = obj.position.x;
         collision.y = obj.position.y;
-        collision.width = obj.size;
-        collision.height = obj.size;
+        collision.width = obj.size * 2;
+        collision.height = obj.size * 2;
         collision.visible = true;
 
 
@@ -54,16 +55,16 @@ export class CollisionView {
 
         for (let i = 0; i < this.objects.length; i++) {
             const element = this.objects[i];
-            if ((element as IObjectPools).pools) {
-                for (let j = 0; j < (element as IObjectPools).pools.length; j++) {
-                    const item = (element as IObjectPools).pools[j];
+            if ((element as IObjectPools).pool) {
+                for (let j = 0; j < (element as IObjectPools).pool.length; j++) {
+                    const item = (element as IObjectPools).pool[j];
                     this.showCollision(item);
                 }
             } else {
                 this.showCollision(element as ICollisionable);
                 if (((element as any) as Shootable).ammoPools) {
-                    for (let j = 0; j < ((element as any) as Shootable).ammoPools.pools.length; j++) {
-                        const ammo = ((element as any) as Shootable).ammoPools.pools[j];
+                    for (let j = 0; j < ((element as any) as Shootable).ammoPools.pool.length; j++) {
+                        const ammo = ((element as any) as Shootable).ammoPools.pool[j];
                         this.showCollision(ammo);
                     }
                 }
