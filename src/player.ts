@@ -8,8 +8,8 @@ import { EFacing, ICollisionable, IMovable, Shootable } from "./types";
 export class Player implements IMovable, Shootable, ICollisionable {
     sprite: Container = new Container();
     dead: boolean = false;
-    start_position: Vector = new Vector(0, 0);
     prev_position: Vector = new Vector(0, 0);
+    position: Vector = new Vector(0, 0);
     size = 100;
 
     prev_direct: Vector = new Vector(0, 0);
@@ -63,8 +63,8 @@ export class Player implements IMovable, Shootable, ICollisionable {
     cacheProperty() {
         this.prev_direct.x = this.direct.x;
         this.prev_direct.y = this.direct.y;
-        this.prev_position.x = this.start_position.x;
-        this.prev_position.y = this.start_position.y;
+        this.prev_position.x = this.position.x;
+        this.prev_position.y = this.position.y;
         this.prev_costing = this.costing;
         this.prev_facing = this.facing;
     }
@@ -119,7 +119,7 @@ export class Player implements IMovable, Shootable, ICollisionable {
     }
 
     updatePosition() {
-        this.start_position.add(this.direct);
+        this.position.add(this.direct);
 
         this.sprite.x += this.direct.x;
         this.sprite.y += this.direct.y;

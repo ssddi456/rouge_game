@@ -81,10 +81,14 @@ app.loader.add('grass', GrassImage)
 
         const enemys = new EnemyPool(enemyAnimateMap, viewport, player);
 
-        const collisionView = new CollisionView(viewport, [
-            player,
-            enemys
-        ]);
+        const collisionView = new CollisionView(
+            app.renderer as PIXI.Renderer,
+            viewport, 
+            [
+                player,
+                // player.ammoPools,
+                enemys
+            ]);
 
         // Listen for frame updates
         app.ticker.add(() => {

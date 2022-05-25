@@ -2,7 +2,7 @@ import { AmmoPool } from "./ammo";
 import { Vector } from "./vector"
 
 export interface GameObject {
-    start_position: Vector;
+    position: Vector;
     prev_position: Vector;
     dead: boolean;
     update(): void;
@@ -15,7 +15,7 @@ export enum EFacing {
 
 export interface ICollisionable extends GameObject {
     size: number;
-    start_position: Vector;
+    position: Vector;
 }
 
 export interface IMovable extends GameObject {

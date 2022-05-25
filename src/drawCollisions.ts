@@ -5,11 +5,22 @@ export class CollisionView {
 
     collisions: PIXI.Sprite[] = [];
     collisionsIndex = 0;
+    texture: PIXI.Texture;
 
     constructor(
+        public renderer: PIXI.Renderer,
         public container: PIXI.Container,
         public objects: (ICollisionable | IObjectPools)[]
     ) {
+        const circle = new PIXI.Graphics();
+        circle.beginFill(0xff0000);
+        circle.drawCircle(0, 0, 300);
+        circle.endFill();
+        circle.beginHole();
+        circle.drawCircle(0, 0, 290);
+        circle.endHole();
+        this.texture = renderer.generateTexture(circle);
+
     }
 
     showCollision(obj: ICollisionable) {
@@ -18,18 +29,19 @@ export class CollisionView {
         }
 
         if (!this.collisions[this.collisionsIndex]) {
-            const sprite = new PIXI.Sprite(PIXI.Texture.WHITE);
+            const sprite = new PIXI.Sprite(this.texture);
             sprite.anchor.set(0.5, 0.5);
             this.container.addChild(sprite);
             this.collisions[this.collisionsIndex] = sprite;
-        } else {
-            const collision = this.collisions[this.collisionsIndex];
-            collision.visible = true;
-            collision.x = obj.start_position.x;
-            collision.y = obj.start_position.y;
-            collision.width = obj.size;
-            collision.height = obj.size;
+
         }
+        const collision = this.collisions[this.collisionsIndex];
+        collision.x = obj.position.x;
+        collision.y = obj.position.y;
+        collision.width = obj.size;
+        collision.height = obj.size;
+        collision.visible = true;
+
 
         this.collisionsIndex++;
     }

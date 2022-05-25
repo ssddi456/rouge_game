@@ -27,7 +27,7 @@ export class Enemy implements IMovable, ICollisionable {
     direct = new Vector(0, 0);
 
     prev_position = new Vector(0, 0);
-    start_position = new Vector(0, 0);
+    position = new Vector(0, 0);
     
     prev_facing = EFacing.bottom;
     facing = EFacing.bottom;
@@ -65,7 +65,7 @@ export class Enemy implements IMovable, ICollisionable {
         position: Vector,
         player: Player
     ) {
-        this.start_position.setV(position);
+        this.position.setV(position);
         this.sprite.x = position.x;
         this.sprite.y = position.y;
 
@@ -77,8 +77,8 @@ export class Enemy implements IMovable, ICollisionable {
     cacheProperty() {
         this.prev_direct.x = this.direct.x;
         this.prev_direct.y = this.direct.y;
-        this.prev_position.x = this.start_position.x;
-        this.prev_position.y = this.start_position.y;
+        this.prev_position.x = this.position.x;
+        this.prev_position.y = this.position.y;
         this.prev_facing = this.facing;
     }
 
@@ -86,14 +86,14 @@ export class Enemy implements IMovable, ICollisionable {
         this.direct.setV(new Vector(
             this.player!.sprite.x, 
             this.player!.sprite.y)
-            .sub(this.start_position)
+            .sub(this.position)
             .normalize()
             .multiplyScalar(this.speed));
 
-        this.start_position.x += this.direct.x;
-        this.start_position.y += this.direct.y;
-        this.sprite.x = this.start_position.x;
-        this.sprite.y = this.start_position.y;
+        this.position.x += this.direct.x;
+        this.position.y += this.direct.y;
+        this.sprite.x = this.position.x;
+        this.sprite.y = this.position.y;
     }
 
     updateSprite() {

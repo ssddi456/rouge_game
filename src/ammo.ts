@@ -17,7 +17,9 @@ export class Ammo implements IMovable, ICollisionable {
     constructor(
         public sprite: AnimatedSprite,
         public container: Container,
-    ) { }
+    ) {
+        this.sprite.visible = false;
+    }
 
     size: number = 10;
     speed: number = 10;
