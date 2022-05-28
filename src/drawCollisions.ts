@@ -24,7 +24,7 @@ export class CollisionView {
     }
 
     showCollision(obj: ICollisionable) {
-        if (obj.dead) {
+        if ((obj as any).dead) {
             return;
         }
 

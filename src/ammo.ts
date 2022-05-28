@@ -1,15 +1,17 @@
 import { AnimatedSprite, Container, Sprite, Texture } from "pixi.js";
-import { ECollisionType, EFacing, ICollisionable, IMovable, IObjectPools } from "./types";
+import { ammoZIndex } from "./const";
+import { Enemy } from "./enemy";
+import { ECollisionType, EFacing, EntityManager, ICollisionable, IMovable, IObjectPools } from "./types";
 import { Vector } from "./vector";
 
 
 export class Ammo implements IMovable, ICollisionable {
     start_position = new Vector(0, 0);
     dead = false;
-    
+    prev_dead = false;
     prev_direct = new Vector(0, 0);
     direct = new Vector(0, 0);
-    
+
     prev_position = new Vector(0, 0);
     position = new Vector(0, 0);
     range = 1000;
@@ -19,6 +21,7 @@ export class Ammo implements IMovable, ICollisionable {
         public container: Container,
     ) {
         this.sprite.anchor.set(0.8, 0.5);
+        this.sprite.zIndex = ammoZIndex;
     }
 
     size: number = 20;
@@ -42,8 +45,8 @@ export class Ammo implements IMovable, ICollisionable {
         this.start_position.setV(position);
         this.position.setV(position);
 
-        this.sprite.rotation = -1 * (direct.rad() -  Math.PI / 2);
-        
+        this.sprite.rotation = -1 * (direct.rad() - Math.PI / 2);
+
         this.range = range;
         this.dead = false;
         this.container.addChild(this.sprite);
@@ -53,6 +56,7 @@ export class Ammo implements IMovable, ICollisionable {
 
         this.prev_direct.x = this.direct.x;
         this.prev_direct.y = this.direct.y;
+        this.prev_dead = this.dead;
     }
 
     updatePosition() {
@@ -83,6 +87,7 @@ export class AmmoPool implements IObjectPools {
     constructor(
         spirte: AnimatedSprite,
         public container: Container,
+        public entityManager: EntityManager
     ) {
         this.spirte = spirte;
     }
@@ -93,7 +98,7 @@ export class AmmoPool implements IObjectPools {
         range: number
     ) {
         if (this.pool.length < 100) {
-            const ammo = new Ammo(new AnimatedSprite(this.spirte.textures), this.container);
+            const ammo = new Ammo(new AnimatedSprite(this.spirte.textures), this.container,);
             this.pool.push(ammo);
             ammo.init(
                 direct,
@@ -104,7 +109,7 @@ export class AmmoPool implements IObjectPools {
             this.pool.find(ammo => {
                 if (ammo.dead) {
                     ammo.init(
-                        direct, 
+                        direct,
                         position,
                         range
                     );
@@ -114,7 +119,24 @@ export class AmmoPool implements IObjectPools {
         }
     }
 
+    updateHit() {
+        const ammos = this.pool.filter(ammo => !ammo.dead);
+        const enemies = this.entityManager.getEntities({ collisionTypes: [ECollisionType.enemy] });
+        for (let index = 0; index < ammos.length; index++) {
+            const ammo = ammos[index];
+            for (let jndex = 0; jndex < enemies.length; jndex++) {
+                const enemy = enemies[jndex] as Enemy;
+                if (!enemy.dead) {
+                    if (ammo.position.distanceTo(enemy.position) <= ammo.size + enemy.size) {
+                        enemy.recieveDamage(1);
+                    }
+                }
+            }
+        }
+    }
+
     update() {
         this.pool.forEach(x => x.update());
+        this.updateHit();
     }
 }

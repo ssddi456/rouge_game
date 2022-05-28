@@ -2,6 +2,7 @@ import {
     Button,
     Col,
     Divider,
+    Form,
     Input,
     List,
     Row,
@@ -216,8 +217,11 @@ class Editor extends React.Component<{}, EditorState> {
     render() {
         return (
             <div>
-                <h1>Editor</h1>
+                <h1>Animation sheet Editor</h1>
                 <Row>
+                    <Col span="2">
+                        Sheet:
+                    </Col>
                     <Col span="8">
                         <Select
                             value={this.state.selected}

@@ -10,6 +10,7 @@ import { EnemyPool } from './enemy';
 import { loadSpriteSheet } from './loadAnimation';
 import { CollisionView } from './drawCollisions';
 import { ECollisionType, EntityManager, ICollisionable } from './types';
+import { Particle } from './particle';
 
 // The application will create a renderer using WebGL, if possible,
 // with a fallback to a canvas render. It will also setup the ticker
@@ -68,8 +69,6 @@ app.loader.add('grass', GrassImage)
         const runnerApp: EntityManager = {
             getEntities: ({
                 collisionTypes
-            }: {
-                    collisionTypes: ECollisionType[]
             }) => {
                 return collisionTypes.reduce((acc, type) => {
                     switch (type) {
@@ -83,13 +82,22 @@ app.loader.add('grass', GrassImage)
                             return acc;
                     }
                 }, [] as ICollisionable[]);
+            },
+            emitParticles: (
+                position,
+                animation,
+                duration,
+            ) => {
+                new Particle(
+                    position,
+                    new AnimatedSprite(animation.textures),
+                    viewport,
+                    duration,
+                );
             }
         };
     
         const player = new Player(playerAnimateMap, 100, viewport, runnerApp);
-
-        viewport.addChild(player.sprite);
-
         const curserG = new PIXI.Graphics();
         curserG.beginFill(0xffffff);
         curserG.drawCircle(0, 0, 10);
@@ -98,8 +106,6 @@ app.loader.add('grass', GrassImage)
         curserA.anchor.set(0.5, 0.5)
 
         const curser = new Curser(curserA, viewport);
-        viewport.addChild(curser.sprite);
-
         const enemys = new EnemyPool(enemyAnimateMap, viewport, player, runnerApp);
 
         const collisionView = new CollisionView(

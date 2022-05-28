@@ -8,7 +8,9 @@ export class Curser {
     constructor(
         public sprite: AnimatedSprite,
         public container: Container,
-    ) { }
+    ) { 
+        container.addChild(this.sprite);
+    }
 
     cacheProperty() {
     }

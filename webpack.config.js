@@ -1,18 +1,24 @@
 var path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
+
+const isDevelopment = process.env.NODE_ENV !== 'production';
 
 module.exports = function ({ entry }) {
-    const entrys = (entry || {}).editor
+    const entrys = ((entry || 'main') == 'editor')
         ? {
-              editor: "./src/editor.ts",
+              editor: "./src/editor.tsx",
           }
         : {
               main: "./src/main.ts",
           };
 
+    const isEditor = entrys && entrys.editor;
+    const shouldRefreshReact = isEditor && isDevelopment;
+    console.log('entrys', entrys, 'isDevelopment', isDevelopment, 'shouldRefreshReact', shouldRefreshReact);
     /** @type {import("webpack").Configuration} */
     return {
-        mode: "development",
+        mode: isDevelopment ? 'development' : 'production',
         entry: entrys,
         output: {
             // publicPath: './dist'
@@ -25,8 +31,17 @@ module.exports = function ({ entry }) {
         devServer: {
             host: "0.0.0.0",
             port: "7000",
-            open: true,
+            open: {
+                target: 'http://localhost:7000',
+                app: {
+                    name: 'google chrome',
+                }
+            },
+            hot: true,
         },
+
+        devtool: isDevelopment ? 'source-map' : false,
+
         module: {
             rules: [
                 {
@@ -34,6 +49,16 @@ module.exports = function ({ entry }) {
                     exclude: /(node_modules|bower_components)/,
                     use: {
                         loader: "swc-loader",
+                        options: {
+                            jsc: {
+                                transform: {
+                                    react: {
+                                        development: shouldRefreshReact,
+                                        refresh: shouldRefreshReact,
+                                    },
+                                },
+                            },
+                        },
                     },
                 },
                 {
@@ -63,9 +88,10 @@ module.exports = function ({ entry }) {
             ],
         },
         plugins: [
+            shouldRefreshReact && new ReactRefreshWebpackPlugin(),
             new HtmlWebpackPlugin({
                 template: "./src/template/index.html",
             }),
-        ],
+        ].filter(Boolean),
     };
 };

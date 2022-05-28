@@ -1,10 +1,11 @@
+import { AnimatedSprite } from "pixi.js";
 import { AmmoPool } from "./ammo";
 import { Vector } from "./vector"
 
 export interface GameObject {
     position: Vector;
     prev_position: Vector;
-    dead: boolean;
+
     update(): void;
 }
 
@@ -37,6 +38,17 @@ export interface IMovable extends GameObject {
     updateSprite(): void;
 }
 
+
+export interface LivingObject {
+    health: number;
+    prev_health: number;
+    dead: boolean;
+    prev_dead: boolean;
+
+    recieveHealth(amount: number): void;
+    recieveDamage(damage: number): void;
+}
+
 export interface Shootable {
     shootCd: number;
     ammoPools: AmmoPool;
@@ -48,4 +60,17 @@ export interface IObjectPools {
 
 export interface EntityManager {
     getEntities(options: { collisionTypes: ECollisionType[]}): ICollisionable[];
+    emitParticles(position: Vector, animation: AnimatedSprite, duration: number): void
+}
+
+
+export interface Buffer {
+    id: string;
+    initialTime: number;
+    duration: number;
+    properties: Record<string, any>;
+}
+
+if (module.hot) {
+    module.hot.accept();
 }

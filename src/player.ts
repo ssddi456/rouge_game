@@ -1,14 +1,17 @@
 import * as PIXI from "pixi.js";
-import { AnimatedSprite, Container, Graphics, Sprite } from "pixi.js";
+import { AnimatedSprite, Container, Graphics } from "pixi.js";
 import { Vector } from "./vector";
 import { keypressed, mouse } from "./user_input";
 import { AmmoPool } from "./ammo";
-import { ECollisionType, EFacing, EntityManager, ICollisionable, IMovable, Shootable } from "./types";
+import { ECollisionType, EFacing, EntityManager, ICollisionable, IMovable, Shootable, Buffer, LivingObject } from "./types";
 import { checkCollision } from "./collision_helper";
+import { playerZIndex } from "./const";
+import { Enemy } from "./enemy";
 
-export class Player implements IMovable, Shootable, ICollisionable {
+export class Player implements IMovable, Shootable, ICollisionable, LivingObject {
     sprite: Container = new Container();
     dead: boolean = false;
+    prev_dead: boolean = false;
     prev_position: Vector = new Vector(0, 0);
     position: Vector = new Vector(0, 0);
     size = 70;
@@ -33,8 +36,11 @@ export class Player implements IMovable, Shootable, ICollisionable {
 
     lastShootTime = 0;
     shootCd = 400;
+    shootInterval = 400;
 
     ammoPools: AmmoPool;
+
+    bufferList: Buffer[] = [];
 
     constructor(
         public spirtes: Record<string, AnimatedSprite>,
@@ -42,9 +48,14 @@ export class Player implements IMovable, Shootable, ICollisionable {
         public container: Container,
         public entityManager: EntityManager,
     ) {
+        container.addChild(this.sprite);
+
+        instanceList.push(this);
+
         // soft shadow
         const shadow = new PIXI.Graphics();
         this.sprite.addChild(shadow);
+        this.sprite.zIndex = playerZIndex;
         this.shadow = shadow;
         shadow.beginFill(0x000000);
         shadow.drawEllipse(-10, 80, 30, 10);
@@ -61,7 +72,22 @@ export class Player implements IMovable, Shootable, ICollisionable {
         pointer.drawCircle(0, 0, 10);
         pointer.endFill();
 
-        this.ammoPools = new AmmoPool(this.spirtes.ammo, this.container);
+        this.ammoPools = new AmmoPool(this.spirtes.ammo, this.container, entityManager);
+    }
+
+    health: number = 100;
+    prev_health: number = 100;
+
+    recieveHealth(amount: number): void {
+        throw new Error("Method not implemented.");
+    }
+
+    recieveDamage(damage: number): void {
+        this.health -= damage;
+        if (this.health <= 0) {
+            this.dead = true;
+        }
+        this.entityManager // 插入一个死亡动画
     }
 
     cacheProperty() {
@@ -71,6 +97,8 @@ export class Player implements IMovable, Shootable, ICollisionable {
         this.prev_position.y = this.position.y;
         this.prev_costing = this.costing;
         this.prev_facing = this.facing;
+        this.prev_dead = this.dead;
+        this.prev_health = this.health;
     }
 
     getInput() {
@@ -97,12 +125,22 @@ export class Player implements IMovable, Shootable, ICollisionable {
                 this.costing = false;
                 animated.gotoAndStop(0);
             }
-        } else {
+        } else if (!this.costing) {
             if (
                 keypressed.attack
                 || keypressed.heavy_attack
             ) {
                 this.costing = true;
+                if (keypressed.heavy_attack) {
+                    this.bufferList.push({
+                        initialTime: Date.now(),
+                        duration: 200,
+                        id: 'heavy_attack',
+                        properties: {
+                            direct: this.direct.clone().normalize().multiplyScalar(this.speed * 3.1),
+                        }
+                    })
+                }
             }
         }
 
@@ -111,15 +149,24 @@ export class Player implements IMovable, Shootable, ICollisionable {
         if (this.costing) {
             this.direct.x = 0;
             this.direct.y = 0;
-            return;
-        }
-
-        if (this.shootCd + this.lastShootTime < Date.now()) {
-            if (keypressed.shoot) {
-                this.lastShootTime = Date.now();
-                this.doShoot();
+        } else {
+            if (this.shootCd + this.lastShootTime < Date.now()) {
+                if (keypressed.shoot) {
+                    this.lastShootTime = Date.now();
+                    this.doShoot();
+                }
+            }
+            // 射击后200毫秒内移速减半
+            if (this.lastShootTime + this.shootInterval > Date.now()) {
+                this.direct.multiplyScalar(0.5);
             }
         }
+
+        this.bufferList.filter(buffer => {
+            if (buffer.properties.direct) {
+                this.direct.add(buffer.properties.direct);
+            }
+        });
     }
 
     updatePosition() {
@@ -127,13 +174,31 @@ export class Player implements IMovable, Shootable, ICollisionable {
 
         const enemies = this.entityManager.getEntities({
             collisionTypes: [ECollisionType.enemy],
-        });
+        }) as Enemy[];
 
-        for (let index = 0; index < enemies.length; index++) {
-            const enemy = enemies[index];
-            const checkRes = checkCollision(this, enemy);
-            if (checkRes) {
-                this.position.setV(checkRes.collisionPos);
+        const is_rush = this.bufferList.find(buffer => buffer.id === 'heavy_attack');
+        if (is_rush) {
+            for (let index = 0; index < enemies.length; index++) {
+                const enemy = enemies[index];
+                const checkRes = checkCollision(this, enemy);
+                if (checkRes) {
+                    !enemy.bufferList.some(x => x.id == 'knock_back') && enemy.bufferList.push({
+                        initialTime: Date.now(),
+                        duration: 200,
+                        id: 'knock_back',
+                        properties: {
+                            direct: enemy.position.clone().sub(this.position).normalize().multiplyScalar(this.speed * 3.1),
+                        }
+                    })
+                }
+            }
+        } else {
+            for (let index = 0; index < enemies.length; index++) {
+                const enemy = enemies[index];
+                const checkRes = checkCollision(this, enemy);
+                if (checkRes) {
+                    this.position.setV(checkRes.collisionPos);
+                }
             }
         }
 
@@ -209,11 +274,33 @@ export class Player implements IMovable, Shootable, ICollisionable {
         }
     }
 
+    updateBuffer() {
+        this.bufferList = this.bufferList.filter(buffer => {
+            return (buffer.initialTime + buffer.duration) > Date.now();
+        });
+    }
+
     update() {
         this.cacheProperty();
         this.getInput();
         this.updatePosition();
+        this.updateBuffer();
         this.updateSprite();
         this.ammoPools.update();
     }
+}
+
+export const instanceList: Player[] = module?.hot?.data?.instanceList || [];
+if (module.hot) {
+    module.hot.accept();
+    module.hot.dispose((module) => {
+        module.instanceList = instanceList;
+    });
+    instanceList.forEach(player => {
+        if (player.constructor.toString() !== Player.toString()) {
+            location.reload();
+        }
+        player.constructor = Player;
+        (player as any).__proto__ = Player.prototype;
+    });
 }

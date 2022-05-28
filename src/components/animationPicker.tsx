@@ -49,11 +49,14 @@ export class AnimationPicker extends React.Component<
 
         return (
             <div>
-                <h1>Animation Preview</h1>
+                <h3>Animation Sprite picker</h3>
                 <Row>
                     <Col span={12}></Col>
                 </Row>
                 <div>
+                    <div>
+                        current sheet sprite:
+                    </div>
                     {/*  增加和删除 */}
                     {spritePositions.map((sprite, i) => {
                         return (
