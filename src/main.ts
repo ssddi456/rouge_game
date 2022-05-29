@@ -88,15 +88,17 @@ app.loader.add('grass', GrassImage)
             emitParticles: (
                 position,
                 animation,
+                updateFunc,
                 duration,
             ) => {
                 particles.push(
                     new Particle(
-                        position,
+                        position.clone(),
                         animation instanceof AnimatedSprite 
                             ? new AnimatedSprite(animation.textures) 
                             : new Sprite(animation.texture),
                         viewport,
+                        updateFunc,
                         duration,
                     )
                 );
@@ -105,15 +107,17 @@ app.loader.add('grass', GrassImage)
                 position,
                 damage,
             ) => {
-                console.log('position', position, 'damage', damage);
                 particles.push(
                     new Particle(
-                        position,
+                        position.clone(),
                         new Text(`- ${damage}`, {
                             fill: 0xffffff,
                             fontSize: 14,
                         }),
                         viewport,
+                        function (this: Particle, p: number) {
+                            this.position.y -= 1;
+                        },
                         600,
                         textParticleZIndex
                     )

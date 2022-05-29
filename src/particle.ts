@@ -10,6 +10,7 @@ export class Particle {
         public position: Vector,
         sprite: Sprite,
         public container: Container,
+        public updateFunc: ((percent: number) => void) | undefined,
         public duration: number,
         zIndex: number = particleZIndex,
     ) {
@@ -22,6 +23,14 @@ export class Particle {
     }
 
     update() {
+        if (!!this.updateFunc) {
+            const percent = (Date.now() - this.initialTime) / this.duration;
+            this.updateFunc(percent);
+        }
+
+        this.sprite.x = this.position.x;
+        this.sprite.y = this.position.y;
+
         if ((this.initialTime + this.duration) <= Date.now()) {
             this.container.removeChild(this.sprite);
             this.dead = true;

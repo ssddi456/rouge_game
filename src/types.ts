@@ -46,7 +46,7 @@ export interface LivingObject {
     prev_dead: boolean;
 
     recieveHealth(amount: number): void;
-    recieveDamage(damage: number): void;
+    recieveDamage(damage: number, hitPos: Vector): void;
 }
 
 export interface Shootable {
@@ -60,7 +60,7 @@ export interface IObjectPools {
 
 export interface EntityManager {
     getEntities(options: { collisionTypes: ECollisionType[]}): ICollisionable[];
-    emitParticles(position: Vector, animation: AnimatedSprite | Sprite, duration: number): void;
+    emitParticles(position: Vector, animation: AnimatedSprite | Sprite, updateFunc: ((percent:number) => void) | undefined, duration: number): void;
     emitDamageParticles(position: Vector, amount: number): void;
 }
 

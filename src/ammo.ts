@@ -1,4 +1,5 @@
 import { AnimatedSprite, Container, Sprite, Texture } from "pixi.js";
+import { checkCollision } from "./collision_helper";
 import { ammoZIndex } from "./const";
 import { Enemy } from "./enemy";
 import { ECollisionType, EFacing, EntityManager, ICollisionable, IMovable, IObjectPools } from "./types";
@@ -127,8 +128,9 @@ export class AmmoPool implements IObjectPools {
             for (let jndex = 0; jndex < enemies.length; jndex++) {
                 const enemy = enemies[jndex] as Enemy;
                 if (!enemy.dead) {
-                    if (ammo.position.distanceTo(enemy.position) <= ammo.size + enemy.size) {
-                        enemy.recieveDamage(1);
+                    const ifCollision = checkCollision(ammo, enemy);
+                    if (ifCollision) {
+                        enemy.recieveDamage(1, ifCollision.collisionHitPos);
                     }
                 }
             }

@@ -10,9 +10,11 @@ export function checkCollision ( a: ICollisionable, b: ICollisionable){
         const overlap = (a.size + b.size) - dist;
         const normal = dir.multiplyScalar(overlap / dist);
         const collisionPos = a.position.clone().add(normal);
+        const collisionHitPos = a.position.clone().sub(dir.clone().normalize().multiplyScalar(a.size));
         return {
             collision: true,
             collisionPos,
+            collisionHitPos,
         };
     }
     return false;

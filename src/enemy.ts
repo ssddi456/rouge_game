@@ -72,10 +72,10 @@ export class Enemy implements IMovable, ICollisionable, LivingObject {
     recieveHealth(amount: number): void {
         throw new Error("Method not implemented.");
     }
-    recieveDamage(damage: number): void {
+    recieveDamage(damage: number, hitPos: Vector): void {
         this.health -= damage;
 
-        this.entityManager.emitDamageParticles(this.position, damage);
+        this.entityManager.emitDamageParticles(hitPos, damage);
 
         if (this.health <= 0) {
             this.dead = true;
@@ -87,6 +87,7 @@ export class Enemy implements IMovable, ICollisionable, LivingObject {
             this.entityManager.emitParticles(
                 this.position,
                 this.facing == EFacing.top ? this.spirtes.die_back : this.spirtes.die,
+                undefined,
                 300,
             );
         }
