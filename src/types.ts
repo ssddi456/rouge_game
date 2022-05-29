@@ -1,4 +1,4 @@
-import { AnimatedSprite } from "pixi.js";
+import { AnimatedSprite, Sprite } from "pixi.js";
 import { AmmoPool } from "./ammo";
 import { Vector } from "./vector"
 
@@ -60,7 +60,8 @@ export interface IObjectPools {
 
 export interface EntityManager {
     getEntities(options: { collisionTypes: ECollisionType[]}): ICollisionable[];
-    emitParticles(position: Vector, animation: AnimatedSprite, duration: number): void
+    emitParticles(position: Vector, animation: AnimatedSprite | Sprite, duration: number): void;
+    emitDamageParticles(position: Vector, amount: number): void;
 }
 
 

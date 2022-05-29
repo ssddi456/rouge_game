@@ -151,7 +151,9 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
             this.direct.y = 0;
         } else {
             if (this.shootCd + this.lastShootTime < Date.now()) {
-                if (keypressed.shoot) {
+                if (keypressed.shoot
+                    || mouse.left
+                ) {
                     this.lastShootTime = Date.now();
                     this.doShoot();
                 }
@@ -209,8 +211,8 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
             mouse.x - this.sprite.x,
             mouse.y - this.sprite.y
         )
-            .normalize()
-            .multiplyScalar(1);
+            .normalize();
+
         this.ammoPools.emit(
             direct,
             new Vector(this.sprite.x, this.sprite.y),

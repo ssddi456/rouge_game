@@ -26,8 +26,32 @@ window.addEventListener('keyup', (e) => {
     keyAlias();
 });
 
-export const mouse = { x: 0, y: 0 };
+export const mouse = { 
+    x: 0, 
+    y: 0,
+    left: 0,
+    right: 0,
+    middle: 0,
+    wheel: 0,
+    0: 0,
+    1: 0,
+    2: 0,
+};
 window.addEventListener('mousemove', (e) => {
     mouse.x = e.clientX;
     mouse.y = e.clientY;
+});
+
+window.addEventListener('mousedown', (e) => {
+    const button = e.button as 0 | 1 | 2;
+    mouse[button] = 1;
+    mouse.left = button === 0 ? 1 : 0;
+    mouse.right = button === 2 ? 1 : 0;
+});
+
+window.addEventListener('mouseup', (e) => {
+    const button = e.button as 0 | 1 | 2;
+    mouse[button] = 0;
+    mouse.left = button === 0 ? 0 : 1;
+    mouse.right = button === 2 ? 0 : 1;
 });

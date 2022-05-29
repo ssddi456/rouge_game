@@ -1,4 +1,4 @@
-import { AnimatedSprite, Container, Graphics, Sprite, Texture } from "pixi.js";
+import { AnimatedSprite, Container, Graphics, Sprite, Text, Texture } from "pixi.js";
 import { CountDown } from "./countdown";
 import { Player } from "./player";
 import { Vector } from "./vector";
@@ -74,14 +74,22 @@ export class Enemy implements IMovable, ICollisionable, LivingObject {
     }
     recieveDamage(damage: number): void {
         this.health -= damage;
+
+        this.entityManager.emitDamageParticles(this.position, damage);
+
         if (this.health <= 0) {
             this.dead = true;
+            this.health = 0;
         }
-        this.entityManager.emitParticles(
-            this.position,
-            this.facing == EFacing.top ? this.spirtes.die_back : this.spirtes.die,
-            300,
-        ); // 插入一个死亡动画
+
+        if (this.dead) {
+            // 插入一个死亡动画
+            this.entityManager.emitParticles(
+                this.position,
+                this.facing == EFacing.top ? this.spirtes.die_back : this.spirtes.die,
+                300,
+            );
+        }
     }
 
 

@@ -1,4 +1,5 @@
 import * as PIXI from 'pixi.js'
+import { Text } from 'pixi.js'
 import GrassImage from './assets/THX0.png';
 import './user_input';
 
@@ -11,6 +12,7 @@ import { loadSpriteSheet } from './loadAnimation';
 import { CollisionView } from './drawCollisions';
 import { ECollisionType, EntityManager, ICollisionable } from './types';
 import { Particle } from './particle';
+import { textParticleZIndex } from './const';
 
 // The application will create a renderer using WebGL, if possible,
 // with a fallback to a canvas render. It will also setup the ticker
@@ -40,7 +42,7 @@ viewport.sortableChildren = true;
 // add the viewport to the stage
 app.stage.addChild(viewport);
 
-
+let particles: Particle[] = [];
 // load the texture we need
 app.loader.add('grass', GrassImage)
     .load(async (loader, resources) => {
@@ -88,15 +90,44 @@ app.loader.add('grass', GrassImage)
                 animation,
                 duration,
             ) => {
-                new Particle(
-                    position,
-                    new AnimatedSprite(animation.textures),
-                    viewport,
-                    duration,
+                particles.push(
+                    new Particle(
+                        position,
+                        animation instanceof AnimatedSprite 
+                            ? new AnimatedSprite(animation.textures) 
+                            : new Sprite(animation.texture),
+                        viewport,
+                        duration,
+                    )
+                );
+            },
+            emitDamageParticles: (
+                position,
+                damage,
+            ) => {
+                console.log('position', position, 'damage', damage);
+                particles.push(
+                    new Particle(
+                        position,
+                        new Text(`- ${damage}`, {
+                            fill: 0xffffff,
+                            fontSize: 14,
+                        }),
+                        viewport,
+                        600,
+                        textParticleZIndex
+                    )
                 );
             }
         };
-    
+
+        const textTest = new Text('Hello World', {
+            fill: 0xffffff,
+            fontSize: 14,
+        });
+        textTest.position.set(300, 300);
+        viewport.addChild(textTest);
+
         const player = new Player(playerAnimateMap, 100, viewport, runnerApp);
         const curserG = new PIXI.Graphics();
         curserG.beginFill(0xffffff);
@@ -110,7 +141,7 @@ app.loader.add('grass', GrassImage)
 
         const collisionView = new CollisionView(
             app.renderer as PIXI.Renderer,
-            viewport, 
+            viewport,
             [
                 player,
                 enemys,
@@ -125,5 +156,11 @@ app.loader.add('grass', GrassImage)
             curser.update();
             // for debugers
             collisionView.update();
+
+            for (let index = 0; index < particles.length; index++) {
+                const particle = particles[index];
+                particle.update();
+            }
+            particles = particles.filter(p => !p.dead);
         });
     });

@@ -60,8 +60,8 @@ export class Ammo implements IMovable, ICollisionable {
     }
 
     updatePosition() {
-        this.position.x += this.direct.x;
-        this.position.y += this.direct.y;
+        this.position.x += this.direct.x * this.speed;
+        this.position.y += this.direct.y * this.speed;
 
         this.sprite.x = this.position.x;
         this.sprite.y = this.position.y;
