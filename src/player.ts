@@ -46,10 +46,11 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
         public spirtes: Record<string, AnimatedSprite>,
         public hp: number,
         public container: Container,
+        startPosition: Vector,
         public entityManager: EntityManager,
     ) {
         container.addChild(this.sprite);
-
+        this.position.setV(startPosition);
         instanceList.push(this);
 
         // soft shadow
@@ -207,24 +208,16 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
     }
 
     doShoot() {
-        const direct = new Vector(
-            mouse.x - this.sprite.x,
-            mouse.y - this.sprite.y
-        )
-            .normalize();
+        const worldPos = this.entityManager.screenPosToWorldPos(new Vector(mouse.x, mouse.y));
 
         this.ammoPools.emit(
-            direct,
-            new Vector(this.sprite.x, this.sprite.y),
+            worldPos.sub(this.position).normalize(),
+            this.position.clone(),
             2000,
         );
     }
 
     updateSprite() {
-
-        this.sprite.x = this.position.x;
-        this.sprite.y = this.position.y;
-
         if (this.costing && !this.prev_costing) {
             this.sprite.removeChildAt(this.mainSpirtIndex);
             const attack_animation = keypressed.heavy_attack

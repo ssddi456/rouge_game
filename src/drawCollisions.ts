@@ -1,5 +1,6 @@
 import { ICollisionable, IObjectPools, Shootable } from "./types";
 import * as PIXI from 'pixi.js'
+import { Camera } from "./camara";
 
 export class CollisionView {
 
@@ -10,6 +11,7 @@ export class CollisionView {
     constructor(
         public renderer: PIXI.Renderer,
         public container: PIXI.Container,
+        public camara: Camera,
         public objects: (ICollisionable | IObjectPools)[]
     ) {
         const circle = new PIXI.Graphics();
@@ -37,8 +39,9 @@ export class CollisionView {
 
         }
         const collision = this.collisions[this.collisionsIndex];
-        collision.x = obj.position.x;
-        collision.y = obj.position.y;
+        const screanPos = this.camara.worldPosToScreenPos(obj.position);
+        collision.x = screanPos.x;
+        collision.y = screanPos.y;
         collision.width = obj.size * 2;
         collision.height = obj.size * 2;
         collision.visible = true;

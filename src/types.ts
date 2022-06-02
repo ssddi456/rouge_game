@@ -1,11 +1,11 @@
-import { AnimatedSprite, Sprite } from "pixi.js";
+import { AnimatedSprite, DisplayObject, Sprite } from "pixi.js";
 import { AmmoPool } from "./ammo";
 import { Vector } from "./vector"
 
 export interface GameObject {
     position: Vector;
     prev_position: Vector;
-
+    sprite: DisplayObject;
     update(): void;
 }
 
@@ -62,6 +62,7 @@ export interface EntityManager {
     getEntities(options: { collisionTypes: ECollisionType[]}): ICollisionable[];
     emitParticles(position: Vector, animation: AnimatedSprite | Sprite, updateFunc: ((percent:number) => void) | undefined, duration: number): void;
     emitDamageParticles(position: Vector, amount: number): void;
+    screenPosToWorldPos(position: Vector): Vector;
 }
 
 

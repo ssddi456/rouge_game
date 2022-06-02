@@ -119,8 +119,8 @@ export class Enemy implements IMovable, ICollisionable, LivingObject {
 
     updatePosition() {
         this.direct.setV(new Vector(
-            this.player!.sprite.x,
-            this.player!.sprite.y)
+            this.player!.position.x,
+            this.player!.position.y)
             .sub(this.position)
             .normalize()
             .multiplyScalar(this.speed));
@@ -156,9 +156,6 @@ export class Enemy implements IMovable, ICollisionable, LivingObject {
     }
 
     updateSprite() {
-        this.sprite.x = this.position.x;
-        this.sprite.y = this.position.y;
-
         if (this.direct.x > 0 && this.prev_direct.y <= 0) {
             this.sprite.scale.x = -1;
         } else if (this.direct.x < 0 && this.prev_direct.y >= 0) {

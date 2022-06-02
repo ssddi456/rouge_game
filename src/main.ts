@@ -13,6 +13,8 @@ import { CollisionView } from './drawCollisions';
 import { ECollisionType, EntityManager, ICollisionable } from './types';
 import { Particle } from './particle';
 import { textParticleZIndex } from './const';
+import { Vector } from './vector';
+import { Camera } from './camara';
 
 // The application will create a renderer using WebGL, if possible,
 // with a fallback to a canvas render. It will also setup the ticker
@@ -116,23 +118,24 @@ app.loader.add('grass', GrassImage)
                         }),
                         viewport,
                         function (this: Particle, p: number) {
-                            this.position.y -= 1;
+                            this.position.y = this.startPosition.y - p * 20;
                         },
-                        600,
+                        1200,
                         textParticleZIndex
                     )
                 );
+            },
+            screenPosToWorldPos: (screenPos: Vector) => {
+                return camera.screenPosToWorldPos(screenPos);
             }
         };
 
-        const textTest = new Text('Hello World', {
-            fill: 0xffffff,
-            fontSize: 14,
-        });
-        textTest.position.set(300, 300);
-        viewport.addChild(textTest);
 
-        const player = new Player(playerAnimateMap, 100, viewport, runnerApp);
+        const player = new Player(playerAnimateMap, 100, viewport, new Vector(
+            app.view.width / 2,
+            app.view.height / 2,
+        ), runnerApp);
+
         const curserG = new PIXI.Graphics();
         curserG.beginFill(0xffffff);
         curserG.drawCircle(0, 0, 10);
@@ -142,10 +145,14 @@ app.loader.add('grass', GrassImage)
 
         const curser = new Curser(curserA, viewport);
         const enemys = new EnemyPool(enemyAnimateMap, viewport, player, runnerApp);
-
+        const camera = new Camera(player, new Vector(
+            app.view.width,
+            app.view.height,
+        ));
         const collisionView = new CollisionView(
             app.renderer as PIXI.Renderer,
             viewport,
+            camera,
             [
                 player,
                 enemys,
@@ -156,15 +163,38 @@ app.loader.add('grass', GrassImage)
         app.ticker.add(() => {
             // each frame we spin the bunny around a bit
             player.update();
+            camera.update(player);
             enemys.update();
             curser.update();
-            // for debugers
-            collisionView.update();
-
+            
             for (let index = 0; index < particles.length; index++) {
                 const particle = particles[index];
                 particle.update();
             }
             particles = particles.filter(p => !p.dead);
+            
+            
+            // for debugers
+            collisionView.update();
+            
+            camera.updateItemPos(player);
+            for (let index = 0; index < player.ammoPools.pool.length; index++) {
+                const element = player.ammoPools.pool[index];
+                if (!element.dead) {
+                    camera.updateItemPos(element);
+                }
+            }
+            for (let index = 0; index < enemys.pool.length; index++) {
+                const element = enemys.pool[index];
+                if (!element.dead) {
+                    camera.updateItemPos(element);
+                }
+            }
+            for (let index = 0; index < particles.length; index++) {
+                const element = particles[index];
+                if (!element.dead) {
+                    camera.updateItemPos(element);
+                }
+            }
         });
     });

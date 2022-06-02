@@ -30,9 +30,6 @@ export class Particle {
             this.updateFunc(percent);
         }
 
-        this.sprite.x = this.startPosition.x;
-        this.sprite.y = this.startPosition.y;
-
         if ((this.initialTime + this.duration) <= Date.now()) {
             this.container.removeChild(this.sprite);
             this.dead = true;

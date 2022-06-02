@@ -64,9 +64,6 @@ export class Ammo implements IMovable, ICollisionable {
         this.position.x += this.direct.x * this.speed;
         this.position.y += this.direct.y * this.speed;
 
-        this.sprite.x = this.position.x;
-        this.sprite.y = this.position.y;
-
         if (this.start_position.distanceTo(this.position) >= this.range) {
             this.dead = true;
             this.container.removeChild(this.sprite);
