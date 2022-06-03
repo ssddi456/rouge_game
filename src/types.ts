@@ -17,6 +17,7 @@ export enum ECollisionType {
     none = "none",
     player = "player",
     enemy = "enemy",
+    droplets = "droplets",
 }
 
 export interface ICollisionable extends GameObject {
@@ -48,7 +49,12 @@ export interface LivingObject {
     recieveHealth(amount: number): void;
     recieveDamage(damage: number, hitPos: Vector): void;
 }
-
+export interface LeveledObject {
+    exp: number;
+    lv: number;
+    nextLevelExp: number;
+    receiveExp(exp: number): void;
+}
 export interface Shootable {
     shootCd: number;
     ammoPools: AmmoPool;
@@ -62,6 +68,7 @@ export interface EntityManager {
     getEntities(options: { collisionTypes: ECollisionType[]}): ICollisionable[];
     emitParticles(position: Vector, animation: AnimatedSprite | Sprite, updateFunc: ((percent:number) => void) | undefined, duration: number): void;
     emitDamageParticles(position: Vector, amount: number): void;
+    emitDroplets(position: Vector, pickUp: () => void, duration: number): void;
     screenPosToWorldPos(position: Vector): Vector;
 }
 

@@ -3,12 +3,12 @@ import { AnimatedSprite, Container, Graphics } from "pixi.js";
 import { Vector } from "./vector";
 import { keypressed, mouse } from "./user_input";
 import { AmmoPool } from "./ammo";
-import { ECollisionType, EFacing, EntityManager, ICollisionable, IMovable, Shootable, Buffer, LivingObject } from "./types";
+import { ECollisionType, EFacing, EntityManager, ICollisionable, IMovable, Shootable, Buffer, LivingObject, LeveledObject } from "./types";
 import { checkCollision } from "./collision_helper";
 import { playerZIndex } from "./const";
 import { Enemy } from "./enemy";
 
-export class Player implements IMovable, Shootable, ICollisionable, LivingObject {
+export class Player implements IMovable, Shootable, ICollisionable, LivingObject, LeveledObject {
     sprite: Container = new Container();
     dead: boolean = false;
     prev_dead: boolean = false;
@@ -41,6 +41,22 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
     ammoPools: AmmoPool;
 
     bufferList: Buffer[] = [];
+
+    exp: number = 0;
+    lv: number = 1;
+    nextLevelExp: number = 10;
+
+    receiveExp(exp: number) {
+        this.exp += exp;
+        if (this.exp >= this.nextLevelExp) {
+            this.lv += 1;
+            // 升级动画
+            // 选技能
+            this.nextLevelExp *= 2;
+            console.log('lvup', this.lv);
+
+        }
+    }
 
     constructor(
         public spirtes: Record<string, AnimatedSprite>,

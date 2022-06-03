@@ -15,6 +15,7 @@ import { Particle } from './particle';
 import { textParticleZIndex } from './const';
 import { Vector } from './vector';
 import { Camera } from './camara';
+import { DropletPool, Droplets } from './droplet';
 
 // The application will create a renderer using WebGL, if possible,
 // with a fallback to a canvas render. It will also setup the ticker
@@ -125,6 +126,13 @@ app.loader.add('grass', GrassImage)
                     )
                 );
             },
+            emitDroplets: (
+                position: Vector,
+                pickUp: () => void,
+                duration: number,
+            ) => {
+                droplets.emit(position, pickUp, duration);
+            },
             screenPosToWorldPos: (screenPos: Vector) => {
                 return camera.screenPosToWorldPos(screenPos);
             }
@@ -140,11 +148,19 @@ app.loader.add('grass', GrassImage)
         curserG.beginFill(0xffffff);
         curserG.drawCircle(0, 0, 10);
         curserG.endFill();
-        const curserA = new AnimatedSprite([app.renderer.generateTexture(curserG)]);
+        const curserT = app.renderer.generateTexture(curserG);
+        const curserA = new AnimatedSprite([curserT]);
         curserA.anchor.set(0.5, 0.5)
+        
+        const dropS = new Sprite(curserT);
+        dropS.anchor.set(0.5, 0.5);
 
         const curser = new Curser(curserA, viewport);
         const enemys = new EnemyPool(enemyAnimateMap, viewport, player, runnerApp);
+
+        const droplets = new DropletPool(viewport, 
+            dropS,
+            runnerApp);
         const camera = new Camera(player, new Vector(
             app.view.width,
             app.view.height,
@@ -156,6 +172,7 @@ app.loader.add('grass', GrassImage)
             [
                 player,
                 enemys,
+                droplets,
                 // player.ammoPools,
             ]);
 
@@ -165,6 +182,7 @@ app.loader.add('grass', GrassImage)
             player.update();
             camera.update(player);
             enemys.update();
+            droplets.update();
             curser.update();
             
             for (let index = 0; index < particles.length; index++) {
@@ -190,6 +208,14 @@ app.loader.add('grass', GrassImage)
                     camera.updateItemPos(element);
                 }
             }
+
+            for (let index = 0; index < droplets.pool.length; index++) {
+                const element = droplets.pool[index];
+                if (!element.dead) {
+                    camera.updateItemPos(element);
+                }
+            }
+
             for (let index = 0; index < particles.length; index++) {
                 const element = particles[index];
                 if (!element.dead) {

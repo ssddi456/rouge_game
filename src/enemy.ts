@@ -6,6 +6,7 @@ import * as PIXI from 'pixi.js';
 import { IMovable, ICollisionable, EFacing, IObjectPools, ECollisionType, EntityManager, LivingObject, Buffer } from "./types";
 import { checkCollision } from "./collision_helper";
 import { enemyZIndex } from "./const";
+import { Droplets as Droplet } from "./droplet";
 
 
 function cloneAnimationSprites(spriteMap: Record<string, AnimatedSprite>) {
@@ -89,6 +90,14 @@ export class Enemy implements IMovable, ICollisionable, LivingObject {
                 this.facing == EFacing.top ? this.spirtes.die_back : this.spirtes.die,
                 undefined,
                 300,
+            );
+
+            this.entityManager.emitDroplets(
+                this.position,
+                function (this: Droplet) {
+                    this.player!.receiveExp(1);
+                },
+                Infinity
             );
         }
     }
