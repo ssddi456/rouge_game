@@ -1,5 +1,4 @@
 import * as PIXI from 'pixi.js'
-import { Text } from 'pixi.js'
 import GrassImage from './assets/THX0.png';
 import './user_input';
 
@@ -10,12 +9,11 @@ import { Curser } from './curser';
 import { EnemyPool } from './enemy';
 import { loadSpriteSheet } from './loadAnimation';
 import { CollisionView } from './drawCollisions';
-import { ECollisionType, EntityManager, ICollisionable } from './types';
 import { Particle } from './particle';
-import { textParticleZIndex } from './const';
 import { Vector } from './vector';
 import { Camera } from './camara';
-import { DropletPool, Droplets } from './droplet';
+import { DropletPool } from './droplet';
+import { getRunnerApp } from './runnerApp';
 
 // The application will create a renderer using WebGL, if possible,
 // with a fallback to a canvas render. It will also setup the ticker
@@ -32,7 +30,7 @@ document.body.style.margin = "0";
 document.documentElement.style.margin = "0";
 
 // create viewport
-const viewport = new Viewport({
+const gameView = new Viewport({
     screenWidth: window.innerWidth,
     screenHeight: window.innerHeight,
     worldWidth: 1000,
@@ -40,12 +38,11 @@ const viewport = new Viewport({
 
     interaction: app.renderer.plugins.interaction // the interaction module is important for wheel to work properly when renderer.view is placed or scaled
 });
-viewport.sortableChildren = true;
+gameView.sortableChildren = true;
 
 // add the viewport to the stage
-app.stage.addChild(viewport);
+app.stage.addChild(gameView);
 
-let particles: Particle[] = [];
 // load the texture we need
 app.loader.add('grass', GrassImage)
     .load(async (loader, resources) => {
@@ -69,80 +66,19 @@ app.loader.add('grass', GrassImage)
         window.addEventListener('resize', () => {
             grass.width = app.view.width;
             grass.height = app.view.height;
+
+            gameView.resize(app.view.width, app.view.height);
         });
 
-        const runnerApp: EntityManager = {
-            getEntities: ({
-                collisionTypes
-            }) => {
-                return collisionTypes.reduce((acc, type) => {
-                    switch (type) {
-                        case ECollisionType.player:
-                            return [...acc, player];
-                        case ECollisionType.enemy:
-                            return [...acc, ...enemys.pool.filter(e => !e.dead)];
-                        case ECollisionType.none:
-                            return [...acc, ...player.ammoPools.pool];
-                        default:
-                            return acc;
-                    }
-                }, [] as ICollisionable[]);
-            },
-            emitParticles: (
-                position,
-                animation,
-                updateFunc,
-                duration,
-            ) => {
-                particles.push(
-                    new Particle(
-                        position.clone(),
-                        animation instanceof AnimatedSprite 
-                            ? new AnimatedSprite(animation.textures) 
-                            : new Sprite(animation.texture),
-                        viewport,
-                        updateFunc,
-                        duration,
-                    )
-                );
-            },
-            emitDamageParticles: (
-                position,
-                damage,
-            ) => {
-                particles.push(
-                    new Particle(
-                        position.clone(),
-                        new Text(`- ${damage}`, {
-                            fill: 0xffffff,
-                            fontSize: 14,
-                        }),
-                        viewport,
-                        function (this: Particle, p: number) {
-                            this.position.y = this.startPosition.y - p * 20;
-                        },
-                        1200,
-                        textParticleZIndex
-                    )
-                );
-            },
-            emitDroplets: (
-                position: Vector,
-                pickUp: () => void,
-                duration: number,
-            ) => {
-                droplets.emit(position, pickUp, duration);
-            },
-            screenPosToWorldPos: (screenPos: Vector) => {
-                return camera.screenPosToWorldPos(screenPos);
-            }
-        };
+        const runnerApp = getRunnerApp();
+        runnerApp.setApp(app);
+        runnerApp.setGameView(gameView);
 
-
-        const player = new Player(playerAnimateMap, 100, viewport, new Vector(
+        const player = new Player(playerAnimateMap, 100, gameView, new Vector(
             app.view.width / 2,
             app.view.height / 2,
-        ), runnerApp);
+        ));
+        runnerApp.setPlayer(player);
 
         const curserG = new PIXI.Graphics();
         curserG.beginFill(0xffffff);
@@ -155,26 +91,28 @@ app.loader.add('grass', GrassImage)
         const dropS = new Sprite(curserT);
         dropS.anchor.set(0.5, 0.5);
 
-        const curser = new Curser(curserA, viewport);
-        const enemys = new EnemyPool(enemyAnimateMap, viewport, player, runnerApp);
-
-        const droplets = new DropletPool(viewport, 
-            dropS,
-            runnerApp);
+        const curser = new Curser(curserA, gameView);
+        const enemys = new EnemyPool(enemyAnimateMap, gameView, player);
+        runnerApp.setEnemys(enemys);
+        const droplets = new DropletPool(gameView, dropS);
+        runnerApp.setDroplets(droplets);
         const camera = new Camera(player, new Vector(
             app.view.width,
             app.view.height,
         ));
+        runnerApp.setCamera(camera);
         const collisionView = new CollisionView(
             app.renderer as PIXI.Renderer,
-            viewport,
+            gameView,
             camera,
             [
                 player,
                 enemys,
-                droplets,
+                // droplets,
                 // player.ammoPools,
             ]);
+        let particles: Particle[] = [];
+        runnerApp.setParticles(particles);
 
         // Listen for frame updates
         app.ticker.add(() => {
@@ -190,7 +128,7 @@ app.loader.add('grass', GrassImage)
                 particle.update();
             }
             particles = particles.filter(p => !p.dead);
-            
+            runnerApp.setParticles(particles);
             
             // for debugers
             collisionView.update();

@@ -2,6 +2,7 @@ import { AnimatedSprite, Container, Sprite, Texture } from "pixi.js";
 import { checkCollision } from "./collision_helper";
 import { ammoZIndex } from "./const";
 import { Enemy } from "./enemy";
+import { getRunnerApp } from "./runnerApp";
 import { ECollisionType, EFacing, EntityManager, ICollisionable, IMovable, IObjectPools } from "./types";
 import { Vector } from "./vector";
 
@@ -85,7 +86,6 @@ export class AmmoPool implements IObjectPools {
     constructor(
         spirte: AnimatedSprite,
         public container: Container,
-        public entityManager: EntityManager
     ) {
         this.spirte = spirte;
     }
@@ -119,7 +119,7 @@ export class AmmoPool implements IObjectPools {
 
     updateHit() {
         const ammos = this.pool.filter(ammo => !ammo.dead);
-        const enemies = this.entityManager.getEntities({ collisionTypes: [ECollisionType.enemy] });
+        const enemies = getRunnerApp().getEntities({ collisionTypes: [ECollisionType.enemy] });
         for (let index = 0; index < ammos.length; index++) {
             const ammo = ammos[index];
             for (let jndex = 0; jndex < enemies.length; jndex++) {

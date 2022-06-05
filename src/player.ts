@@ -7,6 +7,7 @@ import { ECollisionType, EFacing, EntityManager, ICollisionable, IMovable, Shoot
 import { checkCollision } from "./collision_helper";
 import { playerZIndex } from "./const";
 import { Enemy } from "./enemy";
+import { getRunnerApp } from "./runnerApp";
 
 export class Player implements IMovable, Shootable, ICollisionable, LivingObject, LeveledObject {
     sprite: Container = new Container();
@@ -14,7 +15,7 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
     prev_dead: boolean = false;
     prev_position: Vector = new Vector(0, 0);
     position: Vector = new Vector(0, 0);
-    size = 70;
+    size = 30;
 
     collisison_type: ECollisionType = ECollisionType.player;
 
@@ -63,7 +64,6 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
         public hp: number,
         public container: Container,
         startPosition: Vector,
-        public entityManager: EntityManager,
     ) {
         container.addChild(this.sprite);
         this.position.setV(startPosition);
@@ -73,6 +73,8 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
         const shadow = new PIXI.Graphics();
         this.sprite.addChild(shadow);
         this.sprite.zIndex = playerZIndex;
+        this.sprite.scale.set(0.5, 0.5);
+
         this.shadow = shadow;
         shadow.beginFill(0x000000);
         shadow.drawEllipse(-10, 80, 30, 10);
@@ -89,7 +91,7 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
         pointer.drawCircle(0, 0, 10);
         pointer.endFill();
 
-        this.ammoPools = new AmmoPool(this.spirtes.ammo, this.container, entityManager);
+        this.ammoPools = new AmmoPool(this.spirtes.ammo, this.container);
     }
 
     health: number = 100;
@@ -104,7 +106,6 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
         if (this.health <= 0) {
             this.dead = true;
         }
-        this.entityManager // 插入一个死亡动画
     }
 
     cacheProperty() {
@@ -191,7 +192,7 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
     updatePosition() {
         this.position.add(this.direct);
 
-        const enemies = this.entityManager.getEntities({
+        const enemies = getRunnerApp().getEntities({
             collisionTypes: [ECollisionType.enemy],
         }) as Enemy[];
 
@@ -224,7 +225,7 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
     }
 
     doShoot() {
-        const worldPos = this.entityManager.screenPosToWorldPos(new Vector(mouse.x, mouse.y));
+        const worldPos = getRunnerApp().screenPosToWorldPos(new Vector(mouse.x, mouse.y));
 
         this.ammoPools.emit(
             worldPos.sub(this.position).normalize(),
@@ -258,9 +259,13 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
         }
 
         if (this.direct.x > 0 && this.prev_direct.y <= 0) {
-            this.sprite.scale.x = -1;
+            if (this.sprite.scale.x > 0) {
+                this.sprite.scale.x *= -1;
+            }
         } else if (this.direct.x < 0 && this.prev_direct.y >= 0) {
-            this.sprite.scale.x = 1;
+            if (this.sprite.scale.x < 0) {
+                this.sprite.scale.x *= -1;
+            }
         }
 
         if ((this.direct.y > 0 && this.prev_direct.y <= 0)

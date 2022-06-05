@@ -2,6 +2,7 @@ import { Container, DisplayObject, Sprite } from "pixi.js";
 import { checkCollision } from "./collision_helper";
 import { dropletZIndex } from "./const";
 import { Player } from "./player";
+import { getRunnerApp } from "./runnerApp";
 import { ECollisionType, EntityManager, GameObject, ICollisionable, IObjectPools } from "./types";
 import { Vector } from "./vector";
 
@@ -72,7 +73,6 @@ export class DropletPool implements IObjectPools {
     constructor(
         public container: Container,
         public sprite: Sprite,
-        public entityManager: EntityManager,
     ) {
     }
 
@@ -82,7 +82,7 @@ export class DropletPool implements IObjectPools {
         duration: number,
     ) {
         const _droplet = this.pool.find(d => d.dead);
-        const player = this.entityManager.getEntities({ collisionTypes: [ECollisionType.player] })[0] as Player;
+        const player = getRunnerApp().getEntities({ collisionTypes: [ECollisionType.player] })[0] as Player;
         if (_droplet) {
             _droplet.init(position, pickUp, duration, player);
         } else {
@@ -95,7 +95,7 @@ export class DropletPool implements IObjectPools {
     update(): void {
         const livingDroplets = this.pool.filter(d => !d.dead);
 
-        const player = this.entityManager.getEntities({ collisionTypes: [ECollisionType.player] })[0] as Player;
+        const player = getRunnerApp().getEntities({ collisionTypes: [ECollisionType.player] })[0] as Player;
         for (let index = 0; index < livingDroplets.length; index++) {
             const element = livingDroplets[index];
             if (element.picked) {

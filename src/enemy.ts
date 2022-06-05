@@ -7,6 +7,7 @@ import { IMovable, ICollisionable, EFacing, IObjectPools, ECollisionType, Entity
 import { checkCollision } from "./collision_helper";
 import { enemyZIndex } from "./const";
 import { Droplets as Droplet } from "./droplet";
+import { getRunnerApp } from "./runnerApp";
 
 
 function cloneAnimationSprites(spriteMap: Record<string, AnimatedSprite>) {
@@ -36,7 +37,7 @@ export class Enemy implements IMovable, ICollisionable, LivingObject {
     facing = EFacing.bottom;
 
     speed = 1;
-    size: number = 50;
+    size: number = 30;
     collisison_type: ECollisionType = ECollisionType.enemy;
 
     player: Player | undefined;
@@ -51,7 +52,6 @@ export class Enemy implements IMovable, ICollisionable, LivingObject {
     constructor(
         public spirtes: Record<string, AnimatedSprite>,
         public container: Container,
-        public entityManager: EntityManager,
     ) {
         instanceList.push(this);
         // soft shadow
@@ -75,8 +75,8 @@ export class Enemy implements IMovable, ICollisionable, LivingObject {
     }
     recieveDamage(damage: number, hitPos: Vector): void {
         this.health -= damage;
-
-        this.entityManager.emitDamageParticles(hitPos, damage);
+        const app = getRunnerApp();
+        app.emitDamageParticles(hitPos, damage);
 
         if (this.health <= 0) {
             this.dead = true;
@@ -85,14 +85,14 @@ export class Enemy implements IMovable, ICollisionable, LivingObject {
 
         if (this.dead) {
             // 插入一个死亡动画
-            this.entityManager.emitParticles(
+            app.emitParticles(
                 this.position,
                 this.facing == EFacing.top ? this.spirtes.die_back : this.spirtes.die,
                 undefined,
                 300,
             );
 
-            this.entityManager.emitDroplets(
+            app.emitDroplets(
                 this.position,
                 function (this: Droplet) {
                     this.player!.receiveExp(1);
@@ -146,8 +146,8 @@ export class Enemy implements IMovable, ICollisionable, LivingObject {
 
         this.position.x += this.direct.x;
         this.position.y += this.direct.y;
-
-        const nodes = this.entityManager.getEntities({
+        this.sprite.zIndex = enemyZIndex + this.position.y / 1000;
+        const nodes = getRunnerApp().getEntities({
             collisionTypes: [ECollisionType.enemy, ECollisionType.player],
         });
 
@@ -166,9 +166,13 @@ export class Enemy implements IMovable, ICollisionable, LivingObject {
 
     updateSprite() {
         if (this.direct.x > 0 && this.prev_direct.y <= 0) {
-            this.sprite.scale.x = -1;
+            if (this.sprite.scale.x > 0) {
+                this.sprite.scale.x *= -1;
+            }
         } else if (this.direct.x < 0 && this.prev_direct.y >= 0) {
-            this.sprite.scale.x = 1;
+            if (this.sprite.scale.x < 0) {
+                this.sprite.scale.x *= -1;
+            }
         }
 
         if ((this.direct.y > 0 && this.prev_direct.y <= 0)
@@ -220,32 +224,21 @@ export class EnemyPool implements IObjectPools {
         public spirtes: Record<string, AnimatedSprite>,
         public container: Container,
         public player: Player,
-        public entityManager: EntityManager,
     ) {
         instancePool.push(this);
-        this.spawnTimer = new CountDown(1000, this.spawn);
+        this.spawnTimer = new CountDown(5000, this.spawn);
     }
 
     emit(
         position: Vector,
     ) {
-        if (this.pool.length < 4) {
-            const enemy = new Enemy(cloneAnimationSprites(this.spirtes), this.container, this.entityManager);
-            this.pool.push(enemy);
-            enemy.init(
-                position,
-                this.player
-            );
+        const dead = this.pool.find(enemy => enemy.dead);
+        if (dead) {
+            dead.init(position, this.player);
         } else {
-            this.pool.find(Enemy => {
-                if (Enemy.dead) {
-                    Enemy.init(
-                        position,
-                        this.player
-                    );
-                    return true;
-                }
-            });
+            const enemy = new Enemy(cloneAnimationSprites(this.spirtes), this.container);
+            this.pool.push(enemy);
+            enemy.init(position, this.player);
         }
     }
 
@@ -254,16 +247,22 @@ export class EnemyPool implements IObjectPools {
         this.pool.forEach(x => x.update());
     }
     spawn = () => {
-        const living_enemys = this.pool.filter(x => !x.dead).length;
-
-        if (living_enemys < 1) {
-
-            const pos = new Vector(
-                500 + Math.floor(Math.random() * 100),
-                500 + Math.floor(Math.random() * 100),
+        const app = getRunnerApp();
+        const player = app.getEntities({
+            collisionTypes: [ECollisionType.player],
+        })[0];
+        const radius = 400;
+        const n = Math.floor(app.now() / 20e3) + 1;
+        const minR = 10;
+        let r = Math.random() * 360;
+        for (let index = 0; index < n; index++) {
+            r += Math.floor(Math.random() * index) * minR / 180 * Math.PI;
+            this.emit(
+                new Vector(
+                    player!.position.x + Math.sin(r) * radius,
+                    player!.position.y + Math.cos(r) * radius,
+                )
             );
-
-            this.emit(pos);
         }
     }
 }

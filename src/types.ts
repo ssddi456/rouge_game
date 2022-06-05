@@ -1,5 +1,11 @@
-import { AnimatedSprite, DisplayObject, Sprite } from "pixi.js";
+import { Viewport } from "pixi-viewport";
+import { AnimatedSprite, Application, DisplayObject, Sprite } from "pixi.js";
 import { AmmoPool } from "./ammo";
+import { Camera } from "./camara";
+import { DropletPool } from "./droplet";
+import { EnemyPool } from "./enemy";
+import { Particle } from "./particle";
+import { Player } from "./player";
 import { Vector } from "./vector"
 
 export interface GameObject {
@@ -70,6 +76,17 @@ export interface EntityManager {
     emitDamageParticles(position: Vector, amount: number): void;
     emitDroplets(position: Vector, pickUp: () => void, duration: number): void;
     screenPosToWorldPos(position: Vector): Vector;
+    pause(): void;
+    resume(): void;
+    now(): number;
+
+    setApp(a: Application): void;
+    setPlayer(_player: Player): void;
+    setEnemys(_enemys: EnemyPool): void;
+    setDroplets(_droplets: DropletPool): void;
+    setCamera(_camera: Camera): void;
+    setParticles(_particles: Particle[]): void;
+    setGameView(_gameView: Viewport): void;
 }
 
 
