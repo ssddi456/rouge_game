@@ -8,6 +8,7 @@ import { checkCollision } from "./collision_helper";
 import { enemyZIndex } from "./const";
 import { Droplets as Droplet } from "./droplet";
 import { getRunnerApp } from "./runnerApp";
+import { applyBuffer, checkBufferAlive } from "./buffer";
 
 
 function cloneAnimationSprites(spriteMap: Record<string, AnimatedSprite>) {
@@ -134,15 +135,8 @@ export class Enemy implements IMovable, ICollisionable, LivingObject {
             .normalize()
             .multiplyScalar(this.speed));
 
-        this.bufferList.filter(buffer => {
-            if (buffer.properties.direct) {
-                console.log('buffer.properties.direct', buffer.properties.direct, this.direct);
+        applyBuffer(this.bufferList, this);
 
-                this.direct.add(buffer.properties.direct);
-
-                console.log(this.direct);
-            }
-        });
 
         this.position.x += this.direct.x;
         this.position.y += this.direct.y;
@@ -198,9 +192,7 @@ export class Enemy implements IMovable, ICollisionable, LivingObject {
     }
 
     updateBuffer() {
-        this.bufferList = this.bufferList.filter(buffer => {
-            return (buffer.initialTime + buffer.duration) > Date.now();
-        });
+        this.bufferList = checkBufferAlive(this.bufferList);
     }
 
     update() {

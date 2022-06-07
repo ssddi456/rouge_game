@@ -8,6 +8,8 @@ import { checkCollision } from "./collision_helper";
 import { playerZIndex } from "./const";
 import { Enemy } from "./enemy";
 import { getRunnerApp } from "./runnerApp";
+import { applyBuffer, checkBufferAlive, createTimerBuffer } from "./buffer";
+import easingsFunctions, { twean } from "./easingFunctions";
 
 export class Player implements IMovable, Shootable, ICollisionable, LivingObject, LeveledObject {
     sprite: Container = new Container();
@@ -150,14 +152,19 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
             ) {
                 this.costing = true;
                 if (keypressed.heavy_attack) {
-                    this.bufferList.push({
-                        initialTime: Date.now(),
+                    const direct = this.direct.clone().normalize().multiplyScalar(400);
+                    this.bufferList.push(createTimerBuffer({
                         duration: 200,
                         id: 'heavy_attack',
+                        takeEffect(target: IMovable, percent: number) {
+                            target.position.x = this.properties.start_pos.x + twean(0, this.properties.direct.x, easingsFunctions.easeOutCubic,  percent);
+                            target.position.y = this.properties.start_pos.y + twean(0, this.properties.direct.y, easingsFunctions.easeOutCubic,  percent);
+                        },
                         properties: {
-                            direct: this.direct.clone().normalize().multiplyScalar(this.speed * 3.1),
+                            start_pos: this.position.clone(),
+                            direct,
                         }
-                    })
+                    }))
                 }
             }
         }
@@ -182,11 +189,7 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
             }
         }
 
-        this.bufferList.filter(buffer => {
-            if (buffer.properties.direct) {
-                this.direct.add(buffer.properties.direct);
-            }
-        });
+        applyBuffer(this.bufferList, this);
     }
 
     updatePosition() {
@@ -202,14 +205,13 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
                 const enemy = enemies[index];
                 const checkRes = checkCollision(this, enemy);
                 if (checkRes) {
-                    !enemy.bufferList.some(x => x.id == 'knock_back') && enemy.bufferList.push({
-                        initialTime: Date.now(),
+                    !enemy.bufferList.some(x => x.id == 'knock_back') && enemy.bufferList.push(createTimerBuffer({
                         duration: 200,
                         id: 'knock_back',
                         properties: {
                             direct: enemy.position.clone().sub(this.position).normalize().multiplyScalar(this.speed * 3.1),
                         }
-                    })
+                    }))
                 }
             }
         } else {
@@ -291,9 +293,7 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
     }
 
     updateBuffer() {
-        this.bufferList = this.bufferList.filter(buffer => {
-            return (buffer.initialTime + buffer.duration) > Date.now();
-        });
+        this.bufferList = checkBufferAlive(this.bufferList);
     }
 
     update() {

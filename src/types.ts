@@ -89,13 +89,32 @@ export interface EntityManager {
     setGameView(_gameView: Viewport): void;
 }
 
-
-export interface Buffer {
+export interface BaseBuffer {
     id: string;
+    properties: Record<string, any>;
+    dead?: boolean;
+    canEffect?: (target: any) => boolean;
+    takeEffect?: (target: any, percent: number) => void;
+    afterEffect?: (target: any) => boolean;
+}
+
+export interface TimerBuffer extends BaseBuffer {
+    type: "timer";
     initialTime: number;
     duration: number;
-    properties: Record<string, any>;
 }
+
+export interface CounterBuffer extends BaseBuffer {
+    type: "counter";
+    currentCount: number;
+    maxCount: number;
+}
+
+export interface EventBuffer extends BaseBuffer {
+    type: "event";
+}
+
+export type Buffer = TimerBuffer | CounterBuffer | EventBuffer;
 
 if (module.hot) {
     module.hot.accept();
