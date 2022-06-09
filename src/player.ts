@@ -1,5 +1,5 @@
 import * as PIXI from "pixi.js";
-import { AnimatedSprite, Container, Graphics } from "pixi.js";
+import { AnimatedSprite, Container, DisplayObject, Graphics } from "pixi.js";
 import { Vector } from "./vector";
 import { keypressed, mouse } from "./user_input";
 import { AmmoPool } from "./ammo";
@@ -18,6 +18,7 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
     prev_position: Vector = new Vector(0, 0);
     position: Vector = new Vector(0, 0);
     size = 30;
+    effects: Record<string, DisplayObject> = {};
 
     collisison_type: ECollisionType = ECollisionType.player;
 
@@ -32,7 +33,6 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
 
     speed = 4;
 
-    shadow: Graphics;
     pointer: Graphics;
 
     mainSpirtIndex = 1;
@@ -73,22 +73,44 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
 
         // soft shadow
         const shadow = new PIXI.Graphics();
-        this.sprite.addChild(shadow);
         this.sprite.zIndex = playerZIndex;
-        this.sprite.scale.set(0.5, 0.5);
+        // this.sprite.scale.set(0.5, 0.5);
+        this.sprite.sortableChildren = true;
+        this.effects.shadow = shadow;
 
-        this.shadow = shadow;
         shadow.beginFill(0x000000);
         shadow.drawEllipse(-10, 80, 30, 10);
         shadow.endFill();
         shadow.filters = [new PIXI.filters.BlurFilter(5, 5)];
 
         // main character
-        this.sprite.addChild(spirtes.idle);
+
+        const buff_left = spirtes.buff_left;
+        const buff_right = spirtes.buff_right;
+        buff_left.anchor.set(0.5, 0.5);
+        buff_right.anchor.set(0.5, 0.5);
+        buff_left.x = -58;
+        buff_right.x = 58;
+        buff_left.play();
+        buff_right.play();
+        this.effects.buff_left = buff_left;
+        this.effects.buff_right = buff_right;
+
+        const buff_left_back = spirtes.buff_left_back;
+        const buff_right_back = spirtes.buff_right_back;
+        buff_left_back.anchor.set(0.5, 0.5);
+        buff_right_back.anchor.set(0.5, 0.5);
+        buff_left_back.x = 58;
+        buff_right_back.x = -58;
+        buff_left_back.play();
+        buff_right_back.play();
+        this.effects.buff_left_back = buff_left_back;
+        this.effects.buff_right_back = buff_right_back;
+
 
         // center point indicator
-        const pointer = this.sprite.addChild(new PIXI.Graphics());
-        this.pointer = pointer
+        const pointer = new PIXI.Graphics();
+        this.pointer = pointer;
         pointer.beginFill(0xff0000);
         pointer.drawCircle(0, 0, 10);
         pointer.endFill();
@@ -140,11 +162,7 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
         }
 
         if (this.prev_costing) {
-            const animated = this.sprite.children[this.mainSpirtIndex] as AnimatedSprite;
-            if (animated.currentFrame == animated.totalFrames - 1) {
-                this.costing = false;
-                animated.gotoAndStop(0);
-            }
+            this.checkCostingSprite();
         } else if (!this.costing) {
             if (
                 keypressed.attack
@@ -157,8 +175,8 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
                         duration: 200,
                         id: 'heavy_attack',
                         takeEffect(target: IMovable, percent: number) {
-                            target.position.x = this.properties.start_pos.x + twean(0, this.properties.direct.x, easingsFunctions.easeOutCubic,  percent);
-                            target.position.y = this.properties.start_pos.y + twean(0, this.properties.direct.y, easingsFunctions.easeOutCubic,  percent);
+                            target.position.x = this.properties.start_pos.x + twean(0, this.properties.direct.x, easingsFunctions.easeOutCubic, percent);
+                            target.position.y = this.properties.start_pos.y + twean(0, this.properties.direct.y, easingsFunctions.easeOutCubic, percent);
                         },
                         properties: {
                             start_pos: this.position.clone(),
@@ -235,61 +253,88 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
             2000,
         );
     }
-
-    updateSprite() {
-        if (this.costing && !this.prev_costing) {
-            this.sprite.removeChildAt(this.mainSpirtIndex);
+    current_attack_animation: AnimatedSprite | null = null;
+    getAttackSprite() {
+        if (!this.prev_costing) {
             const attack_animation = keypressed.heavy_attack
                 ? (this.facing == "top" ? this.spirtes.heavy_attack_back : this.spirtes.heavy_attack)
                 : (this.facing == "top" ? this.spirtes.attack_back : this.spirtes.attack);
-            this.sprite.addChildAt(attack_animation, this.mainSpirtIndex);
             attack_animation.play();
+            this.current_attack_animation = attack_animation;
+        }
+        return this.current_attack_animation;
+    }
+    checkCostingSprite() {
+        if (this.current_attack_animation) {
+            const animated = this.current_attack_animation;
+            if (animated.currentFrame == animated.totalFrames - 1) {
+                this.costing = false;
+                this.current_attack_animation.gotoAndStop(0);
+                this.current_attack_animation = null;
+            }
+        }
+    }
+    getMainSpirt() {
+        if (this.costing) {
+            return this.getAttackSprite()!;
         }
 
-        if (!this.costing && this.prev_costing) {
-            this.sprite.removeChildAt(this.mainSpirtIndex);
+        if (!this.costing) {
             if (this.facing == "top") {
-                this.sprite.addChildAt(this.spirtes.idle_back, this.mainSpirtIndex);
+                return this.spirtes.idle_back;
             }
             if (this.facing == "bottom") {
-                this.sprite.addChildAt(this.spirtes.idle, this.mainSpirtIndex);
+                return this.spirtes.idle;
             }
         }
 
-        if (this.costing) {
-            return;
-        }
+        return this.spirtes.idle;
+    }
+    updateSprite() {
 
-        if (this.direct.x > 0 && this.prev_direct.y <= 0) {
-            if (this.sprite.scale.x > 0) {
-                this.sprite.scale.x *= -1;
-            }
-        } else if (this.direct.x < 0 && this.prev_direct.y >= 0) {
-            if (this.sprite.scale.x < 0) {
-                this.sprite.scale.x *= -1;
-            }
-        }
 
-        if ((this.direct.y > 0 && this.prev_direct.y <= 0)
-            || (this.direct.y < 0 && this.prev_direct.y >= 0)
-        ) {
-            if (this.direct.y > 0) {
-                this.facing = EFacing.bottom;
+        if (!this.costing) {
+            if (this.direct.x > 0 && this.prev_direct.y <= 0) {
+                if (this.sprite.scale.x > 0) {
+                    this.sprite.scale.x *= -1;
+                }
+            } else if (this.direct.x < 0 && this.prev_direct.y >= 0) {
+                if (this.sprite.scale.x < 0) {
+                    this.sprite.scale.x *= -1;
+                }
             }
-            if (this.direct.y < 0) {
-                this.facing = EFacing.top;
-            }
-        }
 
-        if (this.facing != this.prev_facing) {
-            this.sprite.removeChildAt(this.mainSpirtIndex);
-            if (this.facing == "top") {
-                this.sprite.addChildAt(this.spirtes.idle_back, this.mainSpirtIndex);
-            }
-            if (this.facing == EFacing.bottom) {
-                this.sprite.addChildAt(this.spirtes.idle, this.mainSpirtIndex);
+            if ((this.direct.y > 0 && this.prev_direct.y <= 0)
+                || (this.direct.y < 0 && this.prev_direct.y >= 0)
+            ) {
+                if (this.direct.y > 0) {
+                    this.facing = EFacing.bottom;
+                }
+                if (this.direct.y < 0) {
+                    this.facing = EFacing.top;
+                }
             }
         }
+        // reset order
+        this.sprite.removeChildren(0, this.sprite.children.length);
+        const mainSprite = this.getMainSpirt();
+        console.assert(mainSprite != null, 'mainSprite != null');
+        (this.facing == EFacing.bottom ? [
+            this.effects.shadow,
+            this.effects.buff_left,
+            mainSprite,
+            this.effects.buff_right,
+            this.pointer
+        ] : [
+            this.effects.shadow,
+            this.effects.buff_left_back,
+            mainSprite,
+            this.effects.buff_right_back,
+            this.pointer
+        ]).forEach(sprite => {
+            this.sprite.addChild(sprite);
+        });
+
     }
 
     updateBuffer() {

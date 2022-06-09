@@ -7,12 +7,18 @@ const isDevelopment = process.env.NODE_ENV !== 'production';
 module.exports = function ({ entry }) {
     const entrys = ((entry || 'main') == 'editor')
         ? {
-              editor: "./src/editor.tsx",
-          }
+            editor: "./src/editor.tsx",
+        }
         : {
-              main: "./src/main.ts",
-          };
-
+            main: "./src/main.ts",
+        };
+    const server = ((entry || 'main') == 'editor')
+        ? {
+            port: 7001
+        }
+        : {
+            port: 7000
+        };
     const isEditor = entrys && entrys.editor;
     const shouldRefreshReact = isEditor && isDevelopment;
     console.log('entrys', entrys, 'isDevelopment', isDevelopment, 'shouldRefreshReact', shouldRefreshReact);
@@ -29,8 +35,8 @@ module.exports = function ({ entry }) {
         },
 
         devServer: {
+            ...server,
             host: "0.0.0.0",
-            port: "7000",
             open: {
                 target: 'http://localhost:7000',
                 app: {

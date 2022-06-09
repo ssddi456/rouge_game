@@ -244,7 +244,7 @@ export class EnemyPool implements IObjectPools {
             collisionTypes: [ECollisionType.player],
         })[0];
         const radius = 400;
-        const n = Math.floor(app.now() / 20e3) + 1;
+        const n = Math.floor(Math.log2(app.now() / 20e3)) + 1;
         const minR = 10;
         let r = Math.random() * 360;
         for (let index = 0; index < n; index++) {

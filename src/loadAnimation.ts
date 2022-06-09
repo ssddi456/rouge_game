@@ -25,6 +25,17 @@ export async function loadAnimation(loader: PIXI.Loader,
             for (const key in animateIndexMap) {
                 if (Object.prototype.hasOwnProperty.call(animateIndexMap, key)) {
                     const element = animateIndexMap[key];
+                    if (!element.length) {
+                        animateMap[key] = new PIXI.AnimatedSprite(
+                            [
+                                new PIXI.Texture(
+                                    LiezerotaDark.baseTexture,
+                                    new PIXI.Rectangle(0, 0, 10, 10) 
+                                )
+                            ]
+                        );
+                        continue;
+                    }
                     // Add the bunny to the scene we are building
                     const LiezerotaDarkAnimate = new PIXI.AnimatedSprite(
                         element.map((index) => {
