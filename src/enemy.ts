@@ -211,7 +211,7 @@ export class EnemyPool implements IObjectPools {
 
     pool: Enemy[] = [];
     spawnTimer: CountDown;
-
+    livenodes = 0;
     constructor(
         public spirtes: Record<string, AnimatedSprite>,
         public container: Container,
@@ -237,8 +237,12 @@ export class EnemyPool implements IObjectPools {
     update() {
         this.spawnTimer.update();
         this.pool.forEach(x => x.update());
+        this.livenodes = this.pool.filter(x => !x.dead).length;
     }
     spawn = () => {
+        if (this.livenodes > 100) {
+            return;
+        }
         const app = getRunnerApp();
         const player = app.getEntities({
             collisionTypes: [ECollisionType.player],

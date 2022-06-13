@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "webpack-dev-server -c ./webpack.config.js",
-    "dev:editor": "webpack-dev-server -c ./webpack.config.js --env entry=editor"
+    "dev:editor": "webpack-dev-server -c ./webpack.config.js --env entry=editor",
+    "dev:demos": "webpack-dev-server -c ./webpack.config.js --env entry=demos"
   },
   "repository": {
     "type": "git",
@@ -21,6 +22,7 @@
   "dependencies": {
     "@flyover/box2d": "^1.0.1",
     "@pixi/filter-color-replace": "^4.1.5",
+    "@pixi/filter-glow": "^4.1.5",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.7",
     "@tweenjs/tween.js": "^18.6.4",
     "antd": "^4.20.5",

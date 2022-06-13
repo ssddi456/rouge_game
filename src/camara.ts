@@ -17,15 +17,17 @@ export class Camera {
 
     update(player: Player) {
         const screenPos = this.worldPosToScreenPos(player.position);
-        if (screenPos.x < 40) {
-            this.offset.x += screenPos.x - 40;
-        } else if (screenPos.x > this.size.x - 40) {
-            this.offset.x += screenPos.x - this.size.x + 40;
+        const paddingX = 100;
+        const paddingY = 100
+        if (screenPos.x < paddingX) {
+            this.offset.x += screenPos.x - paddingX;
+        } else if (screenPos.x > this.size.x - paddingX) {
+            this.offset.x += screenPos.x - this.size.x + paddingX;
         }
-        if (screenPos.y < 40) {
-            this.offset.y += screenPos.y - 40;
-        } else if (screenPos.y > this.size.y - 40) {
-            this.offset.y += screenPos.y - this.size.y + 40;
+        if (screenPos.y < paddingY) {
+            this.offset.y += screenPos.y - paddingY;
+        } else if (screenPos.y > this.size.y - paddingY) {
+            this.offset.y += screenPos.y - this.size.y + paddingY;
         }
     }
 

@@ -3,21 +3,22 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
-
+const ports = {
+    main: 7000,
+    editor: 7001,
+    demos: 7002,
+};
+const entryName = {
+    main: 'main.ts',
+    editor: 'editor.tsx',
+    demos: 'demos.ts',
+};
 module.exports = function ({ entry }) {
-    const entrys = ((entry || 'main') == 'editor')
-        ? {
-            editor: "./src/editor.tsx",
-        }
-        : {
-            main: "./src/main.ts",
+    const entrys = {
+            [entry]: `./src/${entryName[entry]}`,
         };
-    const server = ((entry || 'main') == 'editor')
-        ? {
-            port: 7001
-        }
-        : {
-            port: 7000
+    const server = {
+            port: ports[entry]
         };
     const isEditor = entrys && entrys.editor;
     const shouldRefreshReact = isEditor && isDevelopment;

@@ -9,7 +9,10 @@ import { playerZIndex } from "./const";
 import { Enemy } from "./enemy";
 import { getRunnerApp } from "./runnerApp";
 import { applyBuffer, checkBufferAlive, createTimerBuffer } from "./buffer";
+import { GlowFilter } from '@pixi/filter-glow';
+
 import easingsFunctions, { twean } from "./easingFunctions";
+import tween from "./tween";
 
 export class Player implements IMovable, Shootable, ICollisionable, LivingObject, LeveledObject {
     sprite: Container = new Container();
@@ -63,6 +66,7 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
 
     constructor(
         public spirtes: Record<string, AnimatedSprite>,
+        public textures: Record<string, PIXI.Texture>,
         public hp: number,
         public container: Container,
         startPosition: Vector,
@@ -74,7 +78,7 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
         // soft shadow
         const shadow = new PIXI.Graphics();
         this.sprite.zIndex = playerZIndex;
-        // this.sprite.scale.set(0.5, 0.5);
+        this.sprite.scale.set(0.5, 0.5);
         this.sprite.sortableChildren = true;
         this.effects.shadow = shadow;
 
@@ -95,7 +99,7 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
         buff_right.play();
         this.effects.buff_left = buff_left;
         this.effects.buff_right = buff_right;
-
+        
         const buff_left_back = spirtes.buff_left_back;
         const buff_right_back = spirtes.buff_right_back;
         buff_left_back.anchor.set(0.5, 0.5);
@@ -106,7 +110,23 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
         buff_right_back.play();
         this.effects.buff_left_back = buff_left_back;
         this.effects.buff_right_back = buff_right_back;
-
+        buff_left.tint = 0xffffff;
+        const glow = new GlowFilter({ distance: 15, outerStrength: 2 })
+        buff_left.onFrameChange = tween(function(percent){
+            const tint = 0xff2600 + Math.floor(38 + Math.sin(percent * Math.PI) * 200);
+            glow.color = tint;
+            buff_left.tint = tint;
+            buff_right.tint = tint;
+            buff_left_back.tint = tint;
+            buff_right_back.tint = tint;
+            pointer.tint = tint;
+        }, {
+            speedFactor: 4
+        });
+        buff_left.filters = [glow ];
+        buff_right.filters = [ glow ];
+        buff_left_back.filters = [ glow ];
+        buff_right_back.filters = [ glow ];
 
         // center point indicator
         const pointer = new PIXI.Graphics();
@@ -115,7 +135,10 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
         pointer.drawCircle(0, 0, 10);
         pointer.endFill();
 
-        this.ammoPools = new AmmoPool(this.spirtes.ammo, this.container);
+        this.ammoPools = new AmmoPool(
+            this.spirtes.ammo, 
+            this.textures.ammoTrail,
+            this.container);
     }
 
     health: number = 100;
@@ -248,9 +271,9 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
         const worldPos = getRunnerApp().screenPosToWorldPos(new Vector(mouse.x, mouse.y));
 
         this.ammoPools.emit(
-            worldPos.sub(this.position).normalize(),
+            worldPos.sub(this.position).normalize().multiplyScalar(Math.random() * 1 + 2),
             this.position.clone(),
-            2000,
+            800,
         );
     }
     current_attack_animation: AnimatedSprite | null = null;

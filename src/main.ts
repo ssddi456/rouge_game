@@ -4,7 +4,7 @@ import './user_input';
 
 import { Viewport } from 'pixi-viewport'
 import { Player } from './player';
-import { AnimatedSprite, Sprite } from 'pixi.js';
+import { AnimatedSprite, ObservablePoint, Point, Sprite } from 'pixi.js';
 import { Curser } from './curser';
 import { EnemyPool } from './enemy';
 import { loadSpriteSheet } from './loadAnimation';
@@ -14,6 +14,7 @@ import { Vector } from './vector';
 import { Camera } from './camara';
 import { DropletPool } from './droplet';
 import { getRunnerApp } from './runnerApp';
+import { Ammo } from './ammo';
 
 // The application will create a renderer using WebGL, if possible,
 // with a fallback to a canvas render. It will also setup the ticker
@@ -52,16 +53,25 @@ app.loader.add('grass', GrassImage)
 
         const ammoG = new PIXI.Graphics();
         ammoG.beginFill(0xffffff);
-        ammoG.drawCircle(0, 0, 10);
-        ammoG.drawEllipse(-10, 0, 20, 10);
+        ammoG.drawCircle(0, 5, 5);
         ammoG.endFill();
-        const ammoT = app.renderer.generateTexture(ammoG);
-        const ammoA = new AnimatedSprite([ammoT]);
+
+        const triangle = new PIXI.Graphics();
+        triangle.beginFill(0xffffff);
+        triangle.drawPolygon([
+            new Point(0, 0),
+            new Point(10, 5),
+            new Point(0, 10),
+        ]);
+        triangle.endFill();
+
+        const triangleT = app.renderer.generateTexture(triangle);
+        const ammoA = new AnimatedSprite([triangleT]);
         playerAnimateMap.ammo = ammoA;
 
 
         const grass = new PIXI.TilingSprite(resources.grass.texture!, app.view.width, app.view.height);
-        app.stage.addChildAt(grass, 0);
+        gameView.addChildAt(grass, 0);
 
         window.addEventListener('resize', () => {
             grass.width = app.view.width;
@@ -74,7 +84,11 @@ app.loader.add('grass', GrassImage)
         runnerApp.setApp(app);
         runnerApp.setGameView(gameView);
 
-        const player = new Player(playerAnimateMap, 100, gameView, new Vector(
+        const player = new Player(playerAnimateMap, 
+            {
+                ammoTrail: triangleT,
+            },
+            100, gameView, new Vector(
             app.view.width / 2,
             app.view.height / 2,
         ));
@@ -134,6 +148,7 @@ app.loader.add('grass', GrassImage)
             collisionView.update();
             
             camera.updateItemPos(player);
+            grass.tilePosition = camera.offset.clone().multiplyScalar(-1) as any;
             for (let index = 0; index < player.ammoPools.pool.length; index++) {
                 const element = player.ammoPools.pool[index];
                 if (!element.dead) {

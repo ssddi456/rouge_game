@@ -218,6 +218,13 @@ class Editor extends React.Component<{}, EditorState> {
         return (
             <div>
                 <h1>Animation sheet Editor</h1>
+<div>
+    {Array(9).join(',').split('').map((_, i, arr) => {
+        const percent = (i) / arr.length;
+        const tint = Math.floor((38 + percent * 200)).toString(16);
+        return <div key={i} style={{backgroundColor : `#ff26${tint}`, height: 10, width: 10, display: 'inline-block' }}></div>
+    })}
+</div>
                 <Row>
                     <Col span="2">
                         Sheet:
