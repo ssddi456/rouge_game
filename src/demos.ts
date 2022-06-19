@@ -5,6 +5,7 @@ import { Camera } from './camara';
 import { CollisionView } from './drawCollisions';
 import { Player } from './player';
 import { Vector } from './vector';
+import { default as initPlayerAttack } from './demos/player_attack';
 
 const app = new PIXI.Application({
     backgroundColor: 0x1099bb,
@@ -97,6 +98,7 @@ console.log(ammoPool.pool);
 
 console.log(app.stage.children);
 
+initPlayerAttack(app);
 
 function genWireframe(sprite: Mesh) {
     const graphics = new PIXI.Graphics();
