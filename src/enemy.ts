@@ -9,21 +9,7 @@ import { enemyZIndex } from "./const";
 import { Droplets as Droplet } from "./droplet";
 import { getRunnerApp } from "./runnerApp";
 import { applyBuffer, checkBufferAlive } from "./buffer";
-
-
-function cloneAnimationSprites(spriteMap: Record<string, AnimatedSprite>) {
-    const ret: Record<string, AnimatedSprite> = {};
-    for (const key in spriteMap) {
-        if (Object.prototype.hasOwnProperty.call(spriteMap, key)) {
-            const element = spriteMap[key];
-
-            ret[key] = new AnimatedSprite(element.textures);
-            ret[key].anchor.set(element.anchor._x, element.anchor._y);
-        }
-    }
-    return ret;
-}
-
+import { cloneAnimationSprites } from "./sprite_utils";
 
 export class Enemy implements IMovable, ICollisionable, LivingObject {
     prev_dead: boolean = false;

@@ -14,9 +14,10 @@ const entryName = {
     demos: 'demos.ts',
 };
 module.exports = function ({ entry }) {
+    entry = entry || 'main';
     const entrys = {
-            [entry]: `./src/${entryName[entry]}`,
-        };
+        [entry]: `./src/${entryName[entry]}`,
+    };
     const server = {
             port: ports[entry]
         };

@@ -60,7 +60,6 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
             // 选技能
             this.nextLevelExp *= 2;
             console.log('lvup', this.lv);
-
         }
     }
 
@@ -276,6 +275,7 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
             800,
         );
     }
+
     current_attack_animation: AnimatedSprite | null = null;
     getAttackSprite() {
         if (!this.prev_costing) {
