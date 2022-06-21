@@ -1,4 +1,4 @@
-import { AnimatedSprite, Application, Container, LoaderResource, Point, SimpleRope, Sprite, Text, Texture } from "pixi.js";
+import { AnimatedSprite, Application, Circle, Container, LoaderResource, Point, SimpleRope, Sprite, Text, Texture } from "pixi.js";
 import { loadSpriteSheet } from "../loadAnimation";
 import player_attack from "../player_attack";
 import { cloneAnimationSprite, cloneAnimationSprites } from "../sprite_utils";
@@ -18,18 +18,27 @@ export async function playerAttack() {
     app.stage.addChild(animateContainer);
     const playerAnimateMap = await loadSpriteSheet(app.loader, 'Nintendo Switch - Disgaea 5 Complete - LiezerotaDark');
     await new Promise<void>(r => {
-        const name = 'magicCircle';
-        if (app.loader.resources[name]) {
+        const name1 = 'magicCircle1';
+        const name2 = 'magicCircle2';
+        if (app.loader.resources[name1]
+            || app.loader.resources[name1]
+        ) {
             final(app.loader.resources);
             return;
         }
-        app.loader.add(name, 'http://localhost:7001/public/spell_circle_2.rgba.png').load((loader, resources) => {
-            final(resources);
-        });
+        app.loader
+            .add(name1, 'http://localhost:7001/public/spell_circle_1.rgba.png')
+            .add(name2, 'http://localhost:7001/public/spell_circle_2.rgba.png')
+            .load((loader, resources) => {
+                final(resources);
+            });
 
         function final(resources: Record<string, LoaderResource>) {
-            playerAnimateMap.magicCircle = new AnimatedSprite([
-                resources.magicCircle.texture as Texture
+            playerAnimateMap[name1] = new AnimatedSprite([
+                resources[name1].texture as Texture
+            ]);
+            playerAnimateMap[name2] = new AnimatedSprite([
+                resources[name2].texture as Texture
             ]);
             r();
         }
@@ -73,7 +82,7 @@ export async function playerAttack() {
     instance4.play();
 
     const instance5 = playCastAttack({
-        showDebug: true,
+        showDebug: false,
         deltaFrame: 0,
     });
     instance5.container.x = 900;
@@ -85,8 +94,10 @@ export async function playerAttack() {
 
     const instance6 = playCastAttack({
         showDebug: true,
-        // deltaFrame: 10,
+        // deltaFrame: 9,
         facing: 'top',
+        dir: 'right',
+        circleType: 'magicCircle2',
     });
     instance6.container.x = 900;
     instance6.container.y = 800;

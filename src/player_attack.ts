@@ -132,8 +132,12 @@ export default function (playerAnimateMap: Record<string, AnimatedSprite>) {
         castFrame = 10,
         facing = 'bottom',
         dir = 'left',
+        circleType = 'magicCircle1',
     }) {
         const attackAnimateContainer = new Container();
+        if (dir == 'right') {
+            attackAnimateContainer.scale.x = -1;
+        }
         const animateBase = facing == 'top' ? playerAnimateMap.attack_back : playerAnimateMap.attack;
 
         const castOrigin = animateBase.textures.slice(2, -4);
@@ -163,9 +167,9 @@ export default function (playerAnimateMap: Record<string, AnimatedSprite>) {
         const maskScaleFactor = 0.015;
         const startY = 100;
 
-        const maskInner = new Sprite(playerAnimateMap.magicCircle.textures[0] as Texture);
+        const maskInner = new Sprite(playerAnimateMap[circleType].textures[0] as Texture);
         maskInner.anchor.set(0.5, 0.5);
-        maskInner.tint = 0xff1111;
+        maskInner.tint = 0x560f0f;
         const mask = new Container();
         mask.addChild(maskInner);
 
@@ -176,10 +180,11 @@ export default function (playerAnimateMap: Record<string, AnimatedSprite>) {
             const currentFrame = frame > keyFrame2 ? (keyFrame2 - keyFrame1) : (frame < keyFrame1 ? 0 : frame - keyFrame1);
             const percent = Math.min((currentFrame + 3) / realFrames, 1);
 
-            maskInner.rotation = (frame < keyFrame2
+            maskInner.rotation = (((frame < keyFrame2
                 ? percent
                 : 0
-            ) * Math.PI * 8;
+            ) * 12 ) % 2)* Math.PI ;
+            
             mask.y = startY + percent * 20
             mask.scale.x = (
                 frame < keyFrame1
@@ -200,7 +205,7 @@ export default function (playerAnimateMap: Record<string, AnimatedSprite>) {
         if (showDebug) {
             const toFrame = deltaFrame;
             animate.gotoAndStop(toFrame);
-            animate.onFrameChange(toFrame);
+            // animate.onFrameChange(toFrame);
         }
         return {
             container: attackAnimateContainer,
