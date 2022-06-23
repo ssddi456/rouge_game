@@ -66,6 +66,7 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
     constructor(
         public spirtes: Record<string, AnimatedSprite>,
         public textures: Record<string, PIXI.Texture>,
+        public hitSpirtes: Record<string, AnimatedSprite>,
         public hp: number,
         public container: Container,
         startPosition: Vector,
@@ -137,7 +138,9 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
         this.ammoPools = new AmmoPool(
             this.spirtes.ammo, 
             this.textures.ammoTrail,
-            this.container);
+            this.container,
+            this.hitSpirtes.hit_1, 
+        );
     }
 
     health: number = 100;
