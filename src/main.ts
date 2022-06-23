@@ -1,13 +1,12 @@
 import * as PIXI from 'pixi.js'
-import GrassImage from './assets/THX0.png';
 import './user_input';
 
 import { Viewport } from 'pixi-viewport'
 import { Player } from './player';
-import { AnimatedSprite, ObservablePoint, Point, Sprite } from 'pixi.js';
+import { AnimatedSprite, Point, Sprite } from 'pixi.js';
 import { Curser } from './curser';
 import { EnemyPool } from './enemy';
-import { loadSpriteSheet } from './loadAnimation';
+import { getImageUrl, loadSpriteSheet } from './loadAnimation';
 import { CollisionView } from './drawCollisions';
 import { Particle } from './particle';
 import { Vector } from './vector';
@@ -45,11 +44,12 @@ gameView.sortableChildren = true;
 app.stage.addChild(gameView);
 
 // load the texture we need
-app.loader.add('grass', GrassImage)
+app.loader.add('grass', getImageUrl('THX0.png'))
     .load(async (loader, resources) => {
 
         const playerAnimateMap = await loadSpriteSheet(loader, 'Nintendo Switch - Disgaea 5 Complete - LiezerotaDark');
         const enemyAnimateMap = await loadSpriteSheet(loader, 'Nintendo Switch - Disgaea 5 Complete - Miscellaneous Monsters');
+        const hitEffect = await loadSpriteSheet(loader, 'crosscode_hiteffect');
 
         const ammoG = new PIXI.Graphics();
         ammoG.beginFill(0xffffff);
@@ -66,7 +66,7 @@ app.loader.add('grass', GrassImage)
         triangle.endFill();
 
         const triangleT = app.renderer.generateTexture(triangle);
-        const ammoA = new AnimatedSprite([triangleT]);
+        const ammoA = new AnimatedSprite([app.renderer.generateTexture(ammoG)]);
         playerAnimateMap.ammo = ammoA;
 
 
@@ -88,10 +88,14 @@ app.loader.add('grass', GrassImage)
             {
                 ammoTrail: triangleT,
             },
-            100, gameView, new Vector(
-            app.view.width / 2,
-            app.view.height / 2,
-        ));
+            hitEffect,
+            100, 
+            gameView, 
+            new Vector(
+                app.view.width / 2,
+                app.view.height / 2,
+            )
+        );
         runnerApp.setPlayer(player);
 
         const curserG = new PIXI.Graphics();

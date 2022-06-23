@@ -2,7 +2,9 @@ import { AnimatedSprite, Container, DisplayObject, Graphics, Point, SimpleRope, 
 import { checkCollision } from "./collision_helper";
 import { ammoZIndex } from "./const";
 import { Enemy } from "./enemy";
+import { Particle } from "./particle";
 import { getRunnerApp } from "./runnerApp";
+import { cloneAnimationSprite } from "./sprite_utils";
 import { ECollisionType, EFacing, EntityManager, ICollisionable, IMovable, IObjectPools } from "./types";
 import { Vector } from "./vector";
 
@@ -129,6 +131,7 @@ export class AmmoPool implements IObjectPools {
         spirte: AnimatedSprite, // head
         public trailTexture: Texture, // tail
         public container: Container,
+        public hitAnimate: AnimatedSprite,
     ) {
         this.spirte = spirte;
     }
@@ -174,6 +177,18 @@ export class AmmoPool implements IObjectPools {
                     const ifCollision = checkCollision(ammo, enemy);
                     if (ifCollision) {
                         enemy.recieveDamage(1, ifCollision.collisionHitPos);
+                        const app = getRunnerApp();
+                        app.emitParticles(ifCollision.collisionHitPos,
+                            cloneAnimationSprite(this.hitAnimate),
+                            function (this: Particle, percent) {
+                                const sprite = this.sprite as AnimatedSprite;
+                                if (percent == 0) {
+                                    sprite.play();
+                                }
+                                if (sprite.currentFrame === (sprite.totalFrames - 1)) {
+                                    this.die();
+                                }
+                            }, -1);
                     }
                 }
             }

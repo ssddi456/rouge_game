@@ -6,6 +6,7 @@ import { CollisionView } from './drawCollisions';
 import { Player } from './player';
 import { Vector } from './vector';
 import { default as initPlayerAttack } from './demos/player_attack';
+import { default as initAmmoDemo } from './demos/ammo_demo';
 
 const app = new PIXI.Application({
     backgroundColor: 0x1099bb,
@@ -55,50 +56,9 @@ function updateRope() {
     }
 }
 updateRope();
-const ammoPool = new AmmoPool(
-    new AnimatedSprite([triangleT]),
-    triangleT,
-    app.stage
-);
-
-const camara = new Camera(
-    ({
-        position: new Vector(500, 500),
-    } as any) as Player,
-    new Vector(1000, 1000),
-);
-for (let index = 0; index < 10; index++) {
-    const ammo = ammoPool.emit(
-        new Vector(0, 0.3),
-        new Vector(60 + 20 * index, 10),
-        10000
-    )!;
-    for (let jndex = 0; jndex < index * 10; jndex++) {
-        ammo.update();
-    }
-    camara.updateItemPos(ammo);
-}
-
-
-
-
-const collisionView = new CollisionView(
-    app.renderer as PIXI.Renderer,
-    app.stage,
-    camara, ammoPool.pool);
-
-console.log('camara.offset', camara.offset);
-for (let index = 0; index < ammoPool.pool.length; index++) {
-    const ammo = ammoPool.pool[index];
-    camara.updateItemPos(ammo);
-}
-collisionView.update();
-
-console.log(ammoPool.pool);
-
-console.log(app.stage.children);
 
 initPlayerAttack(app);
+initAmmoDemo(app);
 
 function genWireframe(sprite: Mesh) {
     const graphics = new PIXI.Graphics();

@@ -90,6 +90,10 @@ export async function loadSpriteSheet(loader: PIXI.Loader, name: string ) {
                 };
             }),
     ]);
-    const url = `http://localhost:7001/public/${name}.rgba.png`;
+    const url = getImageUrl(`${name}.rgba.png`);
     return await loadAnimation(loader, name, url, spriteSheet, animateIndexMap);
+}
+
+export function getImageUrl(name:string) {
+    return `http://localhost:7001/public/${name}`
 }
