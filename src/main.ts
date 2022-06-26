@@ -110,7 +110,7 @@ app.loader.add('grass', getImageUrl('THX0.png'))
         dropS.anchor.set(0.5, 0.5);
 
         const curser = new Curser(curserA, gameView);
-        const enemys = new EnemyPool(enemyAnimateMap, gameView, player);
+        const enemys = new EnemyPool(enemyAnimateMap, gameView);
         runnerApp.setEnemys(enemys);
         const droplets = new DropletPool(gameView, dropS);
         runnerApp.setDroplets(droplets);
@@ -129,8 +129,6 @@ app.loader.add('grass', getImageUrl('THX0.png'))
                 // droplets,
                 // player.ammoPools,
             ]);
-        let particles: Particle[] = [];
-        runnerApp.setParticles(particles);
 
         // Listen for frame updates
         app.ticker.add(() => {
@@ -140,13 +138,6 @@ app.loader.add('grass', getImageUrl('THX0.png'))
             enemys.update();
             droplets.update();
             curser.update();
-            
-            for (let index = 0; index < particles.length; index++) {
-                const particle = particles[index];
-                particle.update();
-            }
-            particles = particles.filter(p => !p.dead);
-            runnerApp.setParticles(particles);
             
             // for debugers
             collisionView.update();
@@ -168,13 +159,6 @@ app.loader.add('grass', getImageUrl('THX0.png'))
 
             for (let index = 0; index < droplets.pool.length; index++) {
                 const element = droplets.pool[index];
-                if (!element.dead) {
-                    camera.updateItemPos(element);
-                }
-            }
-
-            for (let index = 0; index < particles.length; index++) {
-                const element = particles[index];
                 if (!element.dead) {
                     camera.updateItemPos(element);
                 }

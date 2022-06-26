@@ -7,6 +7,7 @@ import { Player } from './player';
 import { Vector } from './vector';
 import { default as initPlayerAttack } from './demos/player_attack';
 import { default as initAmmoDemo } from './demos/ammo_demo';
+import { getRunnerApp } from './runnerApp';
 
 const app = new PIXI.Application({
     backgroundColor: 0x1099bb,
@@ -56,6 +57,9 @@ function updateRope() {
     }
 }
 updateRope();
+
+const runnerApp = getRunnerApp();
+runnerApp.setApp(app);
 
 initPlayerAttack(app);
 initAmmoDemo(app);

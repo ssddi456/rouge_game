@@ -12,11 +12,27 @@ export async function loadAnimation(loader: PIXI.Loader,
             resourceLoaded();
             return;
         }
-        // load the texture we need
-        loader.add(name, url)
-            .load((loader, resources) => {
-                resourceLoaded();
-            })
+        doCheckComplete();
+
+        function doCheckComplete() {
+            setTimeout(() => {
+                if (loader.loading) {
+                    loader.onComplete.once(doCheckComplete)
+                } else {
+                    if (loader.resources[name]) {
+                        resourceLoaded();
+                        return;
+                    }
+    
+                    // load the texture we need
+                    loader.add(name, url)
+                        .load((loader, resources) => {
+                            resourceLoaded();
+                        })
+                }
+            });
+        }
+
 
         function resourceLoaded() {
             // This creates a texture from a 'bunny.png' image
@@ -30,7 +46,7 @@ export async function loadAnimation(loader: PIXI.Loader,
                             [
                                 new PIXI.Texture(
                                     LiezerotaDark.baseTexture,
-                                    new PIXI.Rectangle(0, 0, 10, 10) 
+                                    new PIXI.Rectangle(0, 0, 10, 10)
                                 )
                             ]
                         );
@@ -64,7 +80,7 @@ export async function loadAnimation(loader: PIXI.Loader,
     })
 }
 
-export async function loadSpriteSheet(loader: PIXI.Loader, name: string ) {
+export async function loadSpriteSheet(loader: PIXI.Loader, name: string) {
     const [
         spriteSheet,
         animateIndexMap,
@@ -94,6 +110,6 @@ export async function loadSpriteSheet(loader: PIXI.Loader, name: string ) {
     return await loadAnimation(loader, name, url, spriteSheet, animateIndexMap);
 }
 
-export function getImageUrl(name:string) {
+export function getImageUrl(name: string) {
     return `http://localhost:7001/public/${name}`
 }
