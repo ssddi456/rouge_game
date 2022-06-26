@@ -1,11 +1,12 @@
 import { Viewport } from "pixi-viewport";
 import { AnimatedSprite, Application, Sprite, Text } from "pixi.js";
 import { Camera } from "./camara";
-import { textParticleZIndex } from "./const";
+import { particleZIndex, textParticleZIndex } from "./const";
 import { DropletPool } from "./droplet";
 import { EnemyPool } from "./enemy";
 import { Particle } from "./particle";
 import { Player } from "./player";
+import { cloneAnimationSprite } from "./sprite_utils";
 import { ECollisionType, EntityManager, ICollisionable } from "./types";
 import { Vector } from "./vector";
 
@@ -15,7 +16,7 @@ let player: Player;
 let enemys: EnemyPool;
 let droplets: DropletPool;
 let camera: Camera;
-let particles: Particle[];
+let particles: Particle[] = [];
 let gameView: Viewport;
 
 const runnerApp: EntityManager = {
@@ -33,7 +34,7 @@ const runnerApp: EntityManager = {
                 default:
                     return acc;
             }
-        }, [] as ICollisionable[]);
+        }, [] as ICollisionable[]).filter(Boolean);
     },
     emitParticles: (
         position,
@@ -45,7 +46,7 @@ const runnerApp: EntityManager = {
             new Particle(
                 position.clone(),
                 animation instanceof AnimatedSprite
-                    ? new AnimatedSprite(animation.textures)
+                    ? cloneAnimationSprite(animation)
                     : new Sprite(animation.texture),
                 gameView,
                 updateFunc,
@@ -66,10 +67,12 @@ const runnerApp: EntityManager = {
                 }),
                 gameView,
                 function (this: Particle, p: number) {
-                    this.position.y = this.startPosition.y - p * 20;
+                    this.position.y = this.startPosition.y - p * 40;
+                    this.sprite.scale.x = this.sprite.scale.y = 1 + p * 0.4
                 },
-                1200,
-                textParticleZIndex
+                800,
+                textParticleZIndex,
+                'damage particle'
             )
         );
     },
@@ -96,6 +99,19 @@ const runnerApp: EntityManager = {
         app = a;
         app.ticker.add(() => {
             timeElipsed += app.ticker.elapsedMS;
+
+            for (let index = 0; index < particles.length; index++) {
+                const particle = particles[index];
+                particle.update();
+            }
+            particles = particles.filter(p => !p.dead);
+
+            for (let index = 0; index < particles.length; index++) {
+                const element = particles[index];
+                if (!element.dead) {
+                    camera.updateItemPos(element);
+                }
+            }
         });
     },
     setPlayer( _player: Player) {
@@ -110,9 +126,7 @@ const runnerApp: EntityManager = {
     setCamera( _camera: Camera) {
         camera = _camera;
     },
-    setParticles( _particles: Particle[]) {
-        particles = _particles;
-    },
+
     setGameView( _gameView: Viewport) {
         gameView = _gameView;
     },

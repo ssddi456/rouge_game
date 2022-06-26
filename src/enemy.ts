@@ -27,8 +27,6 @@ export class Enemy implements IMovable, ICollisionable, LivingObject {
     size: number = 30;
     collisison_type: ECollisionType = ECollisionType.enemy;
 
-    player: Player | undefined;
-
     mainSpirtIndex = 1
     sprite = new Container();
 
@@ -76,7 +74,7 @@ export class Enemy implements IMovable, ICollisionable, LivingObject {
                 this.position,
                 this.facing == EFacing.top ? this.spirtes.die_back : this.spirtes.die,
                 undefined,
-                300,
+                600,
             );
 
             app.emitDroplets(
@@ -92,7 +90,6 @@ export class Enemy implements IMovable, ICollisionable, LivingObject {
 
     init(
         position: Vector,
-        player: Player
     ) {
         this.position.setV(position);
         this.sprite.x = position.x;
@@ -100,7 +97,6 @@ export class Enemy implements IMovable, ICollisionable, LivingObject {
         this.sprite.visible = true;
         this.dead = false;
         this.container.addChild(this.sprite);
-        this.player = player;
     }
 
     cacheProperty() {
@@ -114,12 +110,22 @@ export class Enemy implements IMovable, ICollisionable, LivingObject {
     }
 
     updatePosition() {
-        this.direct.setV(new Vector(
-            this.player!.position.x,
-            this.player!.position.y)
-            .sub(this.position)
-            .normalize()
-            .multiplyScalar(this.speed));
+        const app = getRunnerApp();
+        const player = app.getEntities({
+            collisionTypes: [ECollisionType.player]
+        })[0];
+        if (player as Player) {
+            this.direct.setV(new Vector(
+                player.position.x,
+                player.position.y)
+                .sub(this.position)
+                .normalize()
+                .multiplyScalar(this.speed));
+        } else {
+            this.direct
+                .setX(0)
+                .setY(0);
+        }
 
         applyBuffer(this.bufferList, this);
 
@@ -194,17 +200,26 @@ export class Enemy implements IMovable, ICollisionable, LivingObject {
 }
 
 export class EnemyPool implements IObjectPools {
-
     pool: Enemy[] = [];
     spawnTimer: CountDown;
     livenodes = 0;
     constructor(
         public spirtes: Record<string, AnimatedSprite>,
         public container: Container,
-        public player: Player,
     ) {
-        instancePool.push(this);
         this.spawnTimer = new CountDown(5000, this.spawn);
+        
+        if (module.hot) {
+            if (this.constructor === EnemyPool) {
+                instancePool.push(this);
+            }
+            module.hot.dispose((module) => {
+                const oldSpawnTimer = this.spawnTimer;
+                this.spawnTimer = new CountDown(5000, this.spawn);
+                this.spawnTimer.exec_times = oldSpawnTimer.exec_times;
+                this.spawnTimer.last_update_time = oldSpawnTimer.last_update_time;
+            });
+        }
     }
 
     emit(
@@ -212,11 +227,11 @@ export class EnemyPool implements IObjectPools {
     ) {
         const dead = this.pool.find(enemy => enemy.dead);
         if (dead) {
-            dead.init(position, this.player);
+            dead.init(position);
         } else {
             const enemy = new Enemy(cloneAnimationSprites(this.spirtes), this.container);
             this.pool.push(enemy);
-            enemy.init(position, this.player);
+            enemy.init(position);
         }
     }
 

@@ -15,6 +15,7 @@ export class Particle {
         public updateFunc: ((percent: number) => void) | undefined,
         public duration: number,
         zIndex: number = particleZIndex,
+        public id?: string,
     ) {
         sprite.anchor.set(0.5, 0.5);
         this.sprite.addChild(sprite);
@@ -31,9 +32,10 @@ export class Particle {
             const percent = (now - this.initialTime) / this.duration;
             this.updateFunc(percent);
         }
-
-        if ((this.initialTime + this.duration) <= now) {
-            this.die();
+        if (this.duration > -1) {
+            if ((this.initialTime + this.duration) <= now) {
+                this.die();
+            }
         }
     }
 

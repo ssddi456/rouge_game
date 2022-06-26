@@ -1,5 +1,5 @@
 import { Viewport } from "pixi-viewport";
-import { AnimatedSprite, Application, DisplayObject, Sprite } from "pixi.js";
+import { AnimatedSprite, Application, Container, DisplayObject, Sprite } from "pixi.js";
 import { AmmoPool } from "./ammo";
 import { Camera } from "./camara";
 import { DropletPool } from "./droplet";
@@ -85,8 +85,7 @@ export interface EntityManager {
     setEnemys(_enemys: EnemyPool): void;
     setDroplets(_droplets: DropletPool): void;
     setCamera(_camera: Camera): void;
-    setParticles(_particles: Particle[]): void;
-    setGameView(_gameView: Viewport): void;
+    setGameView(_gameView: Container): void;
 }
 
 export interface BaseBuffer {

@@ -111,7 +111,7 @@ export class Ammo implements IMovable, ICollisionable {
         last.x = this.position.x;
         last.y = this.position.y;
 
-        console.log('history', JSON.stringify(this.history));
+        // console.log('history', JSON.stringify(this.history));
     }
 
     update() {
@@ -179,14 +179,15 @@ export class AmmoPool implements IObjectPools {
                         enemy.recieveDamage(1, ifCollision.collisionHitPos);
                         const app = getRunnerApp();
                         app.emitParticles(ifCollision.collisionHitPos,
-                            cloneAnimationSprite(this.hitAnimate),
+                            this.hitAnimate,
                             function (this: Particle, percent) {
-                                const sprite = this.sprite as AnimatedSprite;
-                                if (percent == 0) {
+                                const sprite = this.sprite.children[0] as AnimatedSprite;
+                                if (!sprite.playing) {
                                     sprite.play();
-                                }
-                                if (sprite.currentFrame === (sprite.totalFrames - 1)) {
-                                    this.die();
+                                    sprite.onLoop = () => {
+                                        this.die();
+                                        sprite.stop();
+                                    };
                                 }
                             }, -1);
                     }
