@@ -4,12 +4,11 @@ import { Camera } from "../camara";
 import { CountDown } from "../countdown";
 import { CollisionView } from "../drawCollisions";
 import { DropletPool } from "../droplet";
-import { Enemy, EnemyPool } from "../enemy";
+import { EnemyPool } from "../enemy";
+import { Gun } from "../gun";
 import { loadSpriteSheet } from "../loadAnimation";
-import { Particle } from "../particle";
 import { Player } from "../player";
 import { getRunnerApp } from "../runnerApp";
-import { cloneAnimationSprite } from "../sprite_utils";
 import { Vector } from "../vector";
 
 let app: Application = module.hot?.data?.app;
@@ -116,36 +115,16 @@ async function initScence() {
         animateContainer,
         hitAnimateMap.hit_1
     );
-
-    const shootTimer = new CountDown(1000, () => {
-        ammos.emit(
-            new Vector(1, 0),
-            new Vector(400, 80),
-            600
-        );
-        runnerApp.emitDamageParticles(
-            new Vector(400, 80),
-            1000
-        );
-        runnerApp.emitParticles(new Vector(400, 80),
-            cloneAnimationSprite(hitAnimateMap.hit_1),
-            function (this: Particle, percent) {
-                const sprite = this.sprite.children[0] as AnimatedSprite;
-                if (!sprite.playing) {
-                    sprite.play();
-                    sprite.animationSpeed = 1 / 6;
-                    sprite.onLoop = () => {
-                        this.die();
-                        sprite.stop();
-                    }
-                }
-            }, -1);
-    });
+    const gun = new Gun();
+    gun.position.setV(new Vector(400, 80))
+    gun.setAmmoPool(ammos);
+    gun.dispersionRad = (10 * Math.PI)/180;
+    gun.projectileCount = 3;
 
     tickerFunction = function () {
-        shootTimer.update();
+        gun.shoot(new Vector(600, 80))
         ammos.update();
-
+        gun.update();
         for (let index = 0; index < ammos.pool.length; index++) {
             const ammo = ammos.pool[index];
             camara.updateItemPos(ammo);

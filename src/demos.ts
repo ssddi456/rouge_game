@@ -1,17 +1,16 @@
 import * as PIXI from 'pixi.js'
-import { AnimatedSprite, Mesh, Point, Sprite } from 'pixi.js';
-import { Ammo, AmmoPool } from './ammo';
-import { Camera } from './camara';
-import { CollisionView } from './drawCollisions';
-import { Player } from './player';
-import { Vector } from './vector';
+import { Mesh, Point } from 'pixi.js';
 import { default as initPlayerAttack } from './demos/player_attack';
 import { default as initAmmoDemo } from './demos/ammo_demo';
+import { default as initRopeDemo } from './demos/rope_demo';
+import { default as initIkDemo } from './demos/ik_demo';
 import { getRunnerApp } from './runnerApp';
 
 const app = new PIXI.Application({
     backgroundColor: 0x1099bb,
-    resizeTo: window,
+    // resizeTo: window,
+    width: 2000,
+    height: 2000,
 });
 // The application will create a canvas element for you that you
 // can then insert into the DOM
@@ -63,27 +62,5 @@ runnerApp.setApp(app);
 
 initPlayerAttack(app);
 initAmmoDemo(app);
-
-function genWireframe(sprite: Mesh) {
-    const graphics = new PIXI.Graphics();
-    sprite.calculateVertices();
-
-    const indices = sprite.indices;
-    const vertices = (sprite as any).vertexData;
-
-    graphics.lineStyle(0.3, 0xff9999 | 0);
-    // generating it in current sprite world coords.
-    // they are local if sprite wasnt added yet
-    console.log(indices);
-    console.log(vertices);
-    for (let i = 0; i < indices.length; i += 3) {
-        let ind = indices[i + 2];
-        graphics.moveTo(vertices[ind * 2], vertices[ind * 2 + 1]);
-        for (let j = 0; j < 3; j++) {
-            ind = indices[i + j];
-            graphics.lineTo(vertices[ind * 2], vertices[ind * 2 + 1]);
-        }
-    }
-
-    return graphics;
-}
+initRopeDemo(app);
+initIkDemo(app);

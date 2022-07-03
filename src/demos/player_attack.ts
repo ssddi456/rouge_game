@@ -47,6 +47,7 @@ export async function playerAttack() {
     const {
         heavyAttack: playHeavyAttack,
         castAttack: playCastAttack,
+        whipAttack: playWhipAttack,
     } = player_attack(playerAnimateMap);
     const instance1 = playHeavyAttack({
         showDebug: false
@@ -106,6 +107,16 @@ export async function playerAttack() {
     });
     instance6.play();
 
+    const instance7 = playWhipAttack({
+        showDebug: true
+    });
+    instance7.container.x = 300;
+    instance7.container.y = 1200;
+    instance7.onEnd(() => {
+        instance7.play();
+    });
+    instance7.play();
+
     animateContainer.addChild(
         instance1.container,
         instance2.container,
@@ -113,6 +124,7 @@ export async function playerAttack() {
         instance4.container,
         instance5.container,
         instance6.container,
+        instance7.container
     );
 }
 
