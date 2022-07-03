@@ -1,6 +1,5 @@
-import { AnimatedSprite, Container, Sprite, Texture, Text, Graphics } from "pixi.js";
+import { AnimatedSprite, Container, Sprite, Texture, Text, Graphics, Point } from "pixi.js";
 import { cloneAnimationSprite } from "./sprite_utils";
-
 
 export default function (playerAnimateMap: Record<string, AnimatedSprite>) {
     const heavyAttack = function playHeavyAttack({
@@ -227,9 +226,88 @@ export default function (playerAnimateMap: Record<string, AnimatedSprite>) {
         };
     }
 
+    const whipAttack = function whipAttack({
+        showDebug = true,
+        deltaFrame = 1,
+        facing = 'bottom',
+        dir = 'left',
+    }) {
+        const attackAnimateContainer = new Container();
+        if (dir == 'right') {
+            attackAnimateContainer.scale.x = -1;
+        }
+
+        const animateBase = facing == 'top' ? playerAnimateMap.whip : playerAnimateMap.whip;
+        const animate = new AnimatedSprite([...animateBase.textures] as Texture[]);
+        const firstFrameHeight = (animateBase.textures[0] as Texture).height;
+        const firstFrameWidth = (animateBase.textures[0] as Texture).width;
+        animate.animationSpeed = 1/24;
+        const frames = animate.totalFrames;
+        console.log('whip frames', frames);
+        let onceEnd: (() => void) | undefined;
+        const isAnimationEnd = (frame: number) => {
+            if (frame >= frames - 1) {
+                onceEnd?.();
+            }
+        };
+        let debugGraphics: Graphics
+        animate.onFrameChange = (frame: number) => {
+            const currentFrameHeight = (animateBase.textures[frame] as Texture).height;
+            const currentFrameWidth = (animateBase.textures[frame] as Texture).width;
+            const deltaHeight = (currentFrameHeight - firstFrameHeight)/2;
+            const deltaWidth = (firstFrameWidth - currentFrameWidth);
+            const animateP = animate.position;
+            animateP.y = - deltaHeight;
+            animateP.x = deltaWidth;
+            
+            if (showDebug) {
+                debugGraphics.clear();
+                debugGraphics.lineStyle({
+                    color: 0xff0000,
+                    width: 3
+                });
+                debugGraphics.moveTo(animateP.x, animateP.y);
+                debugGraphics.lineTo(animateP.x + animate.width, animateP.y);
+                debugGraphics.lineTo(animateP.x + animate.width, animateP.y + animate.height);
+                debugGraphics.lineTo(animateP.x, animateP.y + animate.height);
+                debugGraphics.lineTo(animateP.x, animateP.y);
+            }
+
+            isAnimationEnd(frame);
+        };
+        attackAnimateContainer.addChild(animate);
+
+
+        if (showDebug) {
+            debugGraphics = attackAnimateContainer.addChild(new Graphics());
+
+            const toFrame = deltaFrame;
+            animate.gotoAndStop(toFrame);
+        }
+
+        return {
+            container: attackAnimateContainer,
+            play: () => {
+                animate.gotoAndPlay(0);
+            },
+            stop: () => {
+                animate.stop();
+            },
+            onEnd: (callback: () => void) => {
+                animate.onComplete = callback;
+            },
+            onceEnd: (callback: () => void) => {
+                onceEnd = () => {
+                    callback();
+                    onceEnd = undefined;
+                };
+            }
+        };
+    }
 
     return {
         heavyAttack,
         castAttack,
+        whipAttack,
     };
 }

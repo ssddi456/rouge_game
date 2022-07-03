@@ -131,10 +131,12 @@ export class Vector {
         return this.x === v.x && this.y === v.y;
     };
 
-    rotate(theta: number) {
+    rotate(/** in rad */theta: number) {
         var xtemp = this.x;
-        this.x = this.x * Math.cos(theta) - this.y * Math.sin(theta);
-        this.y = xtemp * Math.sin(theta) + this.y * Math.cos(theta);
+        var cosR = Math.cos(theta);
+        var sinR = Math.sin(theta);
+        this.x = this.x * cosR - this.y * sinR;
+        this.y = xtemp * sinR + this.y * cosR;
         return this;
     };
 }
