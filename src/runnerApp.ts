@@ -126,7 +126,9 @@ const runnerApp: EntityManager = {
     setCamera( _camera: Camera) {
         camera = _camera;
     },
-
+    getCamera() {
+        return camera;
+    },
     setGameView( _gameView: Viewport) {
         gameView = _gameView;
     },
