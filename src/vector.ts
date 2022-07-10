@@ -22,13 +22,13 @@ export class Vector {
         return new Vector(this.x, this.y);
     };
 
-    add(v: Vector) {
+    add(v: { x: number, y: number }) {
         this.x += v.x;
         this.y += v.y;
         return this;
     };
 
-    sub(v: Vector) {
+    sub(v: { x: number, y: number }) {
         this.x -= v.x;
         this.y -= v.y;
         return this;
@@ -58,7 +58,7 @@ export class Vector {
         return this;
     };
 
-    dot(v: Vector) {
+    dot(v: { x: number, y: number }) {
         return this.x * v.x + this.y * v.y;
     };
 
@@ -74,11 +74,11 @@ export class Vector {
         return this.divideScalar(this.length);
     };
 
-    distanceTo(v: Vector) {
+    distanceTo(v: { x: number, y: number }) {
         return Math.sqrt(this.distanceToSq(v));
     };
 
-    distanceToSq(v: Vector) {
+    distanceToSq(v: { x: number, y: number }) {
         var dx = this.x - v.x, dy = this.y - v.y;
         return dx * dx + dy * dy;
     };
@@ -113,7 +113,7 @@ export class Vector {
     };
 
 
-    lerp(v: Vector, alpha: number) {
+    lerp(v: { x: number, y: number }, alpha: number) {
         this.x += (v.x - this.x) * alpha;
         this.y += (v.y - this.y) * alpha;
         return this;
@@ -127,7 +127,7 @@ export class Vector {
         return this.rad() * 180 / Math.PI;
     };
 
-    equals(v: Vector) {
+    equals(v: { x: number, y: number }) {
         return this.x === v.x && this.y === v.y;
     };
 

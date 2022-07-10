@@ -5,9 +5,8 @@ import { CountDown } from "../countdown";
 import { CollisionView } from "../drawCollisions";
 import { DropletPool } from "../droplet";
 import { EnemyPool } from "../enemy";
-import { Gun } from "../gun";
+import { ShootManager } from "../shootManager";
 import { loadSpriteSheet } from "../loadAnimation";
-import { Player } from "../player";
 import { getRunnerApp } from "../runnerApp";
 import { Vector } from "../vector";
 
@@ -47,14 +46,10 @@ async function initScence() {
     const ammoA = new AnimatedSprite([app.renderer.generateTexture(ammoG)]);
 
 
-    const camara = new Camera(
-        ({
-            position: new Vector(500, 500),
-        } as any) as Player,
-        new Vector(1000, 1000),
-    );
-
+    const runnerApp = getRunnerApp();
+    
     (function () {
+        const camera = runnerApp.getCamera();
         const ammoPool = new AmmoPool(
             ammoA,
             triangleT,
@@ -71,17 +66,17 @@ async function initScence() {
             for (let jndex = 0; jndex < index * 10; jndex++) {
                 ammo.update();
             }
-            camara.updateItemPos(ammo);
+            camera.updateItemPos(ammo);
         }
 
         const collisionView = new CollisionView(
             app.renderer as Renderer,
             app.stage,
-            camara, ammoPool.pool);
+            camera, ammoPool.pool);
 
         for (let index = 0; index < ammoPool.pool.length; index++) {
             const ammo = ammoPool.pool[index];
-            camara.updateItemPos(ammo);
+            camera.updateItemPos(ammo);
         }
         collisionView.update();
     });
@@ -101,8 +96,6 @@ async function initScence() {
         enemyAnimateMap,
         animateContainer,
     );
-    const runnerApp = getRunnerApp();
-    runnerApp.setCamera(camara);
     runnerApp.setGameView(animateContainer);
     runnerApp.setEnemys(enemys);
     runnerApp.setDroplets(({
@@ -115,7 +108,7 @@ async function initScence() {
         animateContainer,
         hitAnimateMap.hit_1
     );
-    const gun = new Gun();
+    const gun = new ShootManager();
     gun.position.setV(new Vector(400, 80))
     gun.setAmmoPool(ammos);
     gun.dispersionRad = (10 * Math.PI)/180;
@@ -125,9 +118,11 @@ async function initScence() {
         gun.shoot(new Vector(600, 80))
         ammos.update();
         gun.update();
+        const camera = runnerApp.getCamera();
+
         for (let index = 0; index < ammos.pool.length; index++) {
             const ammo = ammos.pool[index];
-            camara.updateItemPos(ammo);
+            camera.updateItemPos(ammo);
         }
         enemys.update();
     };

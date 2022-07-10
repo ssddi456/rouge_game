@@ -1,117 +1,131 @@
-
-
-/**
- * shell
- * power smoke fire
- * warheads
- * hit exposion piecing
- * miss exposion
- */
-
-import { AmmoPool } from "./ammo";
-import { getRunnerApp } from "./runnerApp";
+import { Container, Point, Graphics, AnimatedSprite, Sprite, Texture, DisplayObject } from "pixi.js";
+import { EFacing, GameObject } from "./types";
 import { Vector } from "./vector";
 
-interface ShootInfo {
-    frameDelay: number;
-    dir?: Vector;
-    target?: Vector;
-    shooted: boolean;
-}
-export class Gun {
+export class Gun1 implements GameObject {
     position: Vector = new Vector(0, 0);
-    // 15deg = 15/180 * Math.PI
-    dispersionRad: number = 0;
-    projectileCount: number = 1;
+    prev_position: Vector = new Vector(0, 0);
 
-    ammoPool?: AmmoPool;
-    shootQueue: ShootInfo[] = [];
-    shootInterval: number = 400;
-    lastShootTime: number = 0;
-    shootPrepareTime: number = 700;
+    sprite: Container = new Container();
 
-    setAmmoPool(ammoPool: AmmoPool) {
-        this.ammoPool = ammoPool;
-    }
+    facing: EFacing = EFacing.bottom;
+    gunCenterPosX = -60;
+    muzzle: Vector = new Vector(0, 0);
 
-    isShooting() {
-        return (this.lastShootTime + this.shootPrepareTime) > getRunnerApp().now();
-    }
-
-    shoot(
-        target: Vector,
+    constructor(
+        bowAnimateMap: Record<string, AnimatedSprite>
     ) {
-        const now = getRunnerApp().now()
-        if ((this.lastShootTime + this.shootInterval) > now) {
-            return;
-        }
-        this.lastShootTime = now;
-
-        const dir = target.clone().sub(this.position).normalize();
-        if (this.dispersionRad == 0) {
-            this.shootQueue.push({
-                frameDelay: 0,
-                dir,
-                shooted: false,
-            });
-        } else {
-            if (this.projectileCount == 1) {
-                this.shootQueue.push({
-                    frameDelay: 0,
-                    dir,
-                    shooted: false,
-                });
-            } else {
-                const startRad = - this.dispersionRad / 2;
-                const deltaRad = this.dispersionRad / (this.projectileCount - 1);
-                for (let index = 0; index < this.projectileCount; index++) {
-                    const theta = startRad + deltaRad * index;
-                    this.shootQueue.push({
-                        frameDelay: 0,
-                        dir: dir.clone().rotate(theta),
-                        shooted: false,
-                    })
-                }
-
-            }
-        }
+        this.initSprite(bowAnimateMap);
     }
 
-    doShoot(shootInfo: ShootInfo) {
-        if (shootInfo.dir) {
-            shootInfo.shooted = true;
-            this.ammoPool!.emit(
-                shootInfo.dir,
-                this.position,
-                600
-            );
-        } else {
-            shootInfo.shooted = true;
-            const dir = this.position.clone().sub(shootInfo.target!).normalize();
-            this.ammoPool!.emit(
-                dir,
-                this.position,
-                600
-            );
-        }
+    initSprite(bowAnimateMap: Record<string, AnimatedSprite>) {
+        this.sprite.pivot.set(0.5, 0.5);
+        const gun = this.getSprite(bowAnimateMap);
+        const top = new Sprite(gun.textures[0] as Texture);
+        const handle = new Sprite(gun.textures[1] as Texture);
+
+        this.sprite.addChild(top);
+        this.sprite.addChild(handle);
+
+        const center = this.sprite.addChild(new Graphics());
+        center.beginFill(0xff0000);
+        center.drawCircle(0, 0, 2);
+
+        const bowCenter = this.sprite.addChild(new Graphics());
+        bowCenter.beginFill(0xff0000);
+        bowCenter.drawCircle(0, 0, 2);
+        bowCenter.position.set(this.gunCenterPosX, 0);
+
+        const muzzle = this.sprite.addChild(new Graphics());
+        muzzle.beginFill(0xff0000);
+        muzzle.drawCircle(0, 0, 2);
+        this.setupParts(top, handle, muzzle);
     }
 
-    update() {
-        if (this.shootQueue.length) {
-            for (let index = 0; index < this.shootQueue.length; index++) {
-                const element = this.shootQueue[index];
-                if (element.frameDelay > 0) {
-                    element.frameDelay -= 1;
-                } else {
-                    this.doShoot(element);
-                }
-            }
-            for (let index = this.shootQueue.length - 1; index >= 0; index--) {
-                const element = this.shootQueue[index];
-                if (element.shooted) {
-                    this.shootQueue.splice(index, 1);
-                }
-            }
-        }
+    getSprite(bowAnimateMap: Record<string, AnimatedSprite>) {
+        return bowAnimateMap.gun1;
+    }
+
+    setupParts(top: DisplayObject, handle: DisplayObject, muzzle: DisplayObject) {
+        top.position.x = -86 + this.gunCenterPosX;
+        top.position.y = -38;
+        handle.position.x = -30 + this.gunCenterPosX;
+        handle.position.y = -30;
+
+        muzzle.position.x = -45 + this.gunCenterPosX;
+        muzzle.position.y = 5;
+    }
+
+    update(): void {
+    }
+}
+
+
+export class Gun2 extends Gun1 {
+    getSprite(bowAnimateMap: Record<string, AnimatedSprite>) {
+        return bowAnimateMap.gun2;
+    }
+
+    setupParts(top: DisplayObject, handle: DisplayObject, muzzle: DisplayObject) {
+
+        top.position.x = -80 + this.gunCenterPosX;
+        top.position.y = -38;
+        handle.position.x = -20 + this.gunCenterPosX;
+        handle.position.y = -10;
+
+        muzzle.position.x = -68 + this.gunCenterPosX;
+        muzzle.position.y = 5;
+    }
+}
+
+export class Gun3 extends Gun1 {
+    getSprite(bowAnimateMap: Record<string, AnimatedSprite>) {
+        return bowAnimateMap.gun3;
+    }
+
+    setupParts(top: DisplayObject, handle: DisplayObject, muzzle: DisplayObject) {
+
+        top.position.x = -86 + this.gunCenterPosX;
+        top.position.y = -38;
+        handle.position.x = -34 + this.gunCenterPosX;
+        handle.position.y = -23;
+
+        muzzle.position.x = -72 + this.gunCenterPosX;
+        muzzle.position.y = 15;
+    }
+}
+
+export class Gun4 extends Gun1 {
+    getSprite(bowAnimateMap: Record<string, AnimatedSprite>) {
+        return bowAnimateMap.gun4;
+    }
+
+    setupParts(top: DisplayObject, handle: DisplayObject, muzzle: DisplayObject) {
+
+        top.position.x = -88 + this.gunCenterPosX;
+        top.position.y = -52;
+        handle.position.x = -10 + this.gunCenterPosX;
+        handle.position.y = -5;
+
+        muzzle.position.x = -63 + this.gunCenterPosX;
+        muzzle.position.y = 11;
+    }
+}
+
+
+export class Gun5 extends Gun1 {
+    getSprite(bowAnimateMap: Record<string, AnimatedSprite>) {
+        return bowAnimateMap.gun5;
+    }
+
+    setupParts(top: DisplayObject, handle: DisplayObject, muzzle: DisplayObject) {
+
+        top.position.x = -86 + this.gunCenterPosX;
+        top.position.y = -46;
+        handle.position.x = -30 + this.gunCenterPosX;
+        handle.position.y = -10;
+
+        muzzle.position.x = -75 + this.gunCenterPosX;
+        muzzle.position.y = 5;
     }
 }

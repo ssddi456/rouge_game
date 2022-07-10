@@ -4,7 +4,11 @@ import { default as initPlayerAttack } from './demos/player_attack';
 import { default as initAmmoDemo } from './demos/ammo_demo';
 import { default as initRopeDemo } from './demos/rope_demo';
 import { default as initIkDemo } from './demos/ik_demo';
+import { default as initBowDemo } from './demos/bow_demo';
 import { getRunnerApp } from './runnerApp';
+import { Camera } from './camara';
+import { Player } from './player';
+import { Vector } from './vector';
 
 const app = new PIXI.Application({
     backgroundColor: 0x1099bb,
@@ -56,11 +60,18 @@ function updateRope() {
     }
 }
 updateRope();
-
+const camera = new Camera(
+    ({
+        position: new Vector(500, 500),
+    } as any) as Player,
+    new Vector(1000, 1000),
+);
 const runnerApp = getRunnerApp();
 runnerApp.setApp(app);
+runnerApp.setCamera(camera);
 
 initPlayerAttack(app);
 initAmmoDemo(app);
 initRopeDemo(app);
 initIkDemo(app);
+initBowDemo(app);

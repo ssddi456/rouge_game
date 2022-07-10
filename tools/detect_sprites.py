@@ -69,6 +69,9 @@ def sort_contours(cnts):
 def process_sheet(name):
     img = cv2.imread(
         ('../src/assets/%s.png' % name))
+    # print("%s" % name)
+    # get color at y, x
+    # print(img[52][28])
 
     marked_img = img.copy()
     gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -91,16 +94,26 @@ def process_sheet(name):
         cv2.rectangle(marked_img, (x1, y1), (x1 + w, y1 + h), (255, 0, 0), 2)
         cv2.putText(marked_img, str(i), (x1, y1 + 20),
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA, False)
-        sprites_map[i] = (x1, y1, w, h)
+        sprites_map[i] = (x1 + 1, y1 + 1, w - 2, h - 2)
 
 
     # RGB 150 187 235
-    # BGR 235 187 150
-    mask = cv2.bitwise_not(cv2.inRange(
+    # BRG 235 187 150
+    mask1 = cv2.bitwise_not(cv2.inRange(
         img,
         np.array([230, 180, 140], dtype="uint8"),
         np.array([236, 187, 150], dtype="uint8")
     ))
+
+    # rgb(90 165 80);
+    # 80, 165, 90
+    mask2 = cv2.bitwise_not(cv2.inRange(
+        img,
+        np.array([75, 165, 84], dtype="uint8"),
+        np.array([75, 165, 85], dtype="uint8")
+    ))
+
+    mask = cv2.bitwise_and(mask1, mask2)
 
     b_channel, g_channel, r_channel = cv2.split(img)
 
@@ -118,6 +131,7 @@ def process_sheet(name):
 
 process_sheet('Nintendo Switch - Disgaea 5 Complete - LiezerotaDark')
 process_sheet('Nintendo Switch - Disgaea 5 Complete - Weapons Bow')
+process_sheet('Nintendo Switch - Disgaea 5 Complete - Weapons Gun')
 process_sheet('Nintendo Switch - Disgaea 5 Complete - Miscellaneous Monsters')
 
 def show_ui():

@@ -85,6 +85,7 @@ export interface EntityManager {
     setEnemys(_enemys: EnemyPool): void;
     setDroplets(_droplets: DropletPool): void;
     setCamera(_camera: Camera): void;
+    getCamera(): Camera;
     setGameView(_gameView: Container): void;
 }
 
