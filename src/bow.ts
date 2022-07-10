@@ -1,5 +1,7 @@
 import { AnimatedSprite, Container, DisplayObject, Graphics, Point, Sprite, Texture } from "pixi.js";
+import { getRunnerApp } from "./runnerApp";
 import { GameObject } from "./types";
+import { mouse } from "./user_input";
 import { Vector } from "./vector";
 
 // 1 - 5
@@ -17,7 +19,7 @@ export class Bow1 implements GameObject, Changable {
 
     sprite: Container = new Container();
 
-    ropeDragRangeMin = -25;
+    ropeDragRangeMin = -55;
     ropeDragRangeMax = 70;
 
     ropePoints = [
@@ -54,7 +56,7 @@ export class Bow1 implements GameObject, Changable {
         center.beginFill(0xff0000);
         center.drawCircle(0,0,2);
         
-        const bowCenterPosX = -50;
+        const bowCenterPosX = -80;
         const bowCenterPosY = 0;
 
         handle.position.set(
@@ -87,18 +89,17 @@ export class Bow1 implements GameObject, Changable {
     }
 
     updateRope() {
-        if (this.percent <= -20) {
+        if (this.percent < -20) {
             this.percent = 0;
             this.releasing = false;
-            return;
         }
 
         this.ropePoints[1].x = this.ropeDragRangeMin 
             + (Math.max(Math.min(this.percent - 10, 90), 0) * (this.ropeDragRangeMax - this.ropeDragRangeMin)) / 80
             + (
-                this.releasing 
+                this.releasing
                     ? (this.percent < 10 ? 10 * (0.5 - Math.random()): 0)
-                    : (this.percent == 100 ? 4 * (0.5 - Math.random()): 0)
+                    : (this.percent == 100 ? 2 * (0.5 - Math.random()): 0)
             );
     }
 
@@ -109,27 +110,52 @@ export class Bow1 implements GameObject, Changable {
         if (this.releasing) {
             return;
         }
-        this.percent = Math.min(this.percent + 2, 100);
+        this.percent = Math.min(this.percent + 24, 100);
     }
 
     releaseCharge(): void {
-
-        if (this.percent == 0) {
-            return;
+        if (this.percent > 0 && !this.releasing) {
+            this.releasing = true;
         }
-        this.releasing = true;
-        if (this.percent < 50) {
-            this.percent = this.percent - 30;
-        } else if (this.percent < 10) {
-            this.percent = this.percent - 5;
-        } else {
-            this.percent = this.percent - 20;
+
+        if (this.releasing) {
+            if (this.percent < 10) {
+                this.percent = this.percent - 2;
+            } else if (this.percent < 50) {
+                this.percent = this.percent - 40;
+            } else {
+                this.percent = this.percent - 30;
+            }
         }
     }
 
+    updateState(): void {
+        const runnerApp = getRunnerApp();
+        const worldPos = runnerApp.getMouseWorldPos();
+        const vec = worldPos.sub(this.position).normalize();
+        const rotation = Math.atan(vec.y / vec.x);
+        // 仍然有突变的问题
+        if (vec.x > 0) {
+            this.sprite.rotation = rotation - Math.PI;
+        } else {
+            this.sprite.rotation = rotation;
+        }
+        if (mouse.left) {
+            this.addCharge();
+        } else {
+            this.releaseCharge();
+        }
+    }
+
+    updateSprite() {
+        this.sprite.position.set(this.position.x, this.position.y);
+    }
+
     update(): void {
+        this.updateState();
         this.updateRope();
         this.drawRope();
+        this.updateSprite();
     }
 }
 

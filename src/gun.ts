@@ -1,4 +1,5 @@
 import { Container, Point, Graphics, AnimatedSprite, Sprite, Texture, DisplayObject } from "pixi.js";
+import { getRunnerApp } from "./runnerApp";
 import { EFacing, GameObject } from "./types";
 import { Vector } from "./vector";
 
@@ -55,8 +56,20 @@ export class Gun1 implements GameObject {
         muzzle.position.x = -45 + this.gunCenterPosX;
         muzzle.position.y = 5;
     }
-
+    updateState(): void {
+        const runnerApp = getRunnerApp();
+        const worldPos = runnerApp.getMouseWorldPos();
+        const vec = worldPos.sub(this.position).normalize();
+        const rotation = Math.atan(vec.y / vec.x);
+        // 仍然有突变的问题
+        if (vec.x > 0) {
+            this.sprite.rotation = rotation - Math.PI / 2;
+        } else {
+            this.sprite.rotation = rotation + Math.PI / 2;
+        }
+    }
     update(): void {
+        this.updateState();
     }
 }
 

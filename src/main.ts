@@ -48,6 +48,8 @@ app.loader.add('grass', getImageUrl('THX0.png'))
     .load(async (loader, resources) => {
 
         const playerAnimateMap = await loadSpriteSheet(loader, 'Nintendo Switch - Disgaea 5 Complete - LiezerotaDark');
+        const bowAnimateMap = await loadSpriteSheet(loader, 'Nintendo Switch - Disgaea 5 Complete - Weapons Bow');
+        const gunAnimateMap = await loadSpriteSheet(loader, 'Nintendo Switch - Disgaea 5 Complete - Weapons Gun');
         const enemyAnimateMap = await loadSpriteSheet(loader, 'Nintendo Switch - Disgaea 5 Complete - Miscellaneous Monsters');
         const hitEffect = await loadSpriteSheet(loader, 'crosscode_hiteffect');
 
@@ -84,7 +86,11 @@ app.loader.add('grass', getImageUrl('THX0.png'))
         runnerApp.setApp(app);
         runnerApp.setGameView(gameView);
 
-        const player = new Player(playerAnimateMap, 
+        const player = new Player(playerAnimateMap,
+            {
+                ...bowAnimateMap,
+                ...gunAnimateMap,
+            },
             {
                 ammoTrail: triangleT,
             },
@@ -140,7 +146,7 @@ app.loader.add('grass', getImageUrl('THX0.png'))
             curser.update();
             
             // for debugers
-            collisionView.update();
+            // collisionView.update();
             
             camera.updateItemPos(player);
             grass.tilePosition = camera.offset.clone().multiplyScalar(-1) as any;

@@ -86,6 +86,7 @@ export interface EntityManager {
     setDroplets(_droplets: DropletPool): void;
     setCamera(_camera: Camera): void;
     getCamera(): Camera;
+    getMouseWorldPos(): Vector;
     setGameView(_gameView: Container): void;
 }
 

@@ -24,21 +24,20 @@ async function initScence() {
     const bowAnimateMap = await loadSpriteSheet(app.loader, 'Nintendo Switch - Disgaea 5 Complete - Weapons Bow');
     const gunAnimateMap = await loadSpriteSheet(app.loader, 'Nintendo Switch - Disgaea 5 Complete - Weapons Gun');
 
-    const bows: [Container, Bow1][] = [];
-    const guns: [Container, Gun1][] = [];
+    const bows: Bow1[] = [];
+    const guns: Gun1[] = [];
 
-    function addBow ( bowConstructor: new (map: Record<string, AnimatedSprite>) => Bow1 ){
+    function addBow(bowConstructor: new (map: Record<string, AnimatedSprite>) => Bow1) {
 
         const bow1 = new bowConstructor(bowAnimateMap);
 
         const bowContainer = new Container();
-        bowContainer.rotation = -1 * Math.PI / 2;
-        
-        bowContainer.position.x = 1000 + bows.length * 200;
-        bowContainer.position.y = 100;
+
+        bow1.position.x = 1000 + bows.length * 200;
+        bow1.position.y = 100;
         bowContainer.addChild(bow1.sprite);
         animateContainer.addChild(bowContainer);
-        bows.push([bowContainer, bow1]);
+        bows.push(bow1);
     }
 
     function addGun(gunConstructor: new (map: Record<string, AnimatedSprite>) => Gun1) {
@@ -48,11 +47,11 @@ async function initScence() {
         const gunContainer = new Container();
         gunContainer.rotation = -1 * Math.PI / 2;
 
-        gunContainer.position.x = 1100 + guns.length * 150;
-        gunContainer.position.y = 300;
+        gun1.position.x = gunContainer.position.x = 1100 + guns.length * 150;
+        gun1.position.y = gunContainer.position.y = 300;
         gunContainer.addChild(gun1.sprite);
         animateContainer.addChild(gunContainer);
-        guns.push([gunContainer, gun1]);
+        guns.push(gun1);
     }
     addBow(Bow1);
     addBow(Bow2);
@@ -71,44 +70,20 @@ async function initScence() {
     const runnerApp = getRunnerApp();
 
     console.log(bows.length);
-    
+
     tickerFunction = function () {
-        const worldPos = runnerApp.screenPosToWorldPos(new Vector(mouse.x, mouse.y));
-        
-        currentFrame ++;
-        if (currentFrame >= totalFrame)  {
+        currentFrame++;
+        if (currentFrame >= totalFrame) {
             currentFrame = 0;
         }
-        
+
         for (let index = 0; index < bows.length; index++) {
-            const [element, bow] = bows[index];
-            const vec = worldPos.clone().sub(element.position).normalize();
-            const rotation = Math.atan(vec.y / vec.x);
-            // 仍然有突变的问题
-            if (vec.x > 0) {
-                element.rotation = rotation - Math.PI;
-            } else {
-                element.rotation = rotation;
-            }
-            if (mouse.left) {
-                bow.addCharge();
-            } else {
-                bow.releaseCharge();
-            }
+            const bow = bows[index];
             bow.update();
         }
 
         for (let index = 0; index < guns.length; index++) {
-            const [element, gun] = guns[index];
-            const vec = worldPos.clone().sub(element.position).normalize();
-            const rotation = Math.atan(vec.y / vec.x);
-            // 仍然有突变的问题
-            if (vec.x > 0) {
-                element.rotation = rotation - Math.PI;
-            } else {
-                element.rotation = rotation;
-            }
-
+            const gun = guns[index];
             gun.update();
         }
     };

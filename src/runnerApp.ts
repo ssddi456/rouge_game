@@ -9,6 +9,7 @@ import { Player } from "./player";
 import { cloneAnimationSprite } from "./sprite_utils";
 import { ECollisionType, EntityManager, ICollisionable } from "./types";
 import { Vector } from "./vector";
+import {mouse} from './user_input';
 
 let timeElipsed = 0;
 let app: Application;
@@ -18,6 +19,7 @@ let droplets: DropletPool;
 let camera: Camera;
 let particles: Particle[] = [];
 let gameView: Viewport;
+let mouseWorldPos: Vector | undefined;
 
 const runnerApp: EntityManager = {
     getEntities: ({
@@ -98,6 +100,7 @@ const runnerApp: EntityManager = {
     setApp(a: Application) {
         app = a;
         app.ticker.add(() => {
+            mouseWorldPos = undefined;
             timeElipsed += app.ticker.elapsedMS;
 
             for (let index = 0; index < particles.length; index++) {
@@ -112,6 +115,8 @@ const runnerApp: EntityManager = {
                     camera.updateItemPos(element);
                 }
             }
+
+
         });
     },
     setPlayer( _player: Player) {
@@ -132,7 +137,13 @@ const runnerApp: EntityManager = {
     setGameView( _gameView: Viewport) {
         gameView = _gameView;
     },
-
+    getMouseWorldPos() {
+        if (mouseWorldPos) {
+            return mouseWorldPos.clone();
+        }
+        mouseWorldPos = runnerApp.screenPosToWorldPos(new Vector(mouse.x, mouse.y));
+        return mouseWorldPos.clone();
+    }
 };
 
 export function getRunnerApp (){
