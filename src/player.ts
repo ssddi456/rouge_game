@@ -13,6 +13,7 @@ import { GlowFilter } from '@pixi/filter-glow';
 
 import easingsFunctions, { twean } from "./easingFunctions";
 import tween from "./tween";
+import { Bow1 } from "./bow";
 
 export class Player implements IMovable, Shootable, ICollisionable, LivingObject, LeveledObject {
     sprite: Container = new Container();
@@ -51,6 +52,7 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
     exp: number = 0;
     lv: number = 1;
     nextLevelExp: number = 10;
+    bow: Bow1;
 
     receiveExp(exp: number) {
         this.exp += exp;
@@ -64,8 +66,9 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
     }
 
     constructor(
-        public spirtes: Record<string, AnimatedSprite>,
-        public textures: Record<string, PIXI.Texture>,
+        public playerSpirtes: Record<string, AnimatedSprite>,
+        public weaponSpirtes: Record<string, AnimatedSprite>,
+        public ammoTextures: Record<string, PIXI.Texture>,
         public hitSpirtes: Record<string, AnimatedSprite>,
         public hp: number,
         public container: Container,
@@ -74,6 +77,12 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
         container.addChild(this.sprite);
         this.position.setV(startPosition);
         instanceList.push(this);
+
+        this.bow = new Bow1(weaponSpirtes);
+        container.addChild(this.bow.sprite);
+        console.log(this.bow.sprite.scale);
+        this.bow.sprite.scale.set(0.3, 0.3);
+        this.bow.sprite.zIndex = playerZIndex;
 
         // soft shadow
         const shadow = new PIXI.Graphics();
@@ -89,8 +98,8 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
 
         // main character
 
-        const buff_left = spirtes.buff_left;
-        const buff_right = spirtes.buff_right;
+        const buff_left = playerSpirtes.buff_left;
+        const buff_right = playerSpirtes.buff_right;
         buff_left.anchor.set(0.5, 0.5);
         buff_right.anchor.set(0.5, 0.5);
         buff_left.x = -58;
@@ -100,8 +109,8 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
         this.effects.buff_left = buff_left;
         this.effects.buff_right = buff_right;
         
-        const buff_left_back = spirtes.buff_left_back;
-        const buff_right_back = spirtes.buff_right_back;
+        const buff_left_back = playerSpirtes.buff_left_back;
+        const buff_right_back = playerSpirtes.buff_right_back;
         buff_left_back.anchor.set(0.5, 0.5);
         buff_right_back.anchor.set(0.5, 0.5);
         buff_left_back.x = 58;
@@ -136,8 +145,8 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
         pointer.endFill();
 
         this.ammoPools = new AmmoPool(
-            this.spirtes.ammo, 
-            this.textures.ammoTrail,
+            this.playerSpirtes.ammo, 
+            this.ammoTextures.ammoTrail,
             this.container,
             this.hitSpirtes.hit_1, 
         );
@@ -283,8 +292,8 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
     getAttackSprite() {
         if (!this.prev_costing) {
             const attack_animation = keypressed.heavy_attack
-                ? (this.facing == "top" ? this.spirtes.heavy_attack_back : this.spirtes.heavy_attack)
-                : (this.facing == "top" ? this.spirtes.attack_back : this.spirtes.attack);
+                ? (this.facing == EFacing.top ? this.playerSpirtes.heavy_attack_back : this.playerSpirtes.heavy_attack)
+                : (this.facing == EFacing.top ? this.playerSpirtes.attack_back : this.playerSpirtes.attack);
             attack_animation.play();
             this.current_attack_animation = attack_animation;
         }
@@ -306,39 +315,35 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
         }
 
         if (!this.costing) {
-            if (this.facing == "top") {
-                return this.spirtes.idle_back;
+            if (this.facing == EFacing.top) {
+                return this.playerSpirtes.idle_back;
             }
-            if (this.facing == "bottom") {
-                return this.spirtes.idle;
+            if (this.facing == EFacing.bottom) {
+                return this.playerSpirtes.idle;
             }
         }
 
-        return this.spirtes.idle;
+        return this.playerSpirtes.idle;
     }
     updateSprite() {
 
 
         if (!this.costing) {
-            if (this.direct.x > 0 && this.prev_direct.y <= 0) {
-                if (this.sprite.scale.x > 0) {
-                    this.sprite.scale.x *= -1;
-                }
-            } else if (this.direct.x < 0 && this.prev_direct.y >= 0) {
-                if (this.sprite.scale.x < 0) {
-                    this.sprite.scale.x *= -1;
-                }
+
+            const worldPos = getRunnerApp().screenPosToWorldPos(new Vector(mouse.x, mouse.y));
+            const deltaX = worldPos.x - this.position.x;
+            const deltaY = worldPos.y - this.position.y;
+
+            if (deltaX > 0 && this.sprite.scale.x > 0) {
+                this.sprite.scale.x *= -1;
+            } else if (deltaX < 0 && this.sprite.scale.x < 0) {
+                this.sprite.scale.x *= -1;
             }
 
-            if ((this.direct.y > 0 && this.prev_direct.y <= 0)
-                || (this.direct.y < 0 && this.prev_direct.y >= 0)
-            ) {
-                if (this.direct.y > 0) {
-                    this.facing = EFacing.bottom;
-                }
-                if (this.direct.y < 0) {
-                    this.facing = EFacing.top;
-                }
+            if (deltaY > 0 && this.facing == EFacing.top) {
+                this.facing = EFacing.bottom;
+            } else if (deltaY < 0 && this.facing == EFacing.bottom) {
+                this.facing = EFacing.top;
             }
         }
         // reset order
@@ -373,6 +378,10 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
         this.updatePosition();
         this.updateBuffer();
         this.updateSprite();
+
+        this.bow.position.setV(this.position);
+        this.bow.update();
+
         this.ammoPools.update();
     }
 }
