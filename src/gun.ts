@@ -1,4 +1,6 @@
 import { Container, Point, Graphics, AnimatedSprite, Sprite, Texture, DisplayObject } from "pixi.js";
+import { WYSIWYGProperty } from "./helper/wyswyg";
+import "./helper/helper_test";
 import { getRunnerApp } from "./runnerApp";
 import { EFacing, GameObject } from "./types";
 import { Vector } from "./vector";
@@ -10,6 +12,7 @@ export class Gun1 implements GameObject {
     sprite: Container = new Container();
 
     facing: EFacing = EFacing.bottom;
+    // gunCenterPosX = WYSIWYGProperty('Gun1.gunCenterPosX', -60);
     gunCenterPosX = -60;
     muzzle: Vector = new Vector(0, 0);
 

@@ -1,0 +1,91 @@
+var Visitor = require('@swc/core/Visitor').Visitor;
+
+
+class VisibleEditorTransformer extends Visitor {
+    constructor(options) {
+        super();
+        this.options = options;
+    }
+
+    visitProgram(
+        /** @type {import('@swc/core').Program} */ m
+    ) {
+        this.startSpan = m.span;
+        return super.visitProgram(m);
+    }
+
+    visitCallExpression(
+         /** @type {import('@swc/core').CallExpression} */ callExpression
+    ) {
+        if (callExpression.callee.type == 'Identifier'
+            && callExpression.callee.value == 'WYSIWYGProperty'
+        ) {
+            console.log(
+                'this.options', this.options, this.startSpan
+            );
+
+            callExpression.arguments.push({
+                expression: {
+                    type: 'ObjectExpression',
+                    properties: [{
+                        type: 'KeyValueProperty',
+                        key: {
+                            type: 'Identifier',
+                            value: 'fileName',
+                            span: callExpression.span
+                        },
+                        value: {
+                            type: 'StringLiteral',
+                            value: this.options.fileName || 'missing_file_name',
+                            span: callExpression.span,
+                            hasEscape: false,
+                        },
+                        span: callExpression.span
+                    },
+                    {
+                        type: 'KeyValueProperty',
+                        key: {
+                            type: 'Identifier',
+                            value: 'startNumber',
+                            span: callExpression.span
+                        },
+                        value: {
+                            type: 'NumericLiteral',
+                            value: callExpression.span.start - this.startSpan.start,
+                            span: callExpression.span,
+                        },
+                        span: callExpression.span
+                    },
+                    {
+                        type: 'KeyValueProperty',
+                        key: {
+                            type: 'Identifier',
+                            value: 'endNumber',
+                            span: callExpression.span
+                        },
+                        value: {
+                            type: 'NumericLiteral',
+                            value: callExpression.span.end - this.startSpan.start,
+                            span: callExpression.span,
+                        },
+                        span: callExpression.span
+                    }
+                    ],
+                    span: callExpression.span
+                }
+            });
+        }
+
+        return {
+            ...callExpression,
+            callee: this.visitCallee(callExpression.callee),
+            arguments: this.visitArguments(callExpression.arguments),
+        };
+    }
+
+    visitTsType(n) {
+        return n;
+    }
+}
+
+module.exports.VisibleEditorTransformer = VisibleEditorTransformer;

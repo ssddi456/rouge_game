@@ -1,4 +1,6 @@
 var path = require("path");
+var VisibleEditorTransformer = require('./build_tools/visible_editor').VisibleEditorTransformer;
+
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
 
@@ -58,7 +60,14 @@ module.exports = function ({ entry }) {
                     use: {
                         loader: "swc-loader",
                         options: {
+                            sync: true,
                             jsc: {
+                                "parser": {
+                                    "syntax": "typescript",
+                                    "tsx": true,
+                                    "decorators": false,
+                                    "dynamicImport": false
+                                },
                                 transform: {
                                     react: {
                                         development: shouldRefreshReact,
@@ -66,6 +75,9 @@ module.exports = function ({ entry }) {
                                     },
                                 },
                             },
+                            plugin: (m, loader) => new VisibleEditorTransformer({
+                                fileName: loader.resourcePath
+                            }).visitProgram(m),
                         },
                     },
                 },
