@@ -1,0 +1,123 @@
+{
+  "type": "Module",
+  "span": {
+    "start": 97785,
+    "end": 97873,
+    "ctxt": 0
+  },
+  "body": [
+    {
+      "type": "ImportDeclaration",
+      "span": {
+        "start": 97785,
+        "end": 97828,
+        "ctxt": 0
+      },
+      "specifiers": [
+        {
+          "type": "ImportSpecifier",
+          "span": {
+            "start": 97794,
+            "end": 97809,
+            "ctxt": 0
+          },
+          "local": {
+            "type": "Identifier",
+            "span": {
+              "start": 97794,
+              "end": 97809,
+              "ctxt": 0
+            },
+            "value": "WYSIWYGProperty",
+            "optional": false
+          },
+          "imported": null,
+          "isTypeOnly": false
+        }
+      ],
+      "source": {
+        "type": "StringLiteral",
+        "span": {
+          "start": 97817,
+          "end": 97827,
+          "ctxt": 0
+        },
+        "value": "./wyswyg",
+        "raw": "\"./wyswyg\""
+      },
+      "typeOnly": false,
+      "asserts": null
+    },
+    {
+      "type": "ExpressionStatement",
+      "span": {
+        "start": 97831,
+        "end": 97873,
+        "ctxt": 0
+      },
+      "expression": {
+        "type": "CallExpression",
+        "span": {
+          "start": 97831,
+          "end": 97873,
+          "ctxt": 0
+        },
+        "callee": {
+          "type": "Identifier",
+          "span": {
+            "start": 97831,
+            "end": 97846,
+            "ctxt": 0
+          },
+          "value": "WYSIWYGProperty",
+          "optional": false
+        },
+        "arguments": [
+          {
+            "spread": null,
+            "expression": {
+              "type": "StringLiteral",
+              "span": {
+                "start": 97847,
+                "end": 97867,
+                "ctxt": 0
+              },
+              "value": "Gun1.gunCenterPosX",
+              "raw": "'Gun1.gunCenterPosX'"
+            }
+          },
+          {
+            "spread": null,
+            "expression": {
+              "type": "UnaryExpression",
+              "span": {
+                "start": 97869,
+                "end": 97872,
+                "ctxt": 0
+              },
+              "operator": "-",
+              "argument": {
+                "type": "NumericLiteral",
+                "span": {
+                  "start": 97870,
+                  "end": 97872,
+                  "ctxt": 0
+                },
+                "value": 60,
+                "raw": "60"
+              }
+            }
+          },
+          {
+            "expression": {
+              "type": "ObjectExpression",
+              "properties": []
+            }
+          }
+        ],
+        "typeArguments": null
+      }
+    }
+  ],
+  "interpreter": null
+}
