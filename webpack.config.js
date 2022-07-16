@@ -1,5 +1,6 @@
 var path = require("path");
 var VisibleEditorTransformer = require('./build_tools/visible_editor').VisibleEditorTransformer;
+var bodyParser = require('body-parser');
 
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
@@ -37,7 +38,7 @@ module.exports = function ({ entry }) {
         resolve: {
             extensions: [".ts", ".tsx", ".js", ".jsx"],
         },
-
+        /** @type {import("webpack-dev-server").Configuration} */
         devServer: {
             ...server,
             host: "0.0.0.0",
@@ -48,6 +49,12 @@ module.exports = function ({ entry }) {
                 }
             },
             hot: true,
+            setupMiddlewares(middlewares, devServer) {
+                devServer.app.post('/__update_file', 
+                    bodyParser.json(),
+                    require('./build_tools/replace_content_middleware'));
+                return middlewares;
+            }
         },
 
         devtool: isDevelopment ? 'source-map' : false,

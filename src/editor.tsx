@@ -12,7 +12,7 @@ import {
     Typography,
 } from "antd";
 import React from "react";
-import { render } from "react-dom";
+import { createRoot } from "react-dom/client";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AnimationPreview } from "./components/animateSheets";
 import "antd/dist/antd.css";
@@ -280,4 +280,4 @@ class App extends React.Component {
     }
 }
 
-render(<App />, document.getElementById("root"));
+createRoot(document.getElementById("root")).render(<App />);

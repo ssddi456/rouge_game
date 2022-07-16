@@ -24,6 +24,8 @@ class VisibleEditorTransformer extends Visitor {
                 'this.options', this.options, this.startSpan
             );
 
+            const valueItem = callExpression.arguments[1].expression;
+
             callExpression.arguments.push({
                 expression: {
                     type: 'ObjectExpression',
@@ -47,12 +49,12 @@ class VisibleEditorTransformer extends Visitor {
                         key: {
                             type: 'Identifier',
                             value: 'startNumber',
-                            span: callExpression.span
+                            span: valueItem.span
                         },
                         value: {
                             type: 'NumericLiteral',
-                            value: callExpression.span.start - this.startSpan.start,
-                            span: callExpression.span,
+                            value: valueItem.span.start - this.startSpan.start,
+                            span: valueItem.span,
                         },
                         span: callExpression.span
                     },
@@ -61,12 +63,12 @@ class VisibleEditorTransformer extends Visitor {
                         key: {
                             type: 'Identifier',
                             value: 'endNumber',
-                            span: callExpression.span
+                            span: valueItem.span
                         },
                         value: {
                             type: 'NumericLiteral',
-                            value: callExpression.span.end - this.startSpan.start,
-                            span: callExpression.span,
+                            value: valueItem.span.end - this.startSpan.start,
+                            span: valueItem.span,
                         },
                         span: callExpression.span
                     }
