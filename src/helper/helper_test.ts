@@ -1,4 +1,4 @@
 import { WYSIWYGProperty } from "./wyswyg";
 
 
-WYSIWYGProperty('Gun1.gunCenterPosX', -60)
+WYSIWYGProperty('Gun1.gunCenterPosX', -6200)
