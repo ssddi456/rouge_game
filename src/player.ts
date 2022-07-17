@@ -17,6 +17,8 @@ import { Bow1 } from "./bow";
 
 export class Player implements IMovable, Shootable, ICollisionable, LivingObject, LeveledObject {
     sprite: Container = new Container();
+    bodyContainer: Container = this.sprite.addChild(new Container());
+
     dead: boolean = false;
     prev_dead: boolean = false;
     prev_position: Vector = new Vector(0, 0);
@@ -54,6 +56,8 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
     nextLevelExp: number = 10;
     bow: Bow1;
 
+    baseScale = 0.5;
+
     receiveExp(exp: number) {
         this.exp += exp;
         if (this.exp >= this.nextLevelExp) {
@@ -78,17 +82,11 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
         this.position.setV(startPosition);
         instanceList.push(this);
 
-        this.bow = new Bow1(weaponSpirtes);
-        container.addChild(this.bow.sprite);
-        console.log(this.bow.sprite.scale);
-        this.bow.sprite.scale.set(0.3, 0.3);
-        this.bow.sprite.zIndex = playerZIndex;
 
         // soft shadow
         const shadow = new PIXI.Graphics();
-        this.sprite.zIndex = playerZIndex;
-        this.sprite.scale.set(0.5, 0.5);
-        this.sprite.sortableChildren = true;
+        this.bodyContainer.zIndex = playerZIndex;
+        this.bodyContainer.scale.set(this.baseScale, this.baseScale);
         this.effects.shadow = shadow;
 
         shadow.beginFill(0x000000);
@@ -136,6 +134,10 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
         buff_right.filters = [ glow ];
         buff_left_back.filters = [ glow ];
         buff_right_back.filters = [ glow ];
+
+        this.bow = new Bow1(weaponSpirtes);
+        this.bow.sprite.scale.set(0.3, 0.3);
+        this.sprite.addChild(this.bow.sprite);
 
         // center point indicator
         const pointer = new PIXI.Graphics();
@@ -334,10 +336,10 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
             const deltaX = worldPos.x - this.position.x;
             const deltaY = worldPos.y - this.position.y;
 
-            if (deltaX > 0 && this.sprite.scale.x > 0) {
-                this.sprite.scale.x *= -1;
-            } else if (deltaX < 0 && this.sprite.scale.x < 0) {
-                this.sprite.scale.x *= -1;
+            if (deltaX > 0 && this.bodyContainer.scale.x > 0) {
+                this.bodyContainer.scale.x = -this.baseScale;
+            } else if (deltaX < 0 && this.bodyContainer.scale.x < 0) {
+                this.bodyContainer.scale.x = this.baseScale;
             }
 
             if (deltaY > 0 && this.facing == EFacing.top) {
@@ -347,7 +349,7 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
             }
         }
         // reset order
-        this.sprite.removeChildren(0, this.sprite.children.length);
+        this.bodyContainer.removeChildren(0, this.bodyContainer.children.length);
         const mainSprite = this.getMainSpirt();
         console.assert(mainSprite != null, 'mainSprite != null');
         (this.facing == EFacing.bottom ? [
@@ -363,7 +365,7 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
             this.effects.buff_right_back,
             this.pointer
         ]).forEach(sprite => {
-            this.sprite.addChild(sprite);
+            this.bodyContainer.addChild(sprite);
         });
 
     }

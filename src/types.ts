@@ -8,11 +8,13 @@ import { Particle } from "./particle";
 import { Player } from "./player";
 import { Vector } from "./vector"
 
+export interface Updatable {
+    update(): void;
+}
 export interface GameObject {
     position: Vector;
     prev_position: Vector;
     sprite: DisplayObject;
-    update(): void;
 }
 
 export enum EFacing {
