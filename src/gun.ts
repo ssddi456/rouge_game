@@ -63,12 +63,23 @@ export class Gun1 implements GameObject {
         const runnerApp = getRunnerApp();
         const worldPos = runnerApp.getMouseWorldPos();
         const vec = worldPos.sub(this.position).normalize();
-        const rotation = Math.atan(vec.y / vec.x);
-        // 仍然有突变的问题
-        if (vec.x > 0) {
-            this.sprite.rotation = rotation - Math.PI / 2;
+        // 还是极坐标好 但是没有
+        if (vec.x == 0) {
+            if (vec.y > 0) {
+                this.sprite.rotation = Math.PI;
+            } else {
+                this.sprite.rotation = - Math.PI;
+            }
         } else {
-            this.sprite.rotation = rotation + Math.PI / 2;
+            const rotation = Math.atan(vec.y / vec.x);
+            // 仍然有突变的问题
+            if (vec.x > 0) {
+                this.sprite.rotation = rotation + Math.PI / 2;
+                this.sprite.scale.x = -1;
+            } else {
+                this.sprite.rotation = rotation + Math.PI / 2;
+                this.sprite.scale.x = 1;
+            }
         }
     }
     update(): void {
