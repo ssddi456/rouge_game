@@ -14,6 +14,7 @@ import { Camera } from './camara';
 import { DropletPool } from './droplet';
 import { getRunnerApp } from './runnerApp';
 import { Ammo } from './ammo';
+import { Forest } from './tree';
 
 // The application will create a renderer using WebGL, if possible,
 // with a fallback to a canvas render. It will also setup the ticker
@@ -52,6 +53,7 @@ app.loader.add('grass', getImageUrl('THX0.png'))
         const gunAnimateMap = await loadSpriteSheet(loader, 'Nintendo Switch - Disgaea 5 Complete - Weapons Gun');
         const enemyAnimateMap = await loadSpriteSheet(loader, 'Nintendo Switch - Disgaea 5 Complete - Miscellaneous Monsters');
         const hitEffect = await loadSpriteSheet(loader, 'crosscode_hiteffect');
+        const treeAnimateMap = await loadSpriteSheet(loader, 'Hazel Tree');
 
         const ammoG = new PIXI.Graphics();
         ammoG.beginFill(0xffffff);
@@ -125,6 +127,9 @@ app.loader.add('grass', getImageUrl('THX0.png'))
             app.view.height,
         ));
         runnerApp.setCamera(camera);
+
+        const forest = new Forest(treeAnimateMap, gameView);
+
         const collisionView = new CollisionView(
             app.renderer as PIXI.Renderer,
             gameView,
@@ -144,7 +149,8 @@ app.loader.add('grass', getImageUrl('THX0.png'))
             enemys.update();
             droplets.update();
             curser.update();
-            
+            forest.update();
+
             // for debugers
             // collisionView.update();
             
@@ -168,6 +174,11 @@ app.loader.add('grass', getImageUrl('THX0.png'))
                 if (!element.dead) {
                     camera.updateItemPos(element);
                 }
+            }
+
+            for (let index = 0; index < forest.trees.length; index++) {
+                const element = forest.trees[index];
+                camera.updateItemPos(element);
             }
         });
     });

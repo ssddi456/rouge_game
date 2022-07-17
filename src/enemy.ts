@@ -10,6 +10,7 @@ import { Droplets as Droplet } from "./droplet";
 import { getRunnerApp } from "./runnerApp";
 import { applyBuffer, checkBufferAlive } from "./buffer";
 import { cloneAnimationSprites } from "./sprite_utils";
+import { Group, Layer } from '@pixi/layers'
 
 export class Enemy implements IMovable, ICollisionable, LivingObject {
     prev_dead: boolean = false;
@@ -36,13 +37,11 @@ export class Enemy implements IMovable, ICollisionable, LivingObject {
 
     constructor(
         public spirtes: Record<string, AnimatedSprite>,
-        public container: Container,
     ) {
         instanceList.push(this);
         // soft shadow
         const shadow = new PIXI.Graphics();
         this.sprite.addChild(shadow);
-        this.sprite.zIndex = enemyZIndex;
 
         this.shadow = shadow;
         shadow.beginFill(0x000000);
@@ -96,7 +95,6 @@ export class Enemy implements IMovable, ICollisionable, LivingObject {
         this.sprite.y = position.y;
         this.sprite.visible = true;
         this.dead = false;
-        this.container.addChild(this.sprite);
     }
 
     cacheProperty() {
@@ -115,9 +113,7 @@ export class Enemy implements IMovable, ICollisionable, LivingObject {
             collisionTypes: [ECollisionType.player]
         })[0];
         if (player as Player) {
-            this.direct.setV(new Vector(
-                player.position.x,
-                player.position.y)
+            this.direct.setV(player.position.clone()
                 .sub(this.position)
                 .normalize()
                 .multiplyScalar(this.speed));
@@ -151,14 +147,10 @@ export class Enemy implements IMovable, ICollisionable, LivingObject {
     }
 
     updateSprite() {
-        if (this.direct.x > 0 && this.prev_direct.y <= 0) {
-            if (this.sprite.scale.x > 0) {
-                this.sprite.scale.x *= -1;
-            }
-        } else if (this.direct.x < 0 && this.prev_direct.y >= 0) {
-            if (this.sprite.scale.x < 0) {
-                this.sprite.scale.x *= -1;
-            }
+        if (this.direct.x > 0 && this.sprite.scale.x > 0) {
+            this.sprite.scale.x = -1;
+        } else if (this.direct.x < 0 && this.sprite.scale.x < 0) {
+            this.sprite.scale.x = 1;
         }
 
         if ((this.direct.y > 0 && this.prev_direct.y <= 0)
@@ -203,12 +195,19 @@ export class EnemyPool implements IObjectPools {
     pool: Enemy[] = [];
     spawnTimer: CountDown;
     livenodes = 0;
+    enemyGroup = new Group(enemyZIndex);
+    enemyLayer = new Layer(this.enemyGroup);
+
     constructor(
         public spirtes: Record<string, AnimatedSprite>,
         public container: Container,
     ) {
         this.spawnTimer = new CountDown(5000, this.spawn);
-        
+        this.enemyGroup.on('sort', ((sprite: Sprite) => {
+            sprite.zOrder = sprite.position.y;
+        }));
+        container.addChild(this.enemyLayer);
+
         if (module.hot) {
             if (this.constructor === EnemyPool) {
                 instancePool.push(this);
@@ -225,11 +224,15 @@ export class EnemyPool implements IObjectPools {
     emit(
         position: Vector,
     ) {
+        console.log('emit at ', position);
         const dead = this.pool.find(enemy => enemy.dead);
         if (dead) {
             dead.init(position);
         } else {
-            const enemy = new Enemy(cloneAnimationSprites(this.spirtes), this.container);
+            const enemy = new Enemy(cloneAnimationSprites(this.spirtes));
+            this.container.addChild(enemy.sprite);
+            enemy.sprite.parentLayer = this.enemyLayer;
+
             this.pool.push(enemy);
             enemy.init(position);
         }

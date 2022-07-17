@@ -25,6 +25,7 @@
     "@pixi/filter-color-replace": "^4.1.5",
     "@pixi/filter-glow": "^4.1.5",
     "@pixi/filter-outline": "^4.1.5",
+    "@pixi/layers": "^1.0.11",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.7",
     "@tweenjs/tween.js": "^18.6.4",
     "antd": "^4.20.5",

@@ -148,7 +148,6 @@ export class Bow1 implements GameObject, Changable {
     }
 
     updateSprite() {
-        this.sprite.position.set(this.position.x, this.position.y);
     }
 
     update(): void {
