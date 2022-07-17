@@ -1,10 +1,13 @@
 import * as PIXI from 'pixi.js'
 import { Mesh, Point } from 'pixi.js';
+
 import { default as initPlayerAttack } from './demos/player_attack_demo';
 import { default as initAmmoDemo } from './demos/ammo_demo';
 import { default as initRopeDemo } from './demos/rope_demo';
 import { default as initIkDemo } from './demos/ik_demo';
 import { default as initBowDemo } from './demos/bow_demo';
+import { default as initTreeDemo } from './demos/tree_demo';
+
 import { getRunnerApp } from './runnerApp';
 import { Camera } from './camara';
 import { Player } from './player';
@@ -75,3 +78,4 @@ initAmmoDemo(app);
 initRopeDemo(app);
 initIkDemo(app);
 initBowDemo(app);
+initTreeDemo(app);
