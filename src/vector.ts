@@ -99,7 +99,7 @@ export class Vector {
         return this;
     }
 
-    setV(v: Vector) {
+    setV(v: { x: number, y: number }) {
         this.x = v.x;
         this.y = v.y;
         return this;
