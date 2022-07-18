@@ -14,7 +14,8 @@ import { Camera } from './camara';
 import { DropletPool } from './droplet';
 import { getRunnerApp } from './runnerApp';
 import { Ammo } from './ammo';
-import { Forest } from './tree';
+import { Forest, Tree } from './tree';
+import { createBlockContext } from './block_context';
 
 // The application will create a renderer using WebGL, if possible,
 // with a fallback to a canvas render. It will also setup the ticker
@@ -129,7 +130,32 @@ app.loader.add('grass', getImageUrl('THX0.png'))
         runnerApp.setCamera(camera);
 
         const forest = new Forest(treeAnimateMap, gameView);
-
+        const blockContext = createBlockContext({
+            blockWidth: app.view.width,
+            blockHeight: app.view.height,
+            createInitBlockInfo(id, rect) {
+                return {
+                    id,
+                    rect,
+                    treePos: [] as { x:number, y: number}[],
+                    trees: [] as Tree[]
+                };
+            },
+            loadBlock(id, block) {
+                if (!block.treePos.length) {
+                    block.treePos = forest.createTreePos(block.rect);
+                }
+                block.trees = forest.updateTree(block.treePos);
+            },
+            releasBlock(id, block) {
+                const releaseTrees = block.trees.splice(0, block.trees.length);
+                for (let index = 0; index < releaseTrees.length; index++) {
+                    const tree = releaseTrees[index];
+                    tree.dead = true;
+                }
+                console.log(releaseTrees);
+            },
+        }) 
         const collisionView = new CollisionView(
             app.renderer as PIXI.Renderer,
             gameView,
@@ -146,10 +172,11 @@ app.loader.add('grass', getImageUrl('THX0.png'))
             // each frame we spin the bunny around a bit
             player.update();
             camera.update(player);
+            
             enemys.update();
             droplets.update();
             curser.update();
-            forest.update();
+            blockContext.update(player.position.x, player.position.y);
 
             // for debugers
             // collisionView.update();

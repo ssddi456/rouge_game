@@ -8,6 +8,8 @@ export class Tree implements GameObject {
     position: Vector = new Vector(0, 0);
     prev_position: Vector = new Vector(0, 0);
     sprite = new Container();
+    dead = false;
+
     constructor(
         position: Vector,
         sprites: Record<string, AnimatedSprite>,
@@ -21,12 +23,17 @@ export class Tree implements GameObject {
 
     }
 
+    updateSprite() {
+        this.sprite.visible = !this.dead;
+    }
+
     update(): void {
         this.updatePosition();
+        this.updateSprite();
     }
 }
 
-export class Forest implements Updatable {
+export class Forest {
     position: Vector = new Vector(0, 0);
 
     trees: Tree[] = [];
@@ -41,91 +48,44 @@ export class Forest implements Updatable {
         
     }
 
-    emit(sight: Rect, toArea: Rect) {
-        const outOfSights = this.trees.filter(tree => {
-            return sight.pointNotInRect( tree.position)
-        });
+    createTreePos(toArea: Rect) {
+        const poses: {x: number, y:number}[] = [];
+        
+        for (let index = 0; index < this.pieces; index++) {
+            poses.push({
+                x :toArea.x + Math.random() * toArea.w,
+                y :toArea.y + Math.random() * toArea.h,
+            })
+        }
+        return poses;
+    }
 
-        const newTrees = this.pieces - outOfSights.length;
-
-        for (let index = 0; index < outOfSights.length; index++) {
-            const element = outOfSights[index];
-            element.position.setX(toArea.x + Math.random() * toArea.w);
-            element.position.setY(toArea.y + Math.random() * toArea.h);
+    updateTree(poses: { x: number, y: number }[]) {
+        const deadTrees = this.trees.filter(x => x.dead);
+        const trees = [];
+        const deadTreesCount = deadTrees.length
+        const newTrees = poses.length - deadTreesCount;
+        const oldTreeCount = Math.min(deadTrees.length, this.pieces);
+        for (let index = 0; index < oldTreeCount; index++) {
+            const element = deadTrees[index];
+            element.position.setV(poses[index]);
+            element.dead = false;
+            trees.push(element);
         }
 
         for (let index = 0; index < newTrees; index++) {
+            const pos = poses[index - deadTreesCount];
             const tree = new Tree(
                 new Vector(
-                    toArea.x + Math.random() * toArea.w,
-                    toArea.y + Math.random() * toArea.h
+                    pos.y,
+                    pos.x,
                 ),
                 this.sprites
             );
             this.trees.push(tree);
-
-            console.log('tree.position', tree.position);
-
+            trees.push(tree);
             this.container.addChild(tree.sprite);
         }
+        return trees;
     }
-    init() {
-        const camara = getRunnerApp().getCamera();
-        const offset = camara.prevPlayerPos;
-        const size = camara.size;
-
-        this.emit(new Rect(0, 0, 0, 0), new Rect(
-            offset.x - size.x / 2,
-            offset.y - size.y / 2,
-            size.x,
-            size.y
-        ));
-
-        this.position.setV(offset);
-        this.inited = true;
-    }
-
-    updatePosition() {
-        const camara = getRunnerApp().getCamera();
-        const offset = camara.prevPlayerPos;
-        const size = camara.size;
-        const w = size.x * 0.8;
-        const h = size.y * 0.8;
-
-        if (
-            Math.abs(offset.x - this.position.x) > w
-            || Math.abs(offset.y - this.position.y) > h
-        ) {
-            this.emit(new Rect(
-                offset.x - w,
-                offset.y - h,
-                size.x,
-                size.y,
-            ), new Rect(
-                offset.x < (this.position.x - w) 
-                    ? (this.position.x - size.x) 
-                    : offset.x > (this.position.x + w) 
-                        ? this.position.x + size.x
-                        : this.position.x,
-                offset.y < (this.position.y - h)
-                    ? (this.position.y - size.y)
-                    : offset.y > (this.position.y + h)
-                        ? this.position.y + size.y
-                        : this.position.y,
-                size.x,
-                size.y,
-            ));
-
-            this.position.setV(offset);
-        }
-    }
-
-    update(): void {
-        if (!this.inited) {
-            this.init();
-        } else {
-            this.updatePosition();
-        }
-    }
-    
 }
