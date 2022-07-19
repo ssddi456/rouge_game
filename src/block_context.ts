@@ -5,6 +5,8 @@ function increaseProp(object: Record<string, number>, prop: string, val: number 
 }
 
 interface BlockContextOption<T> {
+    xOffset: number,
+    yOffset: number,
     blockWidth: number,
     blockHeight: number,
     createInitBlockInfo: (id: string, rect: Rect) => T
@@ -12,25 +14,34 @@ interface BlockContextOption<T> {
     releasBlock(id: string, block: T): void,
 }
 
-function getBlockId(x: number, y: number){
+function getBlockId(x: number, y: number) {
     return `${x}_${y}`;
 }
 
-export function createBlockContext<T> ( {
+export function createBlockContext<T>({
+    xOffset,
+    yOffset,
     blockWidth,
     blockHeight,
     createInitBlockInfo,
     loadBlock,
     releasBlock,
-}: BlockContextOption<T>){
-    
-    function getCurrentBlockInfo(x: number, y: number) {
-        const _x = Math.floor(x / blockWidth);
-        const _y = Math.floor(y / blockHeight);
-        const l = x < (_x + 0.5) * blockWidth;
-        const t = y < (_y + 0.5) * blockHeight;
-    
-        const aroundBlocks: Record<string, {x: number, y: number}> = {
+}: BlockContextOption<T>) {
+    function getCurrentPosInfo(x: number, y: number) {
+        const _x = Math.floor((x + xOffset) / blockWidth);
+        const _y = Math.floor((y + yOffset) / blockHeight);
+        return {
+            x: _x,
+            y: _y,
+            l: (x + xOffset) < (_x + 0.5) * blockWidth,
+            t: (y + yOffset) < (_y + 0.5) * blockHeight,
+        }
+    }
+
+    let prevPosInfo = { x: 0, y: 0, l: true, t: true };
+    function getCurrentBlockInfo({ x: _x, y: _y, l, t }: { x: number, y: number, l: boolean, t: boolean }) {
+
+        const aroundBlocks: Record<string, { x: number, y: number }> = {
             A0: { x: _x - 1, y: _y - 1 },
             A1: { x: _x, y: _y - 1 },
             A2: { x: _x + 1, y: _y - 1 },
@@ -40,7 +51,7 @@ export function createBlockContext<T> ( {
             C1: { x: _x, y: _y + 1 },
             C2: { x: _x + 1, y: _y + 1 }
         };
-    
+
         const toPreload: Record<string, number> = {};
         const toRelease: Record<string, number> = {};
         const updateInfo: Record<string, number> = {};
@@ -49,7 +60,7 @@ export function createBlockContext<T> ( {
             increaseProp(toPreload, "A0");
             increaseProp(toPreload, "B0");
             increaseProp(toPreload, "C0");
-    
+
             increaseProp(toRelease, "A2", -1);
             increaseProp(toRelease, "B2", -1);
             increaseProp(toRelease, "C2", -1);
@@ -57,17 +68,17 @@ export function createBlockContext<T> ( {
             increaseProp(toPreload, "A0", -1);
             increaseProp(toPreload, "B0", -1);
             increaseProp(toPreload, "C0", -1);
-    
+
             increaseProp(toRelease, "A2");
             increaseProp(toRelease, "B2");
             increaseProp(toRelease, "C2");
         }
-    
+
         if (t) {
             increaseProp(toPreload, "A0");
             increaseProp(toPreload, "A1");
             increaseProp(toPreload, "A2");
-    
+
             increaseProp(toRelease, "C0", -1);
             increaseProp(toRelease, "C1", -1);
             increaseProp(toRelease, "C2", -1);
@@ -75,12 +86,12 @@ export function createBlockContext<T> ( {
             increaseProp(toPreload, "A0", -1);
             increaseProp(toPreload, "A1", -1);
             increaseProp(toPreload, "A2", -1);
-    
+
             increaseProp(toRelease, "C0");
             increaseProp(toRelease, "C1");
             increaseProp(toRelease, "C2");
         }
-    
+
         for (const key in toPreload) {
             const element = toPreload[key];
             increaseProp(updateInfo, key, element);
@@ -92,22 +103,18 @@ export function createBlockContext<T> ( {
         }
 
         return {
-            id: getBlockId(x, y),
-            x: _x,
-            y: _y,
-            l,
-            t,
+            id: getBlockId(_x, _y),
             aroundBlocks,
             toRelease,
             toPreload,
             updateInfo,
         };
     }
-    
-    const blockData: Record<string, T & { id: string, released: boolean, loaded: boolean}> = {};
+
+    const blockData: Record<string, T & { id: string, released: boolean, loaded: boolean }> = {};
 
 
-    function getBlockInfoByPos({x, y}: {x: number, y: number}){
+    function getBlockInfoByPos({ x, y }: { x: number, y: number }) {
         const id = getBlockId(x, y);
         if (!blockData[id]) {
             blockData[id] = {
@@ -121,15 +128,29 @@ export function createBlockContext<T> ( {
                 released: false,
                 loaded: false,
             };
-            loadBlock(id, blockData[id]);
         }
         return blockData[id];
     }
 
-    function update(x: number, y: number){
-        const currentBlockInfo = getCurrentBlockInfo(x, y);
+    function update(x: number, y: number) {
+        const currentPosInfo = getCurrentPosInfo(x, y);
+        if (
+            currentPosInfo.x == prevPosInfo.x
+            && currentPosInfo.y == prevPosInfo.y
+            && currentPosInfo.l == prevPosInfo.l
+            && currentPosInfo.t == prevPosInfo.t
+        ) {
+            return;
+        }
+        
+        const currentBlockInfo = getCurrentBlockInfo(currentPosInfo);
         const currentBlock = getBlockInfoByPos({ x, y });
+        if (!currentBlock.loaded) {
+            loadBlock(currentBlock.id, currentBlock);
+        }
 
+        console.log(getBlockInfoByPos(currentPosInfo), currentPosInfo, currentBlockInfo.updateInfo);
+        
         for (const key in currentBlockInfo.updateInfo) {
             if (Object.prototype.hasOwnProperty.call(currentBlockInfo.updateInfo, key)) {
                 const element = currentBlockInfo.updateInfo[key];
@@ -139,8 +160,8 @@ export function createBlockContext<T> ( {
                     const block = getBlockInfoByPos(pos);
                     if (element > 0) {
                         if (!block.loaded) {
-                            block.loaded = true;
                             loadBlock(id, block);
+                            block.loaded = true;
                         }
                         block.released = false;
                     } else if (element < 0) {
@@ -153,11 +174,11 @@ export function createBlockContext<T> ( {
                 }
             }
         }
+
+        prevPosInfo = currentPosInfo;
     }
 
     return {
-        getCurrentBlockInfo,
-        getBlockInfoByPos,
         update
     };
 }
