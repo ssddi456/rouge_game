@@ -11,7 +11,6 @@ export class Tree implements GameObject {
     dead = false;
 
     constructor(
-        position: Vector,
         sprites: Record<string, AnimatedSprite>,
     ) {
         const sprite = new Sprite(sprites[1].textures[0] as Texture);
@@ -38,7 +37,7 @@ export class Forest {
 
     trees: Tree[] = [];
 
-    pieces = 10;
+    pieces = 5;
     inited = false;
     constructor(
         public sprites: Record<string, AnimatedSprite>,
@@ -50,13 +49,17 @@ export class Forest {
 
     createTreePos(toArea: Rect) {
         const poses: {x: number, y:number}[] = [];
-        
-        for (let index = 0; index < this.pieces; index++) {
-            poses.push({
-                x :toArea.x + Math.random() * toArea.w,
-                y :toArea.y + Math.random() * toArea.h,
-            })
+        const _w = toArea.w / this.pieces;
+        const _h = toArea.h / this.pieces;
+        for (let index = 0; index < this.pieces  +1; index++) {
+            for (let jndex = 0; jndex < this.pieces; jndex++) {
+                poses.push({
+                    x: toArea.x + Math.random() * 20 - 10 + _w * (index + (jndex % 2) * 0.5),
+                    y: toArea.y + Math.random() * 20 - 10 + _h * jndex,
+                });
+            }
         }
+
         return poses;
     }
 
@@ -64,8 +67,8 @@ export class Forest {
         const deadTrees = this.trees.filter(x => x.dead);
         const trees = [];
         const deadTreesCount = deadTrees.length
-        const newTrees = poses.length - deadTreesCount;
-        const oldTreeCount = Math.min(deadTrees.length, this.pieces);
+        const newTrees = Math.max(poses.length - deadTreesCount, 0);
+        const oldTreeCount = Math.min(deadTrees.length, poses.length);
         for (let index = 0; index < oldTreeCount; index++) {
             const element = deadTrees[index];
             element.position.setV(poses[index]);
@@ -76,12 +79,9 @@ export class Forest {
         for (let index = 0; index < newTrees; index++) {
             const pos = poses[index - deadTreesCount];
             const tree = new Tree(
-                new Vector(
-                    pos.y,
-                    pos.x,
-                ),
                 this.sprites
             );
+            tree.position.setV(pos);
             this.trees.push(tree);
             trees.push(tree);
             this.container.addChild(tree.sprite);
