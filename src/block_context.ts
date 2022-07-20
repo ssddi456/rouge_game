@@ -18,6 +18,44 @@ function getBlockId(x: number, y: number) {
     return `${x}_${y}`;
 }
 
+type RowKey = 'A' | 'B' | 'C' | 'D' | 'E';
+type ColKey = '0' | '1' | '2' | '3' | '4';
+type GridKey = `${RowKey}${ColKey}`
+function getAroundBlock({ x, y }: { x: number, y: number }, key: GridKey){
+    switch (key) {
+        case 'A0': return { x: x - 2, y: y - 2 };
+        case 'A1': return { x: x - 1, y: y - 2 };
+        case 'A2': return { x, y: y - 2 };
+        case 'A3': return { x: x + 1, y: y - 2 };
+        case 'A4': return { x: x + 2, y: y - 2 };
+
+        case 'B0': return { x: x - 2, y: y - 1 };
+        case 'B1': return { x: x - 1, y: y - 1 };
+        case 'B2': return { x, y: y - 1 };
+        case 'B3': return { x: x + 1, y: y - 1 };
+        case 'B4': return { x: x + 2, y: y - 1 };
+
+        case 'C0': return { x: x - 2, y };
+        case 'C1': return { x: x - 1, y };
+        case 'C2': throw 'illegal key C2';
+        case 'C3': return { x: x + 1, y };
+        case 'C4': return { x: x + 2, y };
+
+        case 'D0': return { x: x - 2, y: y + 1 };
+        case 'D1': return { x: x - 1, y: y + 1 };
+        case 'D2': return { x, y: y + 1 };
+        case 'D3': return { x: x + 1, y: y + 1 };
+        case 'D4': return { x: x + 2, y: y + 1 };
+
+        case 'E0': return { x: x - 2, y: y + 2 };
+        case 'E1': return { x: x - 1, y: y + 2 };
+        case 'E2': return { x, y: y + 2 };
+        case 'E3': return { x: x + 1, y: y + 2 };
+        case 'E4': return { x: x + 2, y: y + 2 };
+        default:
+            throw 'illegal key ' + key;
+    }
+}
 export function createBlockContext<T>({
     xOffset,
     yOffset,
@@ -41,70 +79,68 @@ export function createBlockContext<T>({
     let prevPosInfo = { x: 0, y: 0, l: true, t: true };
     function getCurrentBlockInfo({ x: _x, y: _y, l, t }: { x: number, y: number, l: boolean, t: boolean }) {
 
-        const aroundBlocks: Record<string, { x: number, y: number }> = {
-            A0: { x: _x - 1, y: _y - 1 },
-            A1: { x: _x, y: _y - 1 },
-            A2: { x: _x + 1, y: _y - 1 },
-            B0: { x: _x - 1, y: _y },
-            B2: { x: _x + 1, y: _y },
-            C0: { x: _x - 1, y: _y + 1 },
-            C1: { x: _x, y: _y + 1 },
-            C2: { x: _x + 1, y: _y + 1 }
-        };
 
-        const toPreload: Record<string, number> = {};
-        const toRelease: Record<string, number> = {};
-        const updateInfo: Record<string, number> = {};
+
+        const toPreload: Partial<Record<GridKey, number>> = {};
+        const toRelease: Partial<Record<GridKey, number>> = {};
+        const updateInfo: Partial<Record<GridKey, number>> = {};
 
         if (l) {
-            increaseProp(toPreload, "A0");
-            increaseProp(toPreload, "B0");
-            increaseProp(toPreload, "C0");
+            increaseProp(toPreload, "B1");
+            increaseProp(toPreload, "C1");
+            increaseProp(toPreload, "D1");
 
-            increaseProp(toRelease, "A2", -1);
-            increaseProp(toRelease, "B2", -1);
-            increaseProp(toRelease, "C2", -1);
+            increaseProp(toRelease, "A4", -1);
+            increaseProp(toRelease, "B4", -1);
+            increaseProp(toRelease, "C4", -1);
+            increaseProp(toRelease, "D4", -1);
+            increaseProp(toRelease, "E4", -1);
         } else {
             increaseProp(toPreload, "A0", -1);
             increaseProp(toPreload, "B0", -1);
             increaseProp(toPreload, "C0", -1);
+            increaseProp(toPreload, "D0", -1);
+            increaseProp(toPreload, "E0", -1);
 
-            increaseProp(toRelease, "A2");
-            increaseProp(toRelease, "B2");
-            increaseProp(toRelease, "C2");
+            increaseProp(toRelease, "B3");
+            increaseProp(toRelease, "C3");
+            increaseProp(toRelease, "D3");
         }
 
         if (t) {
-            increaseProp(toPreload, "A0");
-            increaseProp(toPreload, "A1");
-            increaseProp(toPreload, "A2");
+            increaseProp(toPreload, "B1");
+            increaseProp(toPreload, "B2");
+            increaseProp(toPreload, "B3");
 
-            increaseProp(toRelease, "C0", -1);
-            increaseProp(toRelease, "C1", -1);
-            increaseProp(toRelease, "C2", -1);
+            increaseProp(toRelease, "E0", -1);
+            increaseProp(toRelease, "E1", -1);
+            increaseProp(toRelease, "E2", -1);
+            increaseProp(toRelease, "E2", -1);
+            increaseProp(toRelease, "E3", -1);
         } else {
             increaseProp(toPreload, "A0", -1);
             increaseProp(toPreload, "A1", -1);
             increaseProp(toPreload, "A2", -1);
+            increaseProp(toPreload, "A3", -1);
+            increaseProp(toPreload, "A4", -1);
 
-            increaseProp(toRelease, "C0");
-            increaseProp(toRelease, "C1");
-            increaseProp(toRelease, "C2");
+            increaseProp(toRelease, "D0");
+            increaseProp(toRelease, "D1");
+            increaseProp(toRelease, "D2");
         }
 
         for (const key in toPreload) {
-            const element = toPreload[key];
+            const element = toPreload[key as GridKey];
             increaseProp(updateInfo, key, element);
         }
 
         for (const key in toRelease) {
-            const element = toRelease[key];
+            const element = toRelease[key as GridKey];
             increaseProp(updateInfo, key, element);
         }
 
         return {
             id: getBlockId(_x, _y),
-            aroundBlocks,
             toRelease,
             toPreload,
             updateInfo,
@@ -144,7 +180,8 @@ export function createBlockContext<T>({
         }
         
         const currentBlockInfo = getCurrentBlockInfo(currentPosInfo);
-        const currentBlock = getBlockInfoByPos({ x, y });
+        const currentBlock = getBlockInfoByPos(currentPosInfo);
+
         if (!currentBlock.loaded) {
             loadBlock(currentBlock.id, currentBlock);
         }
@@ -153,23 +190,23 @@ export function createBlockContext<T>({
         
         for (const key in currentBlockInfo.updateInfo) {
             if (Object.prototype.hasOwnProperty.call(currentBlockInfo.updateInfo, key)) {
-                const element = currentBlockInfo.updateInfo[key];
+                const element = currentBlockInfo.updateInfo[key as GridKey]!;
                 if (element !== 0) {
-                    const pos = currentBlockInfo.aroundBlocks[key];
+                    const pos = getAroundBlock(currentPosInfo, key as GridKey);
                     const id = getBlockId(pos.x, pos.y)
                     const block = getBlockInfoByPos(pos);
                     if (element > 0) {
                         if (!block.loaded) {
                             loadBlock(id, block);
-                            block.loaded = true;
                         }
+                        block.loaded = true;
                         block.released = false;
                     } else if (element < 0) {
                         if (!block.released) {
                             releasBlock(id, block);
-                            block.released = true;
-                            block.loaded = false;
                         }
+                        block.released = true;
+                        block.loaded = false;
                     }
                 }
             }

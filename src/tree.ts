@@ -15,6 +15,7 @@ export class Tree implements GameObject {
     ) {
         const sprite = new Sprite(sprites[1].textures[0] as Texture);
         sprite.pivot.set(0.5, 1);
+        sprite.scale.set(0.5, 0.5);
         this.sprite.addChild(sprite);
     }
 
@@ -37,7 +38,7 @@ export class Forest {
 
     trees: Tree[] = [];
 
-    pieces = 5;
+    pieces = 4;
     inited = false;
     constructor(
         public sprites: Record<string, AnimatedSprite>,
@@ -54,8 +55,8 @@ export class Forest {
         for (let index = 0; index < this.pieces  +1; index++) {
             for (let jndex = 0; jndex < this.pieces; jndex++) {
                 poses.push({
-                    x: toArea.x + Math.random() * 20 - 10 + _w * (index + (jndex % 2) * 0.5),
-                    y: toArea.y + Math.random() * 20 - 10 + _h * jndex,
+                    x: toArea.x + Math.random() * 50 - 25 + _w * (index + (jndex % 2) * 0.5),
+                    y: toArea.y + Math.random() * 50 - 25 + _h * jndex,
                 });
             }
         }

@@ -131,8 +131,8 @@ app.loader.add('grass', getImageUrl('THX0.png'))
 
         const forest = new Forest(treeAnimateMap, gameView);
         const blockContext = createBlockContext({
-            xOffset: app.view.width / 2,
-            yOffset: app.view.height / 2,
+            xOffset: 0,
+            yOffset: 0,
             blockWidth: app.view.width,
             blockHeight: app.view.height,
             createInitBlockInfo(id, rect) {
