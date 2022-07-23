@@ -1,4 +1,5 @@
 import { AnimatedSprite, Container, DisplayObject, Sprite, Texture } from "pixi.js";
+import { debugInfo } from "./debug_info";
 import { Rect } from "./rect";
 import { getRunnerApp } from "./runnerApp";
 import { GameObject, Updatable } from "./types";
@@ -9,14 +10,24 @@ export class Tree implements GameObject {
     prev_position: Vector = new Vector(0, 0);
     sprite = new Container();
     dead = false;
-
+    scale = 0.8 +Math.random() * 0.8;
+    debugInfo = debugInfo();
     constructor(
         sprites: Record<string, AnimatedSprite>,
     ) {
+
         const sprite = new Sprite(sprites[1].textures[0] as Texture);
-        sprite.pivot.set(0.5, 1);
-        sprite.scale.set(0.5, 0.5);
+        // console.log(sprite.width, sprite.height);
+
+        sprite.position.set(
+            - sprite.width / 2 * this.scale,
+            - (sprite.height - 20) * this.scale
+        );
+
+        sprite.scale.set(this.scale, this.scale);
+        
         this.sprite.addChild(sprite);
+        this.sprite.addChild(this.debugInfo.pointer);
     }
 
     updatePosition() {
@@ -60,7 +71,10 @@ export class Forest {
                 });
             }
         }
-
+        // poses.push({
+        //     x: toArea.x + toArea.w / 2,
+        //     y: toArea.y + toArea.h / 2,
+        // });
         return poses;
     }
 

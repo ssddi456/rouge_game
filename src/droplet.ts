@@ -1,9 +1,8 @@
-import { Container, DisplayObject, Sprite } from "pixi.js";
+import { Container, Sprite } from "pixi.js";
 import { checkCollision } from "./collision_helper";
-import { dropletZIndex } from "./const";
 import { Player } from "./player";
 import { getRunnerApp } from "./runnerApp";
-import { ECollisionType, EntityManager, GameObject, ICollisionable, IObjectPools } from "./types";
+import { ECollisionType, GameObject, ICollisionable, IObjectPools } from "./types";
 import { Vector } from "./vector";
 
 
@@ -26,7 +25,6 @@ export class Droplets implements GameObject, ICollisionable {
     ) {
         this.sprite.addChild(sprite);
         container.addChild(this.sprite);
-        this.sprite.zIndex = dropletZIndex;
     }
 
     size: number = 200;

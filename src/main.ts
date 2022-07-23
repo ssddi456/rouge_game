@@ -8,14 +8,14 @@ import { Curser } from './curser';
 import { EnemyPool } from './enemy';
 import { getImageUrl, loadSpriteSheet } from './loadAnimation';
 import { CollisionView } from './drawCollisions';
-import { Particle } from './particle';
 import { Vector } from './vector';
 import { Camera } from './camara';
 import { DropletPool } from './droplet';
 import { getRunnerApp } from './runnerApp';
-import { Ammo } from './ammo';
 import { Forest, Tree } from './tree';
 import { createBlockContext } from './block_context';
+import { createGroups } from './groups';
+import { Stage } from '@pixi/layers';
 
 // The application will create a renderer using WebGL, if possible,
 // with a fallback to a canvas render. It will also setup the ticker
@@ -30,6 +30,7 @@ const app = new PIXI.Application({
 document.body.appendChild(app.view);
 document.body.style.margin = "0";
 document.documentElement.style.margin = "0";
+app.stage = new Stage();
 
 // create viewport
 const gameView = new Viewport({
@@ -40,6 +41,7 @@ const gameView = new Viewport({
 
     interaction: app.renderer.plugins.interaction // the interaction module is important for wheel to work properly when renderer.view is placed or scaled
 });
+
 gameView.sortableChildren = true;
 
 // add the viewport to the stage
@@ -131,8 +133,6 @@ app.loader.add('grass', getImageUrl('THX0.png'))
 
         const forest = new Forest(treeAnimateMap, gameView);
         const blockContext = createBlockContext({
-            xOffset: 0,
-            yOffset: 0,
             blockWidth: app.view.width,
             blockHeight: app.view.height,
             createInitBlockInfo(id, rect) {
@@ -152,9 +152,9 @@ app.loader.add('grass', getImageUrl('THX0.png'))
                     const tree = releaseTrees[index];
                     tree.dead = true;
                 }
-                console.log(releaseTrees);
             },
-        }) 
+        });
+
         const collisionView = new CollisionView(
             app.renderer as PIXI.Renderer,
             gameView,
@@ -165,6 +165,11 @@ app.loader.add('grass', getImageUrl('THX0.png'))
                 // droplets,
                 // player.ammoPools,
             ]);
+        // 
+        // controll layers here
+        //
+
+        const groups = createGroups(gameView);
 
         // Listen for frame updates
         app.ticker.add(() => {
@@ -173,6 +178,7 @@ app.loader.add('grass', getImageUrl('THX0.png'))
             camera.update(player);
             
             enemys.update();
+
             droplets.update();
             curser.update();
             blockContext.update(player.position.x, player.position.y);
@@ -180,16 +186,21 @@ app.loader.add('grass', getImageUrl('THX0.png'))
             // for debugers
             // collisionView.update();
             
+            player.sprite.parentGroup = groups.overGroundGroup;
             camera.updateItemPos(player);
+
             grass.tilePosition = camera.offset.clone().multiplyScalar(-1) as any;
             for (let index = 0; index < player.ammoPools.pool.length; index++) {
                 const element = player.ammoPools.pool[index];
+                element.sprite.parentGroup = groups.ammoGroup;
+
                 if (!element.dead) {
                     camera.updateItemPos(element);
                 }
             }
             for (let index = 0; index < enemys.pool.length; index++) {
                 const element = enemys.pool[index];
+                element.sprite.parentGroup = groups.overGroundGroup;
                 if (!element.dead) {
                     camera.updateItemPos(element);
                 }
@@ -197,6 +208,8 @@ app.loader.add('grass', getImageUrl('THX0.png'))
 
             for (let index = 0; index < droplets.pool.length; index++) {
                 const element = droplets.pool[index];
+                element.sprite.parentGroup = groups.dropletGroup;
+
                 if (!element.dead) {
                     camera.updateItemPos(element);
                 }
@@ -204,7 +217,32 @@ app.loader.add('grass', getImageUrl('THX0.png'))
 
             for (let index = 0; index < forest.trees.length; index++) {
                 const element = forest.trees[index];
-                camera.updateItemPos(element);
+                if (!element.dead) {
+                    element.sprite.parentGroup = groups.overGroundGroup;
+                    element.update();
+                    camera.updateItemPos(element);
+                }
             }
+
+            runnerApp.updateParticles();
+            const particles = runnerApp.getPariticles();
+
+            for (let index = 0; index < particles.length; index++) {
+                const element = particles[index];
+                element.sprite.parentGroup = groups.overGroundGroup;
+                if (!element.dead) {
+                    camera.updateItemPos(element);
+                }
+            }
+            const textParticles = runnerApp.getTextParticles();
+
+            for (let index = 0; index < textParticles.length; index++) {
+                const element = textParticles[index];
+                element.sprite.parentGroup = groups.textGroup;
+                if (!element.dead) {
+                    camera.updateItemPos(element);
+                }
+            }
+
         });
     });

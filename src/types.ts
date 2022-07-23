@@ -74,21 +74,35 @@ export interface IObjectPools {
 
 export interface EntityManager {
     getEntities(options: { collisionTypes: ECollisionType[]}): ICollisionable[];
+
     emitParticles(position: Vector, animation: AnimatedSprite | Sprite, updateFunc: ((percent:number) => void) | undefined, duration: number): void;
+    emitTextParticles(position: Vector, sprite: Sprite, updateFunc: ((percent: number) => void) | undefined, duration: number, id?: string): void;
     emitDamageParticles(position: Vector, amount: number): void;
+
+    getPariticles(): Particle[];
+    getTextParticles(): Particle[];
+    updateParticles(): void;
+
     emitDroplets(position: Vector, pickUp: () => void, duration: number): void;
-    screenPosToWorldPos(position: Vector): Vector;
+
     pause(): void;
     resume(): void;
     now(): number;
 
     setApp(a: Application): void;
+
     setPlayer(_player: Player): void;
+
     setEnemys(_enemys: EnemyPool): void;
+
     setDroplets(_droplets: DropletPool): void;
+
     setCamera(_camera: Camera): void;
     getCamera(): Camera;
+
     getMouseWorldPos(): Vector;
+    screenPosToWorldPos(position: Vector): Vector;
+
     setGameView(_gameView: Container): void;
 }
 

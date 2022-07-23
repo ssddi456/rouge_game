@@ -3,9 +3,8 @@ import { AnimatedSprite, Container, DisplayObject, Graphics } from "pixi.js";
 import { Vector } from "./vector";
 import { keypressed, mouse } from "./user_input";
 import { AmmoPool } from "./ammo";
-import { ECollisionType, EFacing, EntityManager, ICollisionable, IMovable, Shootable, Buffer, LivingObject, LeveledObject } from "./types";
+import { ECollisionType, EFacing, ICollisionable, IMovable, Shootable, Buffer, LivingObject, LeveledObject } from "./types";
 import { checkCollision } from "./collision_helper";
-import { playerZIndex } from "./const";
 import { Enemy } from "./enemy";
 import { getRunnerApp } from "./runnerApp";
 import { applyBuffer, checkBufferAlive, createTimerBuffer } from "./buffer";
@@ -82,10 +81,8 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
         this.position.setV(startPosition);
         instanceList.push(this);
 
-
         // soft shadow
         const shadow = new PIXI.Graphics();
-        this.bodyContainer.zIndex = playerZIndex;
         this.bodyContainer.scale.set(this.baseScale, this.baseScale);
         this.effects.shadow = shadow;
 
@@ -145,6 +142,7 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
         pointer.beginFill(0xff0000);
         pointer.drawCircle(0, 0, 10);
         pointer.endFill();
+        this.sprite.addChild(pointer);
 
         this.ammoPools = new AmmoPool(
             this.playerSpirtes.ammo, 
@@ -357,13 +355,11 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
             this.effects.buff_left,
             mainSprite,
             this.effects.buff_right,
-            this.pointer
         ] : [
             this.effects.shadow,
             this.effects.buff_left_back,
             mainSprite,
             this.effects.buff_right_back,
-            this.pointer
         ]).forEach(sprite => {
             this.bodyContainer.addChild(sprite);
         });
