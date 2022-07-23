@@ -5,8 +5,6 @@ function increaseProp(object: Record<string, number>, prop: string, val: number 
 }
 
 interface BlockContextOption<T> {
-    xOffset: number,
-    yOffset: number,
     blockWidth: number,
     blockHeight: number,
     createInitBlockInfo: (id: string, rect: Rect) => T
@@ -57,8 +55,6 @@ function getAroundBlock({ x, y }: { x: number, y: number }, key: GridKey){
     }
 }
 export function createBlockContext<T>({
-    xOffset,
-    yOffset,
     blockWidth,
     blockHeight,
     createInitBlockInfo,
@@ -66,21 +62,18 @@ export function createBlockContext<T>({
     releasBlock,
 }: BlockContextOption<T>) {
     function getCurrentPosInfo(x: number, y: number) {
-        const _x = Math.floor((x + xOffset) / blockWidth);
-        const _y = Math.floor((y + yOffset) / blockHeight);
+        const _x = Math.floor(x / blockWidth);
+        const _y = Math.floor(y / blockHeight);
         return {
             x: _x,
             y: _y,
-            l: (x + xOffset) < (_x + 0.5) * blockWidth,
-            t: (y + yOffset) < (_y + 0.5) * blockHeight,
+            l: x < (_x + 0.5) * blockWidth,
+            t: y  < (_y + 0.5) * blockHeight,
         }
     }
 
     let prevPosInfo = { x: 0, y: 0, l: true, t: true };
     function getCurrentBlockInfo({ x: _x, y: _y, l, t }: { x: number, y: number, l: boolean, t: boolean }) {
-
-
-
         const toPreload: Partial<Record<GridKey, number>> = {};
         const toRelease: Partial<Record<GridKey, number>> = {};
         const updateInfo: Partial<Record<GridKey, number>> = {};
@@ -184,6 +177,7 @@ export function createBlockContext<T>({
 
         if (!currentBlock.loaded) {
             loadBlock(currentBlock.id, currentBlock);
+            currentBlock.loaded = true;
         }
 
         console.log(getBlockInfoByPos(currentPosInfo), currentPosInfo, currentBlockInfo.updateInfo);

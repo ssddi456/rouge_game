@@ -1,16 +1,14 @@
-import { AnimatedSprite, Container, Graphics, Sprite, Text, Texture } from "pixi.js";
+import { AnimatedSprite, Container, Graphics, Sprite } from "pixi.js";
 import { CountDown } from "./countdown";
 import { Player } from "./player";
 import { Vector } from "./vector";
 import * as PIXI from 'pixi.js';
-import { IMovable, ICollisionable, EFacing, IObjectPools, ECollisionType, EntityManager, LivingObject, Buffer } from "./types";
+import { IMovable, ICollisionable, EFacing, IObjectPools, ECollisionType, LivingObject, Buffer } from "./types";
 import { checkCollision } from "./collision_helper";
-import { enemyZIndex } from "./const";
 import { Droplets as Droplet } from "./droplet";
 import { getRunnerApp } from "./runnerApp";
 import { applyBuffer, checkBufferAlive } from "./buffer";
 import { cloneAnimationSprites } from "./sprite_utils";
-import { Group, Layer } from '@pixi/layers'
 
 export class Enemy implements IMovable, ICollisionable, LivingObject {
     prev_dead: boolean = false;
@@ -128,7 +126,7 @@ export class Enemy implements IMovable, ICollisionable, LivingObject {
 
         this.position.x += this.direct.x;
         this.position.y += this.direct.y;
-        this.sprite.zIndex = enemyZIndex + this.position.y / 1000;
+
         const nodes = getRunnerApp().getEntities({
             collisionTypes: [ECollisionType.enemy, ECollisionType.player],
         });
@@ -195,18 +193,13 @@ export class EnemyPool implements IObjectPools {
     pool: Enemy[] = [];
     spawnTimer: CountDown;
     livenodes = 0;
-    enemyGroup = new Group(enemyZIndex);
-    enemyLayer = new Layer(this.enemyGroup);
 
     constructor(
         public spirtes: Record<string, AnimatedSprite>,
         public container: Container,
     ) {
         this.spawnTimer = new CountDown(5000, this.spawn);
-        this.enemyGroup.on('sort', ((sprite: Sprite) => {
-            sprite.zOrder = sprite.position.y;
-        }));
-        container.addChild(this.enemyLayer);
+
 
         if (module.hot) {
             if (this.constructor === EnemyPool) {
@@ -231,7 +224,6 @@ export class EnemyPool implements IObjectPools {
         } else {
             const enemy = new Enemy(cloneAnimationSprites(this.spirtes));
             this.container.addChild(enemy.sprite);
-            enemy.sprite.parentLayer = this.enemyLayer;
 
             this.pool.push(enemy);
             enemy.init(position);

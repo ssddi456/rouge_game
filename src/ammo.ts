@@ -1,11 +1,9 @@
-import { AnimatedSprite, Container, DisplayObject, Graphics, Point, SimpleRope, Sprite, Texture } from "pixi.js";
+import { AnimatedSprite, Container, Point, SimpleRope, Texture } from "pixi.js";
 import { checkCollision } from "./collision_helper";
-import { ammoZIndex } from "./const";
 import { Enemy } from "./enemy";
 import { Particle } from "./particle";
 import { getRunnerApp } from "./runnerApp";
-import { cloneAnimationSprite } from "./sprite_utils";
-import { ECollisionType, EFacing, EntityManager, ICollisionable, IMovable, IObjectPools } from "./types";
+import { ECollisionType, EFacing, ICollisionable, IMovable, IObjectPools } from "./types";
 import { Vector } from "./vector";
 
 
@@ -38,7 +36,6 @@ export class Ammo implements IMovable, ICollisionable {
 
         this.sprite = new SimpleRope(trailTexture, this.points);
         this.sprite.width = this.size;
-        this.sprite.zIndex = ammoZIndex;
     }
 
     size: number = 5;

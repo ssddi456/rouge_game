@@ -1,5 +1,4 @@
 import { Container, Sprite } from "pixi.js";
-import { particleZIndex } from "./const";
 import { getRunnerApp } from "./runnerApp";
 import { Vector } from "./vector";
 
@@ -14,7 +13,6 @@ export class Particle {
         public container: Container,
         public updateFunc: ((percent: number) => void) | undefined,
         public duration: number,
-        zIndex: number = particleZIndex,
         public id?: string,
     ) {
         sprite.anchor.set(0.5, 0.5);
@@ -22,7 +20,6 @@ export class Particle {
         this.sprite.x = startPosition.x;
         this.sprite.y = startPosition.y;
         this.position.setV(startPosition);
-        this.sprite.zIndex = zIndex;
         this.container.addChild(this.sprite);
     }
 
