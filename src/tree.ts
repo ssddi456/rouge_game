@@ -35,7 +35,12 @@ export class Tree implements GameObject {
     }
 
     updateSprite() {
-        this.sprite.visible = !this.dead;
+        if (this.dead) {
+            if (this.sprite.parent) {
+                this.sprite.parent.removeChild(this.sprite);
+                this.sprite.parentGroup = undefined;
+            }
+        }
     }
 
     update(): void {
@@ -63,7 +68,7 @@ export class Forest {
         const poses: {x: number, y:number}[] = [];
         const _w = toArea.w / this.pieces;
         const _h = toArea.h / this.pieces;
-        for (let index = 0; index < this.pieces  +1; index++) {
+        for (let index = 1; index < this.pieces  + 1; index++) {
             for (let jndex = 0; jndex < this.pieces; jndex++) {
                 poses.push({
                     x: toArea.x + Math.random() * 50 - 25 + _w * (index + (jndex % 2) * 0.5),
@@ -85,10 +90,11 @@ export class Forest {
         const newTrees = Math.max(poses.length - deadTreesCount, 0);
         const oldTreeCount = Math.min(deadTrees.length, poses.length);
         for (let index = 0; index < oldTreeCount; index++) {
-            const element = deadTrees[index];
-            element.position.setV(poses[index]);
-            element.dead = false;
-            trees.push(element);
+            const tree = deadTrees[index];
+            tree.position.setV(poses[index]);
+            tree.dead = false;
+            trees.push(tree);
+            this.container.addChild(tree.sprite);
         }
 
         for (let index = 0; index < newTrees; index++) {

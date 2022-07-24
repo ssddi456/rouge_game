@@ -33,7 +33,6 @@ export class CollisionView {
         if (!this.collisions[this.collisionsIndex]) {
             const sprite = new PIXI.Sprite(this.texture);
             sprite.anchor.set(0.5, 0.5);
-            sprite.zIndex = 2000;
             this.container.addChild(sprite);
             this.collisions[this.collisionsIndex] = sprite;
 
