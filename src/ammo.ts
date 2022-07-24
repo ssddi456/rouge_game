@@ -1,6 +1,7 @@
 import { AnimatedSprite, Container, Point, SimpleRope, Texture } from "pixi.js";
 import { checkCollision } from "./collision_helper";
 import { Enemy } from "./enemy";
+import { overGroundCenterHeight } from "./groups";
 import { Particle } from "./particle";
 import { getRunnerApp } from "./runnerApp";
 import { ECollisionType, EFacing, ICollisionable, IMovable, IObjectPools } from "./types";
@@ -17,7 +18,8 @@ export class Ammo implements IMovable, ICollisionable {
     prev_position = new Vector(0, 0);
     position = new Vector(0, 0);
     range = 1000;
-    sprite: SimpleRope;
+
+    sprite = new Container();
     textureIndex = 0;
 
     trailLenght = 10;
@@ -34,8 +36,10 @@ export class Ammo implements IMovable, ICollisionable {
             this.history.push(new Vector(0, 0));
         }
 
-        this.sprite = new SimpleRope(trailTexture, this.points);
-        this.sprite.width = this.size;
+        const sprite = new SimpleRope(trailTexture, this.points);
+        sprite.width = this.size;
+        sprite.position.y = - overGroundCenterHeight;
+        this.sprite.addChild(sprite);
     }
 
     size: number = 5;

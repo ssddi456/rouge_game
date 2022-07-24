@@ -3,7 +3,7 @@ import './user_input';
 
 import { Viewport } from 'pixi-viewport'
 import { Player } from './player';
-import { AnimatedSprite, Point, Sprite } from 'pixi.js';
+import { AnimatedSprite, Container, Point, Sprite } from 'pixi.js';
 import { Curser } from './curser';
 import { EnemyPool } from './enemy';
 import { getImageUrl, loadSpriteSheet } from './loadAnimation';
@@ -14,7 +14,7 @@ import { DropletPool } from './droplet';
 import { getRunnerApp } from './runnerApp';
 import { Forest, Tree } from './tree';
 import { createBlockContext } from './block_context';
-import { createGroups } from './groups';
+import { createGroups, overGroundZindex } from './groups';
 import { Stage } from '@pixi/layers';
 
 // The application will create a renderer using WebGL, if possible,
@@ -79,7 +79,8 @@ app.loader.add('grass', getImageUrl('THX0.png'))
 
         const grass = new PIXI.TilingSprite(resources.grass.texture!, app.view.width, app.view.height);
         gameView.addChildAt(grass, 0);
-
+        const overGroundContainer = gameView.addChild(new Container());
+        overGroundContainer.zIndex = overGroundZindex;
         window.addEventListener('resize', () => {
             grass.width = app.view.width;
             grass.height = app.view.height;
@@ -101,7 +102,7 @@ app.loader.add('grass', getImageUrl('THX0.png'))
             },
             hitEffect,
             100, 
-            gameView, 
+            overGroundContainer, 
             new Vector(
                 app.view.width / 2,
                 app.view.height / 2,
@@ -121,7 +122,7 @@ app.loader.add('grass', getImageUrl('THX0.png'))
         dropS.anchor.set(0.5, 0.5);
 
         const curser = new Curser(curserA, gameView);
-        const enemys = new EnemyPool(enemyAnimateMap, gameView);
+        const enemys = new EnemyPool(enemyAnimateMap, overGroundContainer);
         runnerApp.setEnemys(enemys);
         const droplets = new DropletPool(gameView, dropS);
         runnerApp.setDroplets(droplets);
@@ -131,7 +132,7 @@ app.loader.add('grass', getImageUrl('THX0.png'))
         ));
         runnerApp.setCamera(camera);
 
-        const forest = new Forest(treeAnimateMap, gameView);
+        const forest = new Forest(treeAnimateMap, overGroundContainer);
         const blockContext = createBlockContext({
             blockWidth: app.view.width,
             blockHeight: app.view.height,
@@ -170,7 +171,8 @@ app.loader.add('grass', getImageUrl('THX0.png'))
         //
 
         const groups = createGroups(gameView);
-
+        // seems high render rate leads to some bug
+        app.ticker.maxFPS = 60;
         // Listen for frame updates
         app.ticker.add(() => {
             // each frame we spin the bunny around a bit
@@ -186,8 +188,24 @@ app.loader.add('grass', getImageUrl('THX0.png'))
             // for debugers
             // collisionView.update();
             
-            player.sprite.parentGroup = groups.overGroundGroup;
+            // player.sprite.parentGroup = groups.overGroundGroup;
             camera.updateItemPos(player);
+
+            overGroundContainer.children.sort((a, b) => {
+                if (a.position.y > b.position.y) {
+                    return 1;
+                }
+                if (a.position.y < b.position.y) {
+                    return -1;
+                }
+                if (a.position.x > b.position.x) {
+                    return 1;
+                }
+                if (a.position.x < b.position.x) {
+                    return -1;
+                }
+                return a.updateOrder! - b.updateOrder!;
+            });
 
             grass.tilePosition = camera.offset.clone().multiplyScalar(-1) as any;
             for (let index = 0; index < player.ammoPools.pool.length; index++) {
@@ -200,7 +218,7 @@ app.loader.add('grass', getImageUrl('THX0.png'))
             }
             for (let index = 0; index < enemys.pool.length; index++) {
                 const element = enemys.pool[index];
-                element.sprite.parentGroup = groups.overGroundGroup;
+                // element.sprite.parentGroup = groups.overGroundGroup;
                 if (!element.dead) {
                     camera.updateItemPos(element);
                 }
@@ -218,7 +236,7 @@ app.loader.add('grass', getImageUrl('THX0.png'))
             for (let index = 0; index < forest.trees.length; index++) {
                 const element = forest.trees[index];
                 if (!element.dead) {
-                    element.sprite.parentGroup = groups.overGroundGroup;
+                    // element.sprite.parentGroup = groups.overGroundGroup;
                     element.update();
                     camera.updateItemPos(element);
                 }

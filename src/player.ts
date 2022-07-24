@@ -13,6 +13,7 @@ import { GlowFilter } from '@pixi/filter-glow';
 import easingsFunctions, { twean } from "./easingFunctions";
 import tween from "./tween";
 import { Bow1 } from "./bow";
+import { overGroundCenterHeight } from "./groups";
 
 export class Player implements IMovable, Shootable, ICollisionable, LivingObject, LeveledObject {
     sprite: Container = new Container();
@@ -56,6 +57,7 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
     bow: Bow1;
 
     baseScale = 0.5;
+    centerHeight = overGroundCenterHeight;
 
     receiveExp(exp: number) {
         this.exp += exp;
@@ -83,6 +85,7 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
 
         // soft shadow
         const shadow = new PIXI.Graphics();
+        this.bodyContainer.position.y = - this.centerHeight;
         this.bodyContainer.scale.set(this.baseScale, this.baseScale);
         this.effects.shadow = shadow;
 
@@ -133,7 +136,8 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
         buff_right_back.filters = [ glow ];
 
         this.bow = new Bow1(weaponSpirtes);
-        this.bow.sprite.scale.set(0.3, 0.3);
+        this.bow.sprite.scale.set(0.6 * this.baseScale, 0.6 * this.baseScale);
+        this.bow.sprite.position.y = - this.centerHeight;
         this.sprite.addChild(this.bow.sprite);
 
         // center point indicator
@@ -279,7 +283,7 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
     }
 
     doShoot() {
-        const worldPos = getRunnerApp().screenPosToWorldPos(new Vector(mouse.x, mouse.y));
+        const worldPos = getRunnerApp().screenPosToWorldPos(new Vector(mouse.x, mouse.y)).sub({x: 0, y: -this.centerHeight});
 
         this.ammoPools.emit(
             worldPos.sub(this.position).normalize().multiplyScalar(Math.random() * 1 + 2),
@@ -377,7 +381,7 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
         this.updateBuffer();
         this.updateSprite();
 
-        this.bow.position.setV(this.position);
+        this.bow.position.set(this.position.x, this.position.y - this.centerHeight);
         this.bow.update();
 
         this.ammoPools.update();

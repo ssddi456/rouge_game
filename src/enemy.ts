@@ -9,6 +9,8 @@ import { Droplets as Droplet } from "./droplet";
 import { getRunnerApp } from "./runnerApp";
 import { applyBuffer, checkBufferAlive } from "./buffer";
 import { cloneAnimationSprites } from "./sprite_utils";
+import { overGroundCenterHeight } from "./groups";
+import { debugInfo } from "./debug_info";
 
 export class Enemy implements IMovable, ICollisionable, LivingObject {
     prev_dead: boolean = false;
@@ -28,10 +30,12 @@ export class Enemy implements IMovable, ICollisionable, LivingObject {
 
     mainSpirtIndex = 1
     sprite = new Container();
-
+    bodySprite = this.sprite.addChild(new Container);
     bufferList: Buffer[] = [];
 
     shadow: Graphics;
+
+    debugInfo = debugInfo();
 
     constructor(
         public spirtes: Record<string, AnimatedSprite>,
@@ -39,7 +43,7 @@ export class Enemy implements IMovable, ICollisionable, LivingObject {
         instanceList.push(this);
         // soft shadow
         const shadow = new PIXI.Graphics();
-        this.sprite.addChild(shadow);
+        this.bodySprite.addChild(shadow);
 
         this.shadow = shadow;
         shadow.beginFill(0x000000);
@@ -47,9 +51,12 @@ export class Enemy implements IMovable, ICollisionable, LivingObject {
         shadow.endFill();
         shadow.filters = [new PIXI.filters.BlurFilter(5, 5)];
 
-        this.sprite.addChild(this.spirtes.idle);
+        this.bodySprite.position.y = - overGroundCenterHeight;
+        this.bodySprite.addChild(this.spirtes.idle);
 
+        this.sprite.addChild(this.debugInfo.pointer);
     }
+
     health: number = 1;
     prev_health: number = 1;
     recieveHealth(amount: number): void {
@@ -68,7 +75,7 @@ export class Enemy implements IMovable, ICollisionable, LivingObject {
         if (this.dead) {
             // 插入一个死亡动画
             app.emitParticles(
-                this.position,
+                this.position.clone().sub({x: 0, y: overGroundCenterHeight}),
                 this.facing == EFacing.top ? this.spirtes.die_back : this.spirtes.die,
                 undefined,
                 600,
@@ -81,6 +88,8 @@ export class Enemy implements IMovable, ICollisionable, LivingObject {
                 },
                 Infinity
             );
+            this.sprite.parent.removeChild(this.sprite);
+            this.sprite.parentGroup = undefined;
         }
     }
 
@@ -163,12 +172,12 @@ export class Enemy implements IMovable, ICollisionable, LivingObject {
         }
 
         if (this.facing != this.prev_facing) {
-            this.sprite.removeChildAt(this.mainSpirtIndex);
+            this.bodySprite.removeChildAt(this.mainSpirtIndex);
             if (this.facing == EFacing.top) {
-                this.sprite.addChildAt(this.spirtes.idle_back, this.mainSpirtIndex);
+                this.bodySprite.addChildAt(this.spirtes.idle_back, this.mainSpirtIndex);
             }
             if (this.facing == EFacing.bottom) {
-                this.sprite.addChildAt(this.spirtes.idle, this.mainSpirtIndex);
+                this.bodySprite.addChildAt(this.spirtes.idle, this.mainSpirtIndex);
             }
         }
     }
@@ -221,6 +230,7 @@ export class EnemyPool implements IObjectPools {
         const dead = this.pool.find(enemy => enemy.dead);
         if (dead) {
             dead.init(position);
+            this.container.addChild(dead.sprite);
         } else {
             const enemy = new Enemy(cloneAnimationSprites(this.spirtes));
             this.container.addChild(enemy.sprite);
