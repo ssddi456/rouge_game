@@ -16,6 +16,7 @@ import { Forest, Tree } from './tree';
 import { createBlockContext } from './block_context';
 import { createGroups, overGroundZindex } from './groups';
 import { Stage } from '@pixi/layers';
+import WarFog from './warfog';
 
 // The application will create a renderer using WebGL, if possible,
 // with a fallback to a canvas render. It will also setup the ticker
@@ -31,7 +32,7 @@ document.body.appendChild(app.view);
 document.body.style.margin = "0";
 document.documentElement.style.margin = "0";
 app.stage = new Stage();
-
+app.stage.sortableChildren = true;
 // create viewport
 const gameView = new Viewport({
     screenWidth: window.innerWidth,
@@ -80,6 +81,7 @@ app.loader.add('grass', getImageUrl('THX0.png'))
         const grass = new PIXI.TilingSprite(resources.grass.texture!, app.view.width, app.view.height);
         gameView.addChildAt(grass, 0);
         const overGroundContainer = gameView.addChild(new Container());
+        // const overGroundContainer = new Container();
         overGroundContainer.zIndex = overGroundZindex;
         window.addEventListener('resize', () => {
             grass.width = app.view.width;
@@ -169,8 +171,16 @@ app.loader.add('grass', getImageUrl('THX0.png'))
         // 
         // controll layers here
         //
-
+        
         const groups = createGroups(gameView);
+
+        const warfog = new WarFog(
+            app.view.width,
+            app.view.height,
+        );
+        gameView.addChild(warfog.graphic);
+        warfog.graphic.parentGroup = groups.skyGroup;
+
         // seems high render rate leads to some bug
         app.ticker.maxFPS = 60;
         // Listen for frame updates
@@ -178,7 +188,8 @@ app.loader.add('grass', getImageUrl('THX0.png'))
             // each frame we spin the bunny around a bit
             player.update();
             camera.update(player);
-            
+            warfog.update();
+
             enemys.update();
 
             droplets.update();
@@ -188,7 +199,7 @@ app.loader.add('grass', getImageUrl('THX0.png'))
             // for debugers
             // collisionView.update();
             
-            // player.sprite.parentGroup = groups.overGroundGroup;
+            player.sprite.parentGroup = groups.overGroundGroup;
             camera.updateItemPos(player);
 
             overGroundContainer.children.sort((a, b) => {
@@ -218,7 +229,7 @@ app.loader.add('grass', getImageUrl('THX0.png'))
             }
             for (let index = 0; index < enemys.pool.length; index++) {
                 const element = enemys.pool[index];
-                // element.sprite.parentGroup = groups.overGroundGroup;
+                element.sprite.parentGroup = groups.overGroundGroup;
                 if (!element.dead) {
                     camera.updateItemPos(element);
                 }
@@ -236,7 +247,7 @@ app.loader.add('grass', getImageUrl('THX0.png'))
             for (let index = 0; index < forest.trees.length; index++) {
                 const element = forest.trees[index];
                 if (!element.dead) {
-                    // element.sprite.parentGroup = groups.overGroundGroup;
+                    element.sprite.parentGroup = groups.overGroundGroup;
                     element.update();
                     camera.updateItemPos(element);
                 }

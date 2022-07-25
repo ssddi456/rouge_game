@@ -90,6 +90,7 @@ export interface EntityManager {
     now(): number;
 
     setApp(a: Application): void;
+    getApp(): Application;
 
     setPlayer(_player: Player): void;
 
