@@ -119,9 +119,10 @@ const runnerApp: EntityManager = {
         app.ticker.add(() => {
             mouseWorldPos = undefined;
             timeElipsed += app.ticker.elapsedMS;
-
-
         });
+    },
+    getApp() {
+        return app;
     },
 
     updateParticles() {

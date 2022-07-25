@@ -15,19 +15,20 @@ export class Camera {
         this.prevPlayerPos.setV(player.position);
     }
 
+    paddingX = 200;
+    paddingY = 200;
+
     update(player: Player) {
         const screenPos = this.worldPosToScreenPos(player.position);
-        const paddingX = 100;
-        const paddingY = 100
-        if (screenPos.x < paddingX) {
-            this.offset.x += screenPos.x - paddingX;
-        } else if (screenPos.x > this.size.x - paddingX) {
-            this.offset.x += screenPos.x - this.size.x + paddingX;
+        if (screenPos.x < this.paddingX) {
+            this.offset.x += screenPos.x - this.paddingX;
+        } else if (screenPos.x > this.size.x - this.paddingX) {
+            this.offset.x += screenPos.x - this.size.x + this.paddingX;
         }
-        if (screenPos.y < paddingY) {
-            this.offset.y += screenPos.y - paddingY;
-        } else if (screenPos.y > this.size.y - paddingY) {
-            this.offset.y += screenPos.y - this.size.y + paddingY;
+        if (screenPos.y < this.paddingY) {
+            this.offset.y += screenPos.y - this.paddingY;
+        } else if (screenPos.y > this.size.y - this.paddingY) {
+            this.offset.y += screenPos.y - this.size.y + this.paddingY;
         }
     }
 
