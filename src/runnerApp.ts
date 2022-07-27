@@ -160,8 +160,22 @@ const runnerApp: EntityManager = {
     getCamera() {
         return camera;
     },
+    getGameView() {
+        return gameView;
+    },
     setGameView( _gameView: Viewport) {
         gameView = _gameView;
+    },
+    disposeGameView() {
+        if (gameView) {
+            const children = gameView.children;
+            for (let index = 0; index < children.length; index++) {
+                const element = children[index];
+                element.destroy({
+                    children: true
+                });
+            }
+        }
     },
     getMouseWorldPos() {
         if (mouseWorldPos) {

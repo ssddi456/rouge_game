@@ -6,7 +6,7 @@ export function cloneAnimationSprites(spriteMap: Record<string, AnimatedSprite>)
         if (Object.prototype.hasOwnProperty.call(spriteMap, key)) {
             const element = spriteMap[key];
 
-            ret[key] = new AnimatedSprite(element.textures);
+            ret[key] = cloneAnimationSprite(element);
             ret[key].anchor.set(element.anchor._x, element.anchor._y);
         }
     }
@@ -19,6 +19,7 @@ export function cloneAnimationSprite(sprite: AnimatedSprite) {
     ret.anchor.set(sprite.anchor._x, sprite.anchor._y);
     ret.animationSpeed = sprite.animationSpeed;
     ret.loop = sprite.loop;
+    ret.animationSpeed = sprite.animationSpeed;
     ret.autoUpdate = sprite.autoUpdate;
     ret.gotoAndStop(0);
 

@@ -9,7 +9,8 @@ import { Player } from "./player";
 import { Vector } from "./vector"
 
 export interface Updatable {
-    update(): void;
+    update(...args: any[]): void;
+    dispose(): void;
 }
 export interface GameObject {
     position: Vector;
@@ -105,6 +106,8 @@ export interface EntityManager {
     screenPosToWorldPos(position: Vector): Vector;
 
     setGameView(_gameView: Container): void;
+    getGameView(): Container;
+    disposeGameView(): void;
 }
 
 export interface BaseBuffer {

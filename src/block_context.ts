@@ -209,7 +209,16 @@ export function createBlockContext<T>({
         prevPosInfo = currentPosInfo;
     }
 
+    function dispose() {
+        for (const key in blockData) {
+            if (Object.prototype.hasOwnProperty.call(blockData, key)) {
+                delete blockData[key];
+            }
+        }
+    }
+
     return {
-        update
+        update,
+        dispose
     };
 }
