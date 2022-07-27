@@ -15,7 +15,7 @@ import { Vector } from "../vector";
 import WarFog from "../warfog";
 
 
-export class ForestLevel implements Level {
+export class SnowFieldLevel implements Level {
     player: Player | undefined = undefined;
     warfog: WarFog | undefined = undefined;
     camera: Camera | undefined = undefined;
@@ -25,7 +25,7 @@ export class ForestLevel implements Level {
     blockContext: Updatable | undefined = undefined;
     overGroundContainer: Container | undefined = undefined;
     groups: ReturnType<typeof createGroups> | undefined = undefined;
-    grass: TilingSprite | undefined = undefined;
+    ground: TilingSprite | undefined = undefined;
     forest: Forest | undefined = undefined;
 
     constructor(
@@ -51,8 +51,10 @@ export class ForestLevel implements Level {
         triangle.endFill();
 
         const triangleT = app.renderer.generateTexture(triangle);
-        const newResources = this.getResources();
+
         const ammoA = new AnimatedSprite([app.renderer.generateTexture(ammoG)]);
+        const newResources = this.getResources();
+
         const playerAnimateMap = newResources.playerAnimateMap;
         const bowAnimateMap = newResources.bowAnimateMap;
         const gunAnimateMap = newResources.gunAnimateMap;
@@ -67,17 +69,17 @@ export class ForestLevel implements Level {
         triangle.destroy();
 
 
-        const grass = new TilingSprite(resources.grass.texture!, app.view.width, app.view.height);
-        gameView.addChildAt(grass, 0);
-        this.grass = grass;
+        const snowfield = new TilingSprite(resources.snowfield.texture!, app.view.width, app.view.height);
+        gameView.addChildAt(snowfield, 0);
+        this.ground = snowfield;
 
         const overGroundContainer = gameView.addChild(new Container());
         // const overGroundContainer = new Container();
         overGroundContainer.zIndex = overGroundZindex;
         this.overGroundContainer = overGroundContainer;
         window.addEventListener('resize', () => {
-            grass.width = app.view.width;
-            grass.height = app.view.height;
+            snowfield.width = app.view.width;
+            snowfield.height = app.view.height;
 
             gameView.resize(app.view.width, app.view.height);
         });
@@ -182,7 +184,7 @@ export class ForestLevel implements Level {
         const blockContext = this.blockContext!;
         const overGroundContainer = this.overGroundContainer!;
         const groups = this.groups!;
-        const grass = this.grass!;
+        const grass = this.ground!;
         const forest = this.forest!;
         
         const runnerApp = getRunnerApp();
@@ -280,7 +282,6 @@ export class ForestLevel implements Level {
         const player = this.player!;
         const warfog = this.warfog!;
         const camera = this.camera!;
-
         const enemys = this.enemys!;
         enemys.pool = [];
 
@@ -294,7 +295,7 @@ export class ForestLevel implements Level {
 
         const overGroundContainer = this.overGroundContainer!;
         const groups = this.groups!;
-        const grass = this.grass!;
+        const grass = this.ground!;
 
         const forest = this.forest!;
         forest.trees = [];
@@ -309,7 +310,7 @@ export class ForestLevel implements Level {
         this.blockContext = undefined;
         this.overGroundContainer = undefined;
         this.groups = undefined;
-        this.grass = undefined;
+        this.ground = undefined;
         this.forest = undefined;
     }
 }

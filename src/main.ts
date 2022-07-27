@@ -2,21 +2,13 @@ import * as PIXI from 'pixi.js'
 import './user_input';
 
 import { Viewport } from 'pixi-viewport'
-import { Player } from './player';
-import { AnimatedSprite, Container, Point, Sprite } from 'pixi.js';
-import { Curser } from './curser';
-import { EnemyPool } from './enemy';
 import { getImageUrl, loadSpriteSheet } from './loadAnimation';
-import { CollisionView } from './drawCollisions';
-import { Vector } from './vector';
-import { Camera } from './camara';
-import { DropletPool } from './droplet';
 import { getRunnerApp } from './runnerApp';
-import { Forest, Tree } from './tree';
-import { createBlockContext } from './block_context';
-import { createGroups, overGroundZindex } from './groups';
 import { Stage } from '@pixi/layers';
-import WarFog from './warfog';
+import { ForestLevel } from './levels/forest';
+import { LevelManager } from './level';
+import { SnowFieldLevel } from './levels/snowfield';
+import { cloneAnimationSprites } from './sprite_utils';
 
 // The application will create a renderer using WebGL, if possible,
 // with a fallback to a canvas render. It will also setup the ticker
@@ -49,7 +41,9 @@ gameView.sortableChildren = true;
 app.stage.addChild(gameView);
 
 // load the texture we need
-app.loader.add('grass', getImageUrl('THX0.png'))
+app.loader
+    .add('grass', getImageUrl('THX0.png'))
+    .add('snowfield', getImageUrl('TIF9.png'))
     .load(async (loader, resources) => {
 
         const playerAnimateMap = await loadSpriteSheet(loader, 'Nintendo Switch - Disgaea 5 Complete - LiezerotaDark');
@@ -63,9 +57,33 @@ app.loader.add('grass', getImageUrl('THX0.png'))
         // seems high render rate leads to some bug
         app.ticker.maxFPS = 60;
         // Listen for frame updates
+        const cloneResourceMap = () => ({
+            resources,
+            playerAnimateMap: cloneAnimationSprites(playerAnimateMap),
+            bowAnimateMap: cloneAnimationSprites(bowAnimateMap),
+            gunAnimateMap: cloneAnimationSprites(gunAnimateMap),
+            enemyAnimateMap: cloneAnimationSprites(enemyAnimateMap),
+            hitEffect,
+            treeAnimateMap,
+        });
+
+        const forestLevel = new ForestLevel(app, cloneResourceMap);
+
+        const snowFieldLevel = new SnowFieldLevel(app, cloneResourceMap);
 
         const runnerApp = getRunnerApp();
         runnerApp.setApp(app);
         runnerApp.setGameView(gameView);
+        const levelManager = new LevelManager(app, gameView);
+
+        // may lazyload but not now
+        levelManager.registerLevel('forest', forestLevel);
+        levelManager.registerLevel('snowfield', snowFieldLevel);
+
+        levelManager.enterLevel('forest');
+
+        (window as any).switchLevel = function (level: string) {
+            levelManager.enterLevel(level);
+        };
 
     });

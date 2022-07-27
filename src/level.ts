@@ -1,4 +1,5 @@
 import { Application, Container } from "pixi.js";
+import { getRunnerApp } from "./runnerApp";
 
 export interface Level {
     init(gameView: Container): void;
@@ -25,6 +26,7 @@ export class LevelManager {
         if (this.currentLevel) {
             this.app.ticker.remove(this.currentLevel.update);
             this.currentLevel.dispose();
+            getRunnerApp().disposeGameView();
         }
 
         const currentLevel = this.levelMap[levelId];
@@ -36,5 +38,9 @@ export class LevelManager {
         currentLevel.init(this.gameView);
         this.app.ticker.add(this.currentLevel.update);
         this.app.ticker.start();
+    }
+
+    registerLevel(name: string, level: Level) {
+        this.levelMap[name] = level;
     }
 }
