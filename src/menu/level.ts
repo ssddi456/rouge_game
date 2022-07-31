@@ -3,9 +3,10 @@ import { Container, Graphics, Text } from "pixi.js";
 export class LevelMenu {
     sprite!: Container | null;
     
-    padding = 100;
+    paddingHorizontal = 500;
+    paddingVertical = 100;
     containerRadius = 10;
-    containerPadding = 100;
+    containerPadding = 50;
 
     buttonHeight = 40;
     buttonRadius = 5;
@@ -34,22 +35,22 @@ export class LevelMenu {
         }
         const main = this.sprite!;
         main.addChild(new Graphics())
-            .beginFill(0x333333, 0.5)
+            .beginFill(0x111111, 0.1)
             .drawRect(0, 0,
                 this.width,
                 this.height,
             )
             .endFill();
-        const containerLeft = this.padding - this.containerRadius;
-        const containerTop = this.padding - 2 * this.containerRadius;
+        const containerLeft = this.paddingHorizontal - this.containerRadius;
+        const containerTop = this.paddingVertical - 2 * this.containerRadius;
 
         console.log('containerLeft', containerLeft, 'containerTop', containerTop);
         
         main.addChild(new Graphics())
             .beginFill(0xeeeeee)
-            .drawRoundedRect(containerLeft, this.padding - 2 * this.containerRadius,
-                this.width - 2 * this.padding - 2 * this.containerRadius,
-                this.height - 2 * this.padding - 2 * this.containerRadius,
+            .drawRoundedRect(containerLeft, this.paddingVertical - 2 * this.containerRadius,
+                this.width - 2 * this.paddingHorizontal - 2 * this.containerRadius,
+                this.height - 2 * this.paddingVertical - 2 * this.containerRadius,
                 this.containerRadius
             )
             .endFill()
@@ -59,7 +60,7 @@ export class LevelMenu {
         }
 
         const cancel = main.addChild(new Container)
-        cancel.position.x = this.width - this.padding - 2 * this.containerRadius - 24 - 20;
+        cancel.position.x = this.width - this.paddingHorizontal - 2 * this.containerRadius - 24 - 20;
         cancel.position.y = containerTop + 20;
 
         console.log('cancel', cancel.position);
@@ -83,15 +84,15 @@ export class LevelMenu {
 
     addButton( text: string, handler: () => void) {
         const main = this.sprite!;
-        const containerTop = this.padding - 2 * this.containerRadius;
+        const containerTop = this.paddingVertical - 2 * this.containerRadius;
         const buttonTop = containerTop + this.containerPadding + this.buttonCount * (this.buttonMargin + this.buttonHeight);
 
         const button = main.addChild(new Graphics())
             .beginFill(0x999999)
             .drawRoundedRect(
-                this.padding + this.containerPadding,
+                this.paddingHorizontal + this.containerPadding - 2 * this.containerRadius,
                 buttonTop,
-                this.width - 2 * this.padding - 2 * this.containerPadding,
+                this.width - 2 * this.paddingHorizontal - 2 * this.containerPadding,
                 this.buttonHeight,
                 this.buttonRadius
             )
