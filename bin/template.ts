@@ -10,7 +10,8 @@ import * as inquirer from 'inquirer';
         name: 'templateType',
         type: 'list',
         choices: [
-            'demo'
+            'demo',
+            'level'
         ]
     });
 
@@ -31,6 +32,9 @@ import * as inquirer from 'inquirer';
     switch (templatingType.templateType) {
         case 'demo':
             await fs.writeFile(path.join(__dirname, `../src/demos/${templatingName.templateName}_demo.ts`), rendered);
+            break;
+        case 'level':
+            await fs.writeFile(path.join(__dirname, `../src/levels/${templatingName.templateName}.ts`), rendered);
             break;
         default:
             throw new Error('illegal templatingType');

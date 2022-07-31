@@ -175,6 +175,10 @@ const runnerApp: EntityManager = {
                     children: true
                 });
             }
+            gameView.removeChildren();
+
+            particles.splice(0, particles.length);
+            textParticles.splice(0, textParticles.length);
         }
     },
     getMouseWorldPos() {

@@ -386,6 +386,11 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
 
         this.ammoPools.update();
     }
+
+    dispose() {
+        this.ammoPools.pool = [];
+        this.bufferList = [];
+    }
 }
 
 export const instanceList: Player[] = module?.hot?.data?.instanceList || [];

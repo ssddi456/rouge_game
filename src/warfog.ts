@@ -37,6 +37,7 @@ export default class WarFog {
 
         const circle = new Graphics()
             .beginFill(0xff0000)
+            // .drawRect(-this.blurSize, -this.blurSize, this.width + 2 * this.blurSize, this.height + 2 * this.blurSize)
             .drawRect(0, 0, this.width, this.height)
             .endFill()
             .beginFill(0xaa0000)
@@ -51,7 +52,7 @@ export default class WarFog {
         const bounds = new PIXI.Rectangle(0, 0, this.width, this.height);
         const texture = getRunnerApp().getApp().renderer.generateTexture(circle, {
             scaleMode:PIXI.SCALE_MODES.NEAREST,
-            resolution: 0.5, 
+            resolution: 1, 
             region: bounds,
         });
         circle.destroy();
