@@ -21,7 +21,6 @@ export class ForestLevel implements Level {
     camera: Camera | undefined = undefined;
     enemys: EnemyPool | undefined = undefined;
     droplets: DropletPool | undefined = undefined;
-    curser: Curser | undefined = undefined;
     blockContext: Updatable | undefined = undefined;
     overGroundContainer: Container | undefined = undefined;
     groups: ReturnType<typeof createGroups> | undefined = undefined;
@@ -109,14 +108,10 @@ export class ForestLevel implements Level {
         curserG.endFill();
         const curserT = app.renderer.generateTexture(curserG);
         curserG.destroy();
-        const curserA = new AnimatedSprite([curserT]);
-        curserA.anchor.set(0.5, 0.5)
 
         const dropS = new Sprite(curserT);
         dropS.anchor.set(0.5, 0.5);
 
-        const curser = new Curser(curserA, gameView);
-        this.curser = curser;
 
         const enemys = new EnemyPool(enemyAnimateMap, overGroundContainer);
         runnerApp.setEnemys(enemys);
@@ -178,7 +173,6 @@ export class ForestLevel implements Level {
         const camera = this.camera!;
         const enemys = this.enemys!;
         const droplets = this.droplets!;
-        const curser = this.curser!;
         const blockContext = this.blockContext!;
         const overGroundContainer = this.overGroundContainer!;
         const groups = this.groups!;
@@ -195,7 +189,6 @@ export class ForestLevel implements Level {
         enemys.update();
 
         droplets.update();
-        curser.update();
         blockContext.update(player.position.x, player.position.y);
 
         // for debugers
@@ -278,7 +271,10 @@ export class ForestLevel implements Level {
 
     dispose = () => {
         const player = this.player!;
+        player.dispose();
+
         const warfog = this.warfog!;
+        warfog.graphic.destroy();
         const camera = this.camera!;
 
         const enemys = this.enemys!;
@@ -287,12 +283,13 @@ export class ForestLevel implements Level {
         const droplets = this.droplets!;
         droplets.pool = [];
 
-        const curser = this.curser!;
-
         const blockContext = this.blockContext!;
         blockContext.dispose();
 
         const overGroundContainer = this.overGroundContainer!;
+        setTimeout(() => {
+            console.log('overGroundContainer.children', overGroundContainer.children, overGroundContainer.children.length)
+        }, 100);
         const groups = this.groups!;
         const grass = this.grass!;
 
@@ -305,7 +302,6 @@ export class ForestLevel implements Level {
         this.camera = undefined;
         this.enemys = undefined;
         this.droplets = undefined;
-        this.curser = undefined;
         this.blockContext = undefined;
         this.overGroundContainer = undefined;
         this.groups = undefined;
