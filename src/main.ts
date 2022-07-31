@@ -95,7 +95,7 @@ app.loader
             .drawCircle(0, 0, 10)
             .endFill();
 
-            
+
         const curserA = new AnimatedSprite([app.renderer.generateTexture(curserG)]);
         curserG.destroy();
 
@@ -121,14 +121,13 @@ app.loader
 
         const toolBar = app.stage.addChild(new Container());
         const levelMenu = new LevelMenu(
-            toolBar,
+            app.stage,
             app.stage.width,
             app.stage.height,
             [
                 {
                     label: 'switch to forest',
                     handle: () => {
-                        console.log('switch to forest');
                         levelManager.enterLevel('forest');
                     },
                 },
@@ -145,8 +144,14 @@ app.loader
                     }
                 },
             ],
-            () => { },
-            () => { },
+            () => {
+                levelManager.levelResume();
+                toolBar.visible = true;
+            },
+            () => {
+                levelManager.levelResume();
+                toolBar.visible = true;
+            },
         );
         const button = toolBar.addChild(new Graphics())
             .beginFill(0x666666)
@@ -163,7 +168,9 @@ app.loader
 
         button.interactive = true;
         button.on('click', () => {
+            levelManager.levelPause();
             levelMenu.init();
+            toolBar.visible = false;
         });
 
     });
