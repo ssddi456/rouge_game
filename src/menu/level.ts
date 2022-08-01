@@ -118,6 +118,7 @@ export class LevelMenu {
 
     dispose() {
         if (this.sprite) {
+            this.sprite.parent.removeChild(this.sprite);
             this.sprite.destroy();
             this.sprite = null;
         }
