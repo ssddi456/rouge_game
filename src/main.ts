@@ -13,6 +13,7 @@ import { AnimatedSprite, Container, Graphics } from 'pixi.js';
 import { LevelMenu } from './menu/level';
 import { DimmyLevel } from './levels/dimmy';
 import { Curser } from './curser';
+import { StatusMenu } from './menu/status';
 
 document.body.style.padding = "0";
 document.body.style.margin = "0";
@@ -153,7 +154,8 @@ app.loader
                 toolBar.visible = true;
             },
         );
-        const button = toolBar.addChild(new Graphics())
+
+        const switchButton = toolBar.addChild(new Graphics())
             .beginFill(0x666666)
             .drawRoundedRect(10, 10, 50, 50, 3)
             .endFill()
@@ -161,16 +163,37 @@ app.loader
                 color: 0xffffff,
                 width: 4
             })
-            .moveTo(10 + 3 + 2, 10 + 3 + 2,)
-            .lineTo(10 + 50 - 3 - 2, 10 + 50 - 3 - 2,)
-            .moveTo(10 + 3 + 2, 10 + 50 - 3 - 2,)
-            .lineTo(10 + 50 - 3 - 2, 10 + 3 + 2,);
+            .moveTo(10 + 5, 15 + 5,).lineTo(10 + 50 - 5, 15 + 5,)
+            .moveTo(10 + 5, 30 + 5,).lineTo(10 + 50 - 5, 30 + 5,)
+            .moveTo(10 + 5, 45 + 5,).lineTo(10 + 50 - 5, 45 + 5,);
 
-        button.interactive = true;
-        button.on('click', () => {
+        switchButton.interactive = true;
+        switchButton.on('click', () => {
             levelManager.levelPause();
             levelMenu.init();
             toolBar.visible = false;
         });
 
+        const statusMenu = new StatusMenu(
+            app.stage,
+            app.stage.width,
+            app.stage.height,
+        );
+        const statusButton = toolBar.addChild(new Graphics())
+            .beginFill(0x666666)
+            .drawRoundedRect(10, 10, 50, 50, 3)
+            .endFill()
+            .lineStyle({
+                color: 0xffffff,
+                width: 4
+            })
+            .moveTo(10 + 5, 15 + 5,).lineTo(10 + 50 - 5, 15 + 5,)
+            .moveTo(10 + 5, 30 + 5,).lineTo(10 + 50 - 5, 30 + 5,)
+            .moveTo(10 + 5, 45 + 5,).lineTo(10 + 50 - 5, 45 + 5,);
+
+        statusButton.position.x = 60;
+        statusButton.interactive = true;
+        statusButton.on('click', () => {
+            statusMenu.init();
+        });
     });
