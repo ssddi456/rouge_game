@@ -1,7 +1,7 @@
-import { Container } from "pixi.js";
+import { Container, Application } from "pixi.js";
 import { Level } from "../level";
 
-export class <%= templateName %>Level implements Level {
+export class <%= (templateName[0].toUpperCase() + templateName.slice(1)) %>Level implements Level {
     constructor(
         public app: Application,
         public getResources: () => Record<string, Record<string, any>>

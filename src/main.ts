@@ -14,6 +14,7 @@ import { LevelMenu } from './menu/level';
 import { DimmyLevel } from './levels/dimmy';
 import { Curser } from './curser';
 import { StatusMenu } from './menu/status';
+import { WelcomeLevel } from './levels/welcome';
 
 document.body.style.padding = "0";
 document.body.style.margin = "0";
@@ -83,9 +84,6 @@ app.loader
             treeAnimateMap,
         });
 
-        const forestLevel = new ForestLevel(app, cloneResourceMap);
-        const snowFieldLevel = new SnowFieldLevel(app, cloneResourceMap);
-        const dimmyFieldLevel = new DimmyLevel(app, cloneResourceMap);
 
         const runnerApp = getRunnerApp();
         runnerApp.setApp(app);
@@ -105,16 +103,20 @@ app.loader
         const curser = new Curser(curserA, gameView);
 
         app.stage.addChild(curser.sprite);
-        app.ticker.add(() => curser.update());
+        app.ticker.add(() => {
+            curser.update();
+            levelManager.update();
+        });
 
-        const levelManager = new LevelManager(app, gameView);
-
+        const levelManager = new LevelManager(app, gameView, cloneResourceMap);
+        runnerApp.setLevelManager(levelManager);
         // may lazyload but not now
-        levelManager.registerLevel('forest', forestLevel);
-        levelManager.registerLevel('snowfield', snowFieldLevel);
-        levelManager.registerLevel('dimmy', dimmyFieldLevel);
+        levelManager.registerLevel('welcome', WelcomeLevel);
+        levelManager.registerLevel('forest', ForestLevel);
+        levelManager.registerLevel('snowfield', SnowFieldLevel);
+        levelManager.registerLevel('dimmy', DimmyLevel);
 
-        levelManager.enterLevel('forest');
+        levelManager.enterLevel('welcome');
 
         (window as any).switchLevel = function (level: string) {
             levelManager.enterLevel(level);
@@ -128,21 +130,19 @@ app.loader
             [
                 {
                     label: 'switch to forest',
-                    handle: () => {
-                        levelManager.enterLevel('forest');
-                    },
+                    handle: () => levelManager.enterLevel('forest')
                 },
                 {
                     label: 'switch to snowfield',
-                    handle: () => {
-                        levelManager.enterLevel('snowfield');
-                    }
+                    handle: () => levelManager.enterLevel('snowfield')
                 },
                 {
                     label: 'switch to dimmy',
-                    handle: () => {
-                        levelManager.enterLevel('dimmy');
-                    }
+                    handle: () => levelManager.enterLevel('dimmy')
+                },
+                {
+                    label: 'switch to welcome',
+                    handle: () => levelManager.enterLevel('welcome')
                 },
             ],
             () => {

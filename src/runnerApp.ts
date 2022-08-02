@@ -9,6 +9,7 @@ import { cloneAnimationSprite } from "./sprite_utils";
 import { ECollisionType, EntityManager, ICollisionable } from "./types";
 import { Vector } from "./vector";
 import {mouse} from './user_input';
+import { LevelManager } from "./level";
 
 let timeElipsed = 0;
 let app: Application;
@@ -20,6 +21,7 @@ let particles: Particle[] = [];
 let textParticles: Particle[] = [];
 let gameView: Viewport;
 let mouseWorldPos: Vector | undefined;
+let levelManager: LevelManager;
 
 const runnerApp: EntityManager = {
     getEntities: ({
@@ -166,6 +168,15 @@ const runnerApp: EntityManager = {
     setGameView( _gameView: Viewport) {
         gameView = _gameView;
     },
+
+    getLevelManager(): LevelManager {
+        return levelManager;
+    },
+
+    setLevelManager(_levelManager: LevelManager) {
+        levelManager = _levelManager;
+    },
+
     disposeGameView() {
         if (gameView) {
             const children = gameView.children;
