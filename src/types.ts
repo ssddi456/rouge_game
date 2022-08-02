@@ -4,6 +4,7 @@ import { AmmoPool } from "./ammo";
 import { Camera } from "./camara";
 import { DropletPool } from "./droplet";
 import { EnemyPool } from "./enemy";
+import { LevelManager } from "./level";
 import { Particle } from "./particle";
 import { Player } from "./player";
 import { Vector } from "./vector"
@@ -108,6 +109,9 @@ export interface EntityManager {
     setGameView(_gameView: Container): void;
     getGameView(): Container;
     disposeGameView(): void;
+
+    getLevelManager(): LevelManager;
+    setLevelManager(_levelManager: LevelManager): void;
 }
 
 export interface BaseBuffer {
