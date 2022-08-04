@@ -11,8 +11,38 @@ import { Vector } from "./vector"
 
 export interface Updatable {
     update(...args: any[]): void;
-    dispose(): void;
 }
+
+export interface Disposible {
+    dispose(): void
+}
+
+export abstract class UpdatableObject implements Updatable, Disposible {
+    updations: Updatable[] = [];
+    dispositions: Disposible[] = [];
+
+    addChildren( obj: Updatable & Disposible ) {
+        this.updations.push(obj);
+        this.dispositions.push(obj);
+    }
+
+    update() {
+        for (let index = 0; index < this.updations.length; index++) {
+            const element = this.updations[index];
+            element.update();
+        }
+    }
+
+    dispose() {
+        for (let index = 0; index < this.dispositions.length; index++) {
+            const element = this.dispositions[index];
+            element.dispose();
+        }
+        this.updations.length = 0;
+        this.dispositions.length = 0;
+    }
+}
+
 export interface GameObject {
     position: Vector;
     prev_position: Vector;

@@ -3,7 +3,7 @@ import { CountDown } from "./countdown";
 import { Player } from "./player";
 import { Vector } from "./vector";
 import * as PIXI from 'pixi.js';
-import { IMovable, ICollisionable, EFacing, IObjectPools, ECollisionType, LivingObject, Buffer } from "./types";
+import { IMovable, ICollisionable, EFacing, IObjectPools, ECollisionType, LivingObject, Buffer, Updatable, UpdatableObject } from "./types";
 import { checkCollision } from "./collision_helper";
 import { Droplets as Droplet } from "./droplet";
 import { getRunnerApp } from "./runnerApp";
@@ -11,8 +11,9 @@ import { applyBuffer, checkBufferAlive } from "./buffer";
 import { cloneAnimationSprites } from "./sprite_utils";
 import { overGroundCenterHeight } from "./groups";
 import { debugInfo } from "./debug_info";
+import { IdleJump } from "./helper/animated_utils";
 
-export class Enemy implements IMovable, ICollisionable, LivingObject {
+export class Enemy extends UpdatableObject implements IMovable, ICollisionable, LivingObject {
     prev_dead: boolean = false;
     dead = false;
     prev_direct = new Vector(0, 0);
@@ -28,7 +29,7 @@ export class Enemy implements IMovable, ICollisionable, LivingObject {
     size: number = 30;
     collisison_type: ECollisionType = ECollisionType.enemy;
 
-    mainSpirtIndex = 1
+    mainSpirtIndex = 0
     sprite = new Container();
     bodySprite = this.sprite.addChild(new Container);
     bufferList: Buffer[] = [];
@@ -40,10 +41,13 @@ export class Enemy implements IMovable, ICollisionable, LivingObject {
     constructor(
         public spirtes: Record<string, AnimatedSprite>,
     ) {
+        super();
+
         instanceList.push(this);
         // soft shadow
         const shadow = new PIXI.Graphics();
-        this.bodySprite.addChild(shadow);
+        this.sprite.addChild(shadow);
+        shadow.position.y = - overGroundCenterHeight;
 
         this.shadow = shadow;
         shadow.beginFill(0x000000);
@@ -53,6 +57,16 @@ export class Enemy implements IMovable, ICollisionable, LivingObject {
 
         this.bodySprite.position.y = - overGroundCenterHeight;
         this.bodySprite.addChild(this.spirtes.idle);
+        this.dispositions.push(
+            new IdleJump(
+                this.bodySprite,
+                {
+                    frames: 36,
+                    base: - overGroundCenterHeight,
+                    height: 10,
+                }
+            )
+        );
 
         this.sprite.addChild(this.debugInfo.pointer);
     }
@@ -195,10 +209,11 @@ export class Enemy implements IMovable, ICollisionable, LivingObject {
         this.updatePosition();
         this.updateBuffer();
         this.updateSprite();
+        super.update();
     }
 }
 
-export class EnemyPool implements IObjectPools {
+export class EnemyPool extends UpdatableObject implements IObjectPools {
     pool: Enemy[] = [];
     spawnTimer: CountDown;
     livenodes = 0;
@@ -207,6 +222,8 @@ export class EnemyPool implements IObjectPools {
         public spirtes: Record<string, AnimatedSprite>,
         public container: Container,
     ) {
+        super();
+
         this.spawnTimer = new CountDown(5000, this.spawn);
 
 
@@ -234,17 +251,18 @@ export class EnemyPool implements IObjectPools {
         } else {
             const enemy = new Enemy(cloneAnimationSprites(this.spirtes));
             this.container.addChild(enemy.sprite);
-
             this.pool.push(enemy);
+            this.addChildren(enemy);
             enemy.init(position);
         }
     }
 
     update() {
         this.spawnTimer.update();
-        this.pool.forEach(x => x.update());
+        super.update();
         this.livenodes = this.pool.filter(x => !x.dead).length;
     }
+
     spawn = () => {
         if (this.livenodes > 100) {
             return;
@@ -266,6 +284,11 @@ export class EnemyPool implements IObjectPools {
                 )
             );
         }
+    }
+
+    dispose(): void {
+        super.dispose();
+        this.pool.length = 0;
     }
 }
 

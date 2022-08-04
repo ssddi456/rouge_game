@@ -10,7 +10,7 @@ import { Level } from "../level";
 import { Player } from "../player";
 import { getRunnerApp } from "../runnerApp";
 import { Forest, Tree } from "../tree";
-import { Updatable } from "../types";
+import { Disposible, Updatable } from "../types";
 import { Vector } from "../vector";
 import WarFog from "../warfog";
 
@@ -21,7 +21,7 @@ export class SnowFieldLevel implements Level {
     camera: Camera | undefined = undefined;
     enemys: EnemyPool | undefined = undefined;
     droplets: DropletPool | undefined = undefined;
-    blockContext: Updatable | undefined = undefined;
+    blockContext: Updatable & Disposible | undefined = undefined;
     overGroundContainer: Container | undefined = undefined;
     groups: ReturnType<typeof createGroups> | undefined = undefined;
     ground: TilingSprite | undefined = undefined;
@@ -279,7 +279,7 @@ export class SnowFieldLevel implements Level {
 
         const camera = this.camera!;
         const enemys = this.enemys!;
-        enemys.pool = [];
+        enemys.dispose();
 
         const droplets = this.droplets!;
         droplets.pool = [];
