@@ -4,7 +4,7 @@ import { createBlockContext } from "../block_context";
 import { Camera } from "../camara";
 import { Curser } from "../curser";
 import { DropletPool } from "../droplet";
-import { EnemyPool } from "../enemy";
+import { EnemyPoolInner } from "../enemy";
 import { createGroups, overGroundZindex } from "../groups";
 import { Level } from "../level";
 import { Player } from "../player";
@@ -19,7 +19,7 @@ export class SnowFieldLevel implements Level {
     player: Player | undefined = undefined;
     warfog: WarFog | undefined = undefined;
     camera: Camera | undefined = undefined;
-    enemys: EnemyPool | undefined = undefined;
+    enemys: EnemyPoolInner | undefined = undefined;
     droplets: DropletPool | undefined = undefined;
     blockContext: Updatable & Disposible | undefined = undefined;
     overGroundContainer: Container | undefined = undefined;
@@ -114,7 +114,7 @@ export class SnowFieldLevel implements Level {
         const dropS = new Sprite(curserT);
         dropS.anchor.set(0.5, 0.5);
 
-        const enemys = new EnemyPool(enemyAnimateMap, overGroundContainer);
+        const enemys = new EnemyPoolInner(enemyAnimateMap, overGroundContainer);
         runnerApp.setEnemys(enemys);
         this.enemys = enemys;
 

@@ -14,8 +14,9 @@ import easingsFunctions, { twean } from "./easingFunctions";
 import tween from "./tween";
 import { Bow1 } from "./bow";
 import { overGroundCenterHeight } from "./groups";
+import { HotClass } from "./helper/class_reloader";
 
-export class Player implements IMovable, Shootable, ICollisionable, LivingObject, LeveledObject {
+class PlayerInner implements IMovable, Shootable, ICollisionable, LivingObject, LeveledObject {
     sprite: Container = new Container();
     bodyContainer: Container = this.sprite.addChild(new Container());
 
@@ -81,7 +82,6 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
     ) {
         container.addChild(this.sprite);
         this.position.setV(startPosition);
-        instanceList.push(this);
 
         // soft shadow
         const shadow = new PIXI.Graphics();
@@ -393,17 +393,5 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
     }
 }
 
-export const instanceList: Player[] = module?.hot?.data?.instanceList || [];
-if (module.hot) {
-    module.hot.accept();
-    module.hot.dispose((module) => {
-        module.instanceList = instanceList;
-    });
-    instanceList.forEach(player => {
-        if (player.constructor.toString() !== Player.toString()) {
-            location.reload();
-        }
-        player.constructor = Player;
-        (player as any).__proto__ = Player.prototype;
-    });
-}
+export type Player = PlayerInner;
+export const Player = (HotClass({ module })(PlayerInner) as unknown) as Player;

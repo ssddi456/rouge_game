@@ -2,7 +2,7 @@ import { Viewport } from "pixi-viewport";
 import { AnimatedSprite, Application, Sprite, Text } from "pixi.js";
 import { Camera } from "./camara";
 import { DropletPool } from "./droplet";
-import { EnemyPool } from "./enemy";
+import { EnemyPoolInner } from "./enemy";
 import { Particle } from "./particle";
 import { Player } from "./player";
 import { cloneAnimationSprite } from "./sprite_utils";
@@ -14,7 +14,7 @@ import { LevelManager } from "./level";
 let timeElipsed = 0;
 let app: Application;
 let player: Player;
-let enemys: EnemyPool;
+let enemys: EnemyPoolInner;
 let droplets: DropletPool;
 let camera: Camera;
 let particles: Particle[] = [];
@@ -150,7 +150,7 @@ const runnerApp: EntityManager = {
     setPlayer( _player: Player) {
         player = _player;
     },
-    setEnemys( _enemys: EnemyPool) {
+    setEnemys( _enemys: EnemyPoolInner) {
         enemys = _enemys;
     },
     setDroplets( _droplets: DropletPool) {

@@ -72,7 +72,8 @@ module.exports = function ({ entry }) {
                                 "parser": {
                                     "syntax": "typescript",
                                     "tsx": true,
-                                    "decorators": false,
+                                    "decorators": true,
+                                    "decoratorsBeforeExport": true,
                                     "dynamicImport": false
                                 },
                                 transform: {

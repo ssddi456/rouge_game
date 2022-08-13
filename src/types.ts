@@ -3,7 +3,7 @@ import { AnimatedSprite, Application, Container, DisplayObject, Sprite } from "p
 import { AmmoPool } from "./ammo";
 import { Camera } from "./camara";
 import { DropletPool } from "./droplet";
-import { EnemyPool } from "./enemy";
+import { EnemyPoolInner } from "./enemy";
 import { LevelManager } from "./level";
 import { Particle } from "./particle";
 import { Player } from "./player";
@@ -126,7 +126,7 @@ export interface EntityManager {
 
     setPlayer(_player: Player): void;
 
-    setEnemys(_enemys: EnemyPool): void;
+    setEnemys(_enemys: EnemyPoolInner): void;
 
     setDroplets(_droplets: DropletPool): void;
 

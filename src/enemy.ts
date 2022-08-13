@@ -12,8 +12,10 @@ import { cloneAnimationSprites } from "./sprite_utils";
 import { overGroundCenterHeight } from "./groups";
 import { debugInfo } from "./debug_info";
 import { IdleJump } from "./helper/animated_utils";
+import { HotClass } from "./helper/class_reloader";
 
-export class Enemy extends UpdatableObject implements IMovable, ICollisionable, LivingObject {
+
+class EnemyInner extends UpdatableObject implements IMovable, ICollisionable, LivingObject {
     prev_dead: boolean = false;
     dead = false;
     prev_direct = new Vector(0, 0);
@@ -43,7 +45,6 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
     ) {
         super();
 
-        instanceList.push(this);
         // soft shadow
         const shadow = new PIXI.Graphics();
         this.sprite.addChild(shadow);
@@ -213,7 +214,10 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
     }
 }
 
-export class EnemyPool extends UpdatableObject implements IObjectPools {
+export const Enemy = HotClass({ module })(EnemyInner);
+export type Enemy = EnemyInner;
+
+export class EnemyPoolInner extends UpdatableObject implements IObjectPools {
     pool: Enemy[] = [];
     spawnTimer: CountDown;
     livenodes = 0;
@@ -226,11 +230,7 @@ export class EnemyPool extends UpdatableObject implements IObjectPools {
 
         this.spawnTimer = new CountDown(5000, this.spawn);
 
-
         if (module.hot) {
-            if (this.constructor === EnemyPool) {
-                instancePool.push(this);
-            }
             module.hot.dispose((module) => {
                 const oldSpawnTimer = this.spawnTimer;
                 this.spawnTimer = new CountDown(5000, this.spawn);
@@ -292,26 +292,5 @@ export class EnemyPool extends UpdatableObject implements IObjectPools {
     }
 }
 
-export const instanceList: Enemy[] = module?.hot?.data?.instanceList || [];
-export const instancePool: EnemyPool[] = module?.hot?.data?.instanceList || [];
-if (module.hot) {
-    module.hot.accept();
-    module.hot.dispose((module) => {
-        console.log('dispose', module);
-        module.instanceList = instanceList;
-    });
-    instanceList.forEach(enemy => {
-        if (enemy.constructor.toString() !== Enemy.toString()) {
-            location.reload();
-        }
-        enemy.constructor = Enemy;
-        (enemy as any).__proto__ = Enemy.prototype;
-    });
-    instancePool.forEach(enemyPool => {
-        if (enemyPool.constructor.toString() !== EnemyPool.toString()) {
-            location.reload();
-        }
-        enemyPool.constructor = EnemyPool;
-        (enemyPool as any).__proto__ = EnemyPool.prototype;
-    });
-}
+export type EnemyPool = EnemyPoolInner;
+export const EnemyPool = HotClass({ module })(EnemyPoolInner);

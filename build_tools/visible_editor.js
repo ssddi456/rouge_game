@@ -5,12 +5,14 @@ class VisibleEditorTransformer extends Visitor {
     constructor(options) {
         super();
         this.options = options;
+        this.hotClassCount = 0;
     }
 
     visitProgram(
         /** @type {import('@swc/core').Program} */ m
     ) {
         this.startSpan = m.span;
+        this.hotClassCount = 0;
         return super.visitProgram(m);
     }
 
@@ -76,6 +78,33 @@ class VisibleEditorTransformer extends Visitor {
                     span: callExpression.span
                 }
             });
+        }
+
+        if (callExpression.callee.type == 'Identifier'
+            && callExpression.callee.value == 'HotClass'
+        ) {
+            console.log(
+                'this.options', this.options, this.startSpan
+            );
+
+            const valueItem = callExpression.arguments[0].expression;
+
+            valueItem.properties.push({
+                type: 'KeyValueProperty',
+                key: {
+                    type: 'Identifier',
+                    value: 'hotClassId',
+                    span: callExpression.span
+                },
+                value: {
+                    type: 'StringLiteral',
+                    value: this.options.fileName + '__' + this.hotClassCount,
+                    span: callExpression.span,
+                    hasEscape: false,
+                },
+                span: callExpression.span
+            });
+            this.hotClassCount ++;
         }
 
         return {

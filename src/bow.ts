@@ -1,4 +1,5 @@
 import { AnimatedSprite, Container, DisplayObject, Graphics, Point, Sprite, Texture } from "pixi.js";
+import { HotClass } from "./helper/class_reloader";
 import { getRunnerApp } from "./runnerApp";
 import { GameObject } from "./types";
 import { mouse } from "./user_input";
@@ -12,8 +13,7 @@ interface Changable {
     releasing: boolean;
 }
 
-
-export class Bow1 implements GameObject, Changable {
+export class Bow1Inner implements GameObject, Changable {
     position: Vector = new Vector(0, 0);
     prev_position: Vector = new Vector(0, 0);
 
@@ -157,7 +157,8 @@ export class Bow1 implements GameObject, Changable {
         this.updateSprite();
     }
 }
-
+export type Bow1 = Bow1Inner;
+export const Bow1 = HotClass({ module })(Bow1Inner);
 export class Bow2 extends Bow1 {
     ropeDragRangeMin = -30;
     ropeDragRangeMax = 60;
