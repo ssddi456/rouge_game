@@ -4,24 +4,25 @@ import { createBlockContext } from "../block_context";
 import { Camera } from "../camara";
 import { Curser } from "../curser";
 import { DropletPool } from "../droplet";
-import { EnemyPoolInner } from "../enemy";
+import { EnemyPool } from "../enemy";
 import { createGroups, overGroundZindex } from "../groups";
+import { HotClass } from "../helper/class_reloader";
 import { Level } from "../level";
 import { Player } from "../player";
 import { getRunnerApp } from "../runnerApp";
 import { Forest, Tree } from "../tree";
-import { Updatable } from "../types";
+import { Disposible, Updatable } from "../types";
 import { Vector } from "../vector";
 import WarFog from "../warfog";
 
-
+@HotClass({ module })
 export class ForestLevel implements Level {
     player: Player | undefined = undefined;
     warfog: WarFog | undefined = undefined;
     camera: Camera | undefined = undefined;
-    enemys: EnemyPoolInner | undefined = undefined;
+    enemys: EnemyPool | undefined = undefined;
     droplets: DropletPool | undefined = undefined;
-    blockContext: Updatable | undefined = undefined;
+    blockContext: (Updatable & Disposible) | undefined = undefined;
     overGroundContainer: Container | undefined = undefined;
     groups: ReturnType<typeof createGroups> | undefined = undefined;
     grass: TilingSprite | undefined = undefined;
@@ -113,7 +114,7 @@ export class ForestLevel implements Level {
         dropS.anchor.set(0.5, 0.5);
 
 
-        const enemys = new EnemyPoolInner(enemyAnimateMap, overGroundContainer);
+        const enemys = new EnemyPool(enemyAnimateMap, overGroundContainer);
         runnerApp.setEnemys(enemys);
         this.enemys = enemys;
 
@@ -157,17 +158,17 @@ export class ForestLevel implements Level {
         const groups = createGroups(gameView);
         this.groups = groups;
 
-        const warfog = new WarFog(
-            app.view.width,
-            app.view.height,
-        );
-        gameView.addChild(warfog.graphic);
-        warfog.graphic.parentGroup = groups.skyGroup;
-        this.warfog = warfog;
+        // const warfog = new WarFog(
+        //     app.view.width,
+        //     app.view.height,
+        // );
+        // gameView.addChild(warfog.graphic);
+        // warfog.graphic.parentGroup = groups.skyGroup;
+        // this.warfog = warfog;
     }
 
 
-    update = () => {
+    update() {
         const player = this.player!;
         const warfog = this.warfog!;
         const camera = this.camera!;
@@ -184,7 +185,7 @@ export class ForestLevel implements Level {
         // each frame we spin the bunny around a bit
         player.update();
         camera.update(player);
-        warfog.update();
+        warfog?.update();
 
         enemys.update();
 
@@ -196,35 +197,41 @@ export class ForestLevel implements Level {
 
         player.sprite.parentGroup = groups.overGroundGroup;
         camera.updateItemPos(player);
+        // do
 
-        overGroundContainer.children.sort((a, b) => {
-            if (a.position.y > b.position.y) {
-                return 1;
+        for (let index = 0; index < enemys.pool.length; index++) {
+            const element = enemys.pool[index];
+            element.sprite.parentGroup = groups.overGroundGroup;
+            if (!element.dead) {
+                camera.updateItemPos(element);
             }
-            if (a.position.y < b.position.y) {
-                return -1;
-            }
-            if (a.position.x > b.position.x) {
-                return 1;
-            }
-            if (a.position.x < b.position.x) {
-                return -1;
-            }
-            return a.updateOrder! - b.updateOrder!;
-        });
+        }
+
+        // const children = overGroundContainer.children.slice(0);
+        // children.sort((a, b) => {
+        //     if (a.position.y > b.position.y) {
+        //         return 1;
+        //     }
+        //     if (a.position.y < b.position.y) {
+        //         return -1;
+        //     }
+        //     if (a.position.x > b.position.x) {
+        //         return 1;
+        //     }
+        //     if (a.position.x < b.position.x) {
+        //         return -1;
+        //     }
+        //     return a.updateOrder! - b.updateOrder!;
+        // });
+
+        // (overGroundContainer as any).children = children;
+        // this.debug();
 
         grass.tilePosition = camera.offset.clone().multiplyScalar(-1) as any;
         for (let index = 0; index < player.ammoPools.pool.length; index++) {
             const element = player.ammoPools.pool[index];
             element.sprite.parentGroup = groups.ammoGroup;
 
-            if (!element.dead) {
-                camera.updateItemPos(element);
-            }
-        }
-        for (let index = 0; index < enemys.pool.length; index++) {
-            const element = enemys.pool[index];
-            element.sprite.parentGroup = groups.overGroundGroup;
             if (!element.dead) {
                 camera.updateItemPos(element);
             }
@@ -269,12 +276,32 @@ export class ForestLevel implements Level {
         }
     }
 
-    dispose = () => {
+    debug() {
+        const ret: number[][] = [];
+        this.overGroundContainer?.children.forEach((element, i, arr) => {
+            const next = arr[i + 1];
+            if (next) {
+                console.assert(next.position.y >= element.position.y, 'error happened at ' + i);
+                if (!(next.position.y >= element.position.y)) {
+                    if (isNaN(next.position.y)) {
+                        console.log(next, i + 1);
+                    } else {
+                        console.log(element, i);
+                    }
+                }
+            }
+            ret.push([ element.position.x, element.position.y ]);
+        });
+
+        console.log(ret);
+    }
+
+    dispose() {
         const player = this.player!;
         player.dispose();
 
         const warfog = this.warfog!;
-        warfog.graphic.destroy();
+        warfog?.graphic.destroy();
         const camera = this.camera!;
 
         const enemys = this.enemys!;

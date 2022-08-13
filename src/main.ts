@@ -108,6 +108,16 @@ app.loader
             levelManager.update();
         });
 
+        window.addEventListener('keypress', e => {
+            if (e.key == ' ') {
+                if (app.ticker.started) {
+                    app.ticker.stop();
+                } else {
+                    app.ticker.start();
+                }
+            }
+        });
+
         const levelManager = new LevelManager(app, gameView, cloneResourceMap);
         runnerApp.setLevelManager(levelManager);
         // may lazyload but not now
@@ -116,7 +126,8 @@ app.loader
         levelManager.registerLevel('snowfield', SnowFieldLevel);
         levelManager.registerLevel('dimmy', DimmyLevel);
 
-        levelManager.enterLevel('welcome');
+        // levelManager.enterLevel('welcome');
+        levelManager.enterLevel('forest');
 
         (window as any).switchLevel = function (level: string) {
             levelManager.enterLevel(level);

@@ -1,5 +1,5 @@
 import * as PIXI from "pixi.js";
-import { AnimatedSprite, Container, DisplayObject, Graphics } from "pixi.js";
+import { AnimatedSprite, Container, DisplayObject, Graphics, Text } from "pixi.js";
 import { Vector } from "./vector";
 import { keypressed, mouse } from "./user_input";
 import { AmmoPool } from "./ammo";
@@ -15,8 +15,8 @@ import tween from "./tween";
 import { Bow1 } from "./bow";
 import { overGroundCenterHeight } from "./groups";
 import { HotClass } from "./helper/class_reloader";
-
-class PlayerInner implements IMovable, Shootable, ICollisionable, LivingObject, LeveledObject {
+@HotClass({ module })
+export class Player implements IMovable, Shootable, ICollisionable, LivingObject, LeveledObject {
     sprite: Container = new Container();
     bodyContainer: Container = this.sprite.addChild(new Container());
 
@@ -41,6 +41,11 @@ class PlayerInner implements IMovable, Shootable, ICollisionable, LivingObject, 
     speed = 4;
 
     pointer: Graphics;
+    text = this.sprite.addChild(new Text('', {
+        fill: '#ffffff',
+        fontSize: 14,
+        fontWeight: "700",
+    }));
 
     mainSpirtIndex = 1;
 
@@ -385,6 +390,9 @@ class PlayerInner implements IMovable, Shootable, ICollisionable, LivingObject, 
         this.bow.update();
 
         this.ammoPools.update();
+
+        this.text.text = String(this.sprite.parent.children.indexOf(this.sprite));
+        this.text.position.x = 20;
     }
 
     dispose() {
@@ -392,6 +400,3 @@ class PlayerInner implements IMovable, Shootable, ICollisionable, LivingObject, 
         this.bufferList = [];
     }
 }
-
-export type Player = PlayerInner;
-export const Player = (HotClass({ module })(PlayerInner) as unknown) as Player;

@@ -5,7 +5,9 @@ import { loadSpriteSheet } from "../loadAnimation";
 import { getRunnerApp } from "../runnerApp";
 import { Vector } from "../vector";
 import { createDemoContext } from "../helper/demo_util";
+import { HotClass } from "../helper/class_reloader";
 
+@HotClass({ module })
 const context = createDemoContext(
     module,
     [],

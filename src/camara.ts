@@ -1,8 +1,10 @@
 import { DisplayObject } from "pixi.js";
+import { HotClass } from "./helper/class_reloader";
 import { Player } from "./player";
 import { GameObject } from "./types";
 import { Vector } from "./vector";
 
+@HotClass({ module })
 export class Camera {
 
     prevPlayerPos = new Vector(0, 0);
@@ -44,6 +46,10 @@ export class Camera {
         position: Vector,
         sprite: DisplayObject,
     }) {
+        if (isNaN(item.position.y) || isNaN(item.position.x)) {
+            debugger;
+        }
+
         const screenPos = this.worldPosToScreenPos(item.position);
         item.sprite.x = screenPos.x;
         item.sprite.y = screenPos.y;

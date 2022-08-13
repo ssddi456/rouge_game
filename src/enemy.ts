@@ -14,8 +14,8 @@ import { debugInfo } from "./debug_info";
 import { IdleJump } from "./helper/animated_utils";
 import { HotClass } from "./helper/class_reloader";
 
-
-class EnemyInner extends UpdatableObject implements IMovable, ICollisionable, LivingObject {
+@HotClass({ module })
+export class Enemy extends UpdatableObject implements IMovable, ICollisionable, LivingObject {
     prev_dead: boolean = false;
     dead = false;
     prev_direct = new Vector(0, 0);
@@ -214,10 +214,8 @@ class EnemyInner extends UpdatableObject implements IMovable, ICollisionable, Li
     }
 }
 
-export const Enemy = HotClass({ module })(EnemyInner);
-export type Enemy = EnemyInner;
-
-export class EnemyPoolInner extends UpdatableObject implements IObjectPools {
+@HotClass({ module })
+export class EnemyPool extends UpdatableObject implements IObjectPools {
     pool: Enemy[] = [];
     spawnTimer: CountDown;
     livenodes = 0;
@@ -244,6 +242,10 @@ export class EnemyPoolInner extends UpdatableObject implements IObjectPools {
         position: Vector,
     ) {
         console.log('emit at ', position);
+        if (isNaN(position.x) || isNaN(position.y)) {
+            debugger
+        }
+
         const dead = this.pool.find(enemy => enemy.dead);
         if (dead) {
             dead.init(position);
@@ -291,6 +293,3 @@ export class EnemyPoolInner extends UpdatableObject implements IObjectPools {
         this.pool.length = 0;
     }
 }
-
-export type EnemyPool = EnemyPoolInner;
-export const EnemyPool = HotClass({ module })(EnemyPoolInner);

@@ -24,11 +24,9 @@ export function HotClass<T extends { new(...args: any[]): any }>({ module, hotCl
 
         if (prevConstructor.toString() !== constr.toString()) {
             location.reload();
-        } else {
-
-            instanceList.forEach(item => {
-                hottedClass.prototype.__proto__ = constr.prototype;
-            });
+        } else if (info?.hottedClass){
+            info.hottedClass.prototype.constructor = constr;
+            info.hottedClass.prototype.__proto__ = constr.prototype;
         }
 
 
@@ -38,7 +36,7 @@ export function HotClass<T extends { new(...args: any[]): any }>({ module, hotCl
                 instanceList.push(this);
             }
         };
-
+        info.hottedClass = info.hottedClass || hottedClass;
         hottedClass.prototype._constructor = constr;
         
         (hottedClass as any).displayName = constr.name;

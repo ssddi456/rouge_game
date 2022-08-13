@@ -1,4 +1,4 @@
-import { AnimatedSprite, Container, DisplayObject, Sprite, Texture } from "pixi.js";
+import { AnimatedSprite, Container, Text, Sprite, Texture } from "pixi.js";
 import { debugInfo } from "./debug_info";
 import { Rect } from "./rect";
 import { getRunnerApp } from "./runnerApp";
@@ -12,6 +12,9 @@ export class Tree implements GameObject {
     dead = false;
     scale = 0.8 +Math.random() * 0.8;
     debugInfo = debugInfo();
+
+    text: Text;
+
     constructor(
         sprites: Record<string, AnimatedSprite>,
     ) {
@@ -28,6 +31,14 @@ export class Tree implements GameObject {
         
         this.sprite.addChild(sprite);
         this.sprite.addChild(this.debugInfo.pointer);
+
+        this.text = this.sprite.addChild(new Text('', {
+            fill: '#ffffff',
+            fontSize: 14,
+            fontWeight: "700",
+        }));
+
+        this.text.position.x = 20;
     }
 
     updatePosition() {
@@ -46,6 +57,9 @@ export class Tree implements GameObject {
     update(): void {
         this.updatePosition();
         this.updateSprite();
+
+        this.text.text = String(this.sprite.parent.children.indexOf(this.sprite));
+
     }
 }
 

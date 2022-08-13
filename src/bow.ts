@@ -12,8 +12,8 @@ interface Changable {
     releaseCharge(): void;
     releasing: boolean;
 }
-
-export class Bow1Inner implements GameObject, Changable {
+@HotClass({ module })
+export class Bow1 implements GameObject, Changable {
     position: Vector = new Vector(0, 0);
     prev_position: Vector = new Vector(0, 0);
 
@@ -157,8 +157,6 @@ export class Bow1Inner implements GameObject, Changable {
         this.updateSprite();
     }
 }
-export type Bow1 = Bow1Inner;
-export const Bow1 = HotClass({ module })(Bow1Inner);
 export class Bow2 extends Bow1 {
     ropeDragRangeMin = -30;
     ropeDragRangeMax = 60;

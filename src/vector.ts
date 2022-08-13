@@ -100,6 +100,9 @@ export class Vector {
     }
 
     setV(v: { x: number, y: number }) {
+        if (isNaN(v.x) || isNaN(v.y)) {
+            debugger;
+        }
         this.x = v.x;
         this.y = v.y;
         return this;
@@ -138,5 +141,14 @@ export class Vector {
         this.x = this.x * cosR - this.y * sinR;
         this.y = xtemp * sinR + this.y * cosR;
         return this;
+    }
+
+    ifNaN() {
+        if (isNaN(this.x)) {
+            return true;
+        }
+        if (isNaN(this.y)) {
+            return true;
+        }
     }
 }
