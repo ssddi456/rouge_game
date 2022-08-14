@@ -14,6 +14,11 @@ import { debugInfo } from "./debug_info";
 import { IdleJump } from "./helper/animated_utils";
 import { HotClass } from "./helper/class_reloader";
 
+
+type ReinitableProps = Pick<Enemy, 
+    'speed' | 'size' | 'health' | 'sprite_names'
+>;
+
 @HotClass({ module })
 export class Enemy extends UpdatableObject implements IMovable, ICollisionable, LivingObject {
     prev_dead: boolean = false;
@@ -40,6 +45,13 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
 
     debugInfo = debugInfo();
 
+    sprite_names = {
+        idle: 'idle',
+        idle_back: 'idle_back',
+        die: 'die',
+        die_back: 'die_back'
+    };
+
     constructor(
         public spirtes: Record<string, AnimatedSprite>,
     ) {
@@ -57,7 +69,7 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
         shadow.filters = [new PIXI.filters.BlurFilter(5, 5)];
 
         this.bodySprite.position.y = - overGroundCenterHeight;
-        this.bodySprite.addChild(this.spirtes.idle);
+        this.bodySprite.addChild(this.spirtes[this.sprite_names.idle]);
         this.dispositions.push(
             new IdleJump(
                 this.bodySprite,
@@ -92,7 +104,7 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
             // 插入一个死亡动画
             app.emitParticles(
                 this.position.clone().sub({x: 0, y: overGroundCenterHeight}),
-                this.facing == EFacing.top ? this.spirtes.die_back : this.spirtes.die,
+                this.facing == EFacing.top ? this.spirtes[this.sprite_names.die_back] : this.spirtes[this.sprite_names.die],
                 undefined,
                 600,
             );
@@ -114,12 +126,28 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
 
     init(
         position: Vector,
+        props?: Partial<ReinitableProps>
     ) {
         this.position.setV(position);
         this.sprite.x = position.x;
         this.sprite.y = position.y;
         this.sprite.visible = true;
         this.dead = false;
+
+        if (props) {
+            if (props.speed) {
+                this.speed = props.speed;
+            }
+            if (props.size) {
+                this.size = props.size;
+            }
+            if (props.health) {
+                this.health = props.health;
+            }
+            if (props.sprite_names) {
+                this.sprite_names = props.sprite_names;
+            }
+        }
         this.health = 30;
     }
 
@@ -193,10 +221,10 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
         if (this.facing != this.prev_facing) {
             this.bodySprite.removeChildAt(this.mainSpirtIndex);
             if (this.facing == EFacing.top) {
-                this.bodySprite.addChildAt(this.spirtes.idle_back, this.mainSpirtIndex);
+                this.bodySprite.addChildAt(this.spirtes[this.sprite_names.idle_back], this.mainSpirtIndex);
             }
             if (this.facing == EFacing.bottom) {
-                this.bodySprite.addChildAt(this.spirtes.idle, this.mainSpirtIndex);
+                this.bodySprite.addChildAt(this.spirtes[this.sprite_names.idle], this.mainSpirtIndex);
             }
         }
     }
@@ -224,6 +252,32 @@ export class EnemyPool extends UpdatableObject implements IObjectPools {
     spawnTimer: CountDown;
     livenodes = 0;
 
+
+    simpleEnemyTypes: Partial<ReinitableProps>[] = [
+        // bottle
+        {
+            sprite_names: {
+                idle: 'idle',
+                idle_back: 'idle_back',
+                die: 'die',
+                die_back: 'die_back'
+            },
+            speed: 1,
+            health: 30,
+        },
+        // bunny
+        {
+            sprite_names: {
+                idle: 'bunny_idle',
+                idle_back: 'bunny_idle_back',
+                die: 'bunny_die',
+                die_back: 'bunny_die_back'
+            },
+            speed: 2,
+            health: 10,
+        },
+    ];
+
     constructor(
         public spirtes: Record<string, AnimatedSprite>,
         public container: Container,
@@ -249,17 +303,17 @@ export class EnemyPool extends UpdatableObject implements IObjectPools {
         if (isNaN(position.x) || isNaN(position.y)) {
             debugger
         }
-
+        const type = this.simpleEnemyTypes[Math.floor(0.49 + Math.random())]
         const dead = this.pool.find(enemy => enemy.dead);
         if (dead) {
-            dead.init(position);
+            dead.init(position, type);
             this.container.addChild(dead.sprite);
         } else {
             const enemy = new Enemy(cloneAnimationSprites(this.spirtes));
             this.container.addChild(enemy.sprite);
             this.pool.push(enemy);
             this.addChildren(enemy);
-            enemy.init(position);
+            enemy.init(position, type);
         }
     }
 
