@@ -2,12 +2,13 @@ import { AnimatedSprite, Container, Point, SimpleRope, Texture } from "pixi.js";
 import { checkCollision } from "./collision_helper";
 import { Enemy } from "./enemy";
 import { overGroundCenterHeight } from "./groups";
+import { HotClass } from "./helper/class_reloader";
 import { Particle } from "./particle";
 import { getRunnerApp } from "./runnerApp";
 import { ECollisionType, EFacing, ICollisionable, IMovable, IObjectPools } from "./types";
 import { Vector } from "./vector";
 
-
+@HotClass({ module })
 export class Ammo implements IMovable, ICollisionable {
     start_position = new Vector(0, 0);
     dead = false;
@@ -50,6 +51,13 @@ export class Ammo implements IMovable, ICollisionable {
     prev_facing: EFacing = EFacing.top;
     facing: EFacing = EFacing.top;
 
+    max_piecing_counnt = 3;
+    current_piecing_count = 0;
+
+    max_bouncing_count = 0;
+    currrent_bouncing_count = 0;
+
+    current_hitting_items: ICollisionable[] = [];
 
     init(
         direct: Vector,
@@ -73,6 +81,13 @@ export class Ammo implements IMovable, ICollisionable {
 
         // this.sprite.pivot.set(this.sprite.width / 2, this.sprite.height);
         // this.sprite.rotation = -1 * (direct.rad() - Math.PI / 2);
+        this.max_piecing_counnt = 3;
+        this.current_piecing_count = 0;
+
+        this.max_bouncing_count = 1;
+        this.currrent_bouncing_count = 0;
+
+        this.current_hitting_items = [];
 
         this.range = range;
         this.dead = false;
@@ -97,10 +112,19 @@ export class Ammo implements IMovable, ICollisionable {
         }
 
         if (this.start_position.distanceTo(this.position) >= this.range) {
-            this.dead = true;
-            this.container.removeChild(this.sprite);
+            this.die();
         }
     }
+    
+    die() {
+        this.dead = true;
+        this.container.removeChild(this.sprite);
+    }
+
+    doBouncing(v: Vector) {
+        this.direct.reflect(v);
+    }
+
     updateSprite() {
         // this.sprite.texture = this.textures[this.textureIndex];
         // this.textureIndex = this.textureIndex + 1;
@@ -124,7 +148,7 @@ export class Ammo implements IMovable, ICollisionable {
         this.updateSprite();
     }
 }
-
+@HotClass({ module })
 export class AmmoPool implements IObjectPools {
     spirte: AnimatedSprite;
     pool: Ammo[] = [];
@@ -172,28 +196,43 @@ export class AmmoPool implements IObjectPools {
         const enemies = getRunnerApp().getEntities({ collisionTypes: [ECollisionType.enemy] });
         for (let index = 0; index < ammos.length; index++) {
             const ammo = ammos[index];
+            const _temp_hitting_items: ICollisionable[] = [];
             for (let jndex = 0; jndex < enemies.length; jndex++) {
                 const enemy = enemies[jndex] as Enemy;
                 if (!enemy.dead) {
                     const ifCollision = checkCollision(ammo, enemy);
                     if (ifCollision) {
-                        enemy.recieveDamage(1, ifCollision.collisionHitPos);
-                        const app = getRunnerApp();
-                        app.emitParticles(ifCollision.collisionHitPos,
-                            this.hitAnimate,
-                            function (this: Particle, percent) {
-                                const sprite = this.sprite.children[0] as AnimatedSprite;
-                                if (!sprite.playing) {
-                                    sprite.play();
-                                    sprite.onLoop = () => {
-                                        this.die();
-                                        sprite.stop();
-                                    };
-                                }
-                            }, -1);
+                        _temp_hitting_items.push(enemy);
+
+                        if (!ammo.current_hitting_items.includes(enemy)) {
+                            enemy.recieveDamage(1, ifCollision.collisionHitPos);
+                            const app = getRunnerApp();
+                            app.emitParticles(ifCollision.collisionHitPos,
+                                this.hitAnimate,
+                                function (this: Particle, percent) {
+                                    const sprite = this.sprite.children[0] as AnimatedSprite;
+                                    if (!sprite.playing) {
+                                        sprite.play();
+                                        sprite.onLoop = () => {
+                                            this.die();
+                                            sprite.stop();
+                                        };
+                                    }
+                                }, -1);
+                            if (ammo.current_piecing_count < ammo.max_piecing_counnt) {
+                                ammo.current_piecing_count += 1;
+                            } else if (ammo.currrent_bouncing_count < ammo.max_bouncing_count) {
+                                ammo.doBouncing(ifCollision.normal);
+                                ammo.currrent_bouncing_count += 1;
+                            } else {
+                                ammo.die();
+                            }
+                        }
+
                     }
                 }
             }
+            ammo.current_hitting_items = _temp_hitting_items;
         }
     }
 

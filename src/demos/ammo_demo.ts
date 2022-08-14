@@ -3,7 +3,7 @@ import { AmmoPool } from "../ammo";
 import { CountDown } from "../countdown";
 import { CollisionView } from "../drawCollisions";
 import { DropletPool } from "../droplet";
-import { EnemyPoolInner } from "../enemy";
+import { EnemyPool } from "../enemy";
 import { ShootManager } from "../shootManager";
 import { loadSpriteSheet } from "../loadAnimation";
 import { getRunnerApp } from "../runnerApp";
@@ -73,13 +73,13 @@ const context = createDemoContext(
                 }
                 collisionView.update();
             });
-            class EnemyStub extends EnemyPoolInner {
+            class EnemyStub extends EnemyPool {
                 constructor(
                     public spirtes: Record<string, AnimatedSprite>,
                     public container: Container,
                 ) {
                     super(spirtes, container);
-                    this.spawnTimer = new CountDown(5000, this.spawn);
+                    this.spawnTimer = new CountDown(50000, this.spawn);
                 }
                 spawn = () => {
                     this.emit(new Vector(600, 100));

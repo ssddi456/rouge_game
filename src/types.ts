@@ -3,7 +3,7 @@ import { AnimatedSprite, Application, Container, DisplayObject, Sprite } from "p
 import { AmmoPool } from "./ammo";
 import { Camera } from "./camara";
 import { DropletPool } from "./droplet";
-import { EnemyPoolInner } from "./enemy";
+import { EnemyPool } from "./enemy";
 import { LevelManager } from "./level";
 import { Particle } from "./particle";
 import { Player } from "./player";
@@ -21,12 +21,16 @@ export abstract class UpdatableObject implements Updatable, Disposible {
     updations: Updatable[] = [];
     dispositions: Disposible[] = [];
 
+    cacheProperty?(): void;
+
     addChildren( obj: Updatable & Disposible ) {
         this.updations.push(obj);
         this.dispositions.push(obj);
     }
 
     update() {
+        this.cacheProperty?.();
+
         for (let index = 0; index < this.updations.length; index++) {
             const element = this.updations[index];
             element.update();
@@ -126,7 +130,7 @@ export interface EntityManager {
 
     setPlayer(_player: Player): void;
 
-    setEnemys(_enemys: EnemyPoolInner): void;
+    setEnemys(_enemys: EnemyPool): void;
 
     setDroplets(_droplets: DropletPool): void;
 
@@ -150,7 +154,7 @@ export interface BaseBuffer {
     dead?: boolean;
     canEffect?: (target: any) => boolean;
     takeEffect?: (target: any, percent: number) => void;
-    afterEffect?: (target: any) => boolean;
+    afterEffect?: (target: any) => void;
 }
 
 export interface TimerBuffer extends BaseBuffer {

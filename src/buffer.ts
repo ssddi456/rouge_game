@@ -1,9 +1,17 @@
+import { Enemy } from './enemy';
 import { getRunnerApp } from './runnerApp';
-import { Buffer, IMovable, TimerBuffer } from './types';
+import { Buffer, EntityManager, IMovable, TimerBuffer } from './types';
+import { Vector } from './vector';
+import { ColorOverlayFilter } from 'pixi-filters';
 
-export function applyBuffer(bufferList: Buffer[], target: any) {
+export interface Buffable {
+    bufferList: Buffer[];
+}
+
+
+export function applyBuffer(target: Buffable) {
     const app = getRunnerApp();
-
+    const bufferList = target.bufferList;
     bufferList.forEach(buffer => {
 
         if (buffer.canEffect) {
@@ -23,16 +31,11 @@ export function applyBuffer(bufferList: Buffer[], target: any) {
             buffer.takeEffect(target, percent);
         } else {
             if (buffer.properties.direct) {
-                const movable = target as IMovable;
+                const movable = (target as unknown) as IMovable;
                 movable.direct.add(buffer.properties.direct);
             }
         }
-
-        if (buffer.afterEffect) {
-            buffer.afterEffect(target);
-        }
     });
-
 }
 
 export function createTimerBuffer(buffer: Omit<TimerBuffer, 'type'| 'initialTime'>) {
@@ -43,21 +46,87 @@ export function createTimerBuffer(buffer: Omit<TimerBuffer, 'type'| 'initialTime
     } as TimerBuffer;
 }
 
-export function checkBufferAlive(bufferList: Buffer[]) {
-    const app = getRunnerApp();
-    return bufferList.filter(buffer => {
-        if (buffer.dead) {
-            return false;
+export const KNOCKBACK_ID = 'knock_back';
+export function createKnockBack(direct: Vector, duration: number) {
+    return createTimerBuffer({
+        duration,
+        id: KNOCKBACK_ID,
+        properties: {
+            direct,
         }
-        if (buffer.type == 'event') {
+    })
+}
+
+export function applyKnockback(target: Buffable, direct: Vector, duration = 200) {
+    !target.bufferList.some(x => x.id == KNOCKBACK_ID) && target.bufferList.push(createKnockBack(direct, duration))
+}
+
+function ifBufferShouldNotRemove(buffer: Buffer, app: EntityManager){
+    if (buffer.dead) {
+
+        return false;
+    }
+    if (buffer.type == 'event') {
+        return true;
+    }
+    if (buffer.type == 'timer') {
+        return buffer.initialTime + buffer.duration > app.now();
+    }
+    if (buffer.type == 'counter') {
+        return buffer.currentCount > 0;
+    }
+    return false;
+}
+
+export function checkBufferAlive(target: Buffable) {
+    const bufferList = target.bufferList;
+    const app = getRunnerApp();
+    
+    const toRemoveBufferList: Buffer[] = [];
+    const newBufferList = bufferList.filter(buffer => {
+        if (ifBufferShouldNotRemove(buffer, app)) {
             return true;
         }
-        if (buffer.type == 'timer') {
-            return buffer.initialTime + buffer.duration > app.now();
-        }
-        if (buffer.type == 'counter') {
-            return buffer.currentCount > 0;
-        }
+        toRemoveBufferList.push(buffer);
         return false;
     });
+
+    toRemoveBufferList.forEach(buffer => {
+        if (buffer.afterEffect) {
+            buffer.afterEffect(target);
+        }
+    });
+
+    return newBufferList;
+}
+
+export const DAMAGE_ID = 'damage_flash';
+const damageFilter = new ColorOverlayFilter(
+    [1, 1, 1],
+    1
+);
+export function createDamageFlash(duration: number) {
+    return createTimerBuffer({
+        duration,
+        id: DAMAGE_ID,
+        properties: {},
+        takeEffect(target: Enemy) {
+            if (!target.sprite.filters || !target.sprite.filters.some(x => x == damageFilter)) {
+                target.sprite.filters = target.sprite.filters || [];
+                target.sprite.filters.push(damageFilter);
+            }
+        },
+        afterEffect(target: Enemy) {
+            target.sprite.filters = target.sprite.filters ? target.sprite.filters.filter(x => x !== damageFilter) : [];
+        },
+    })
+}
+
+export function applyDamageFlash(target: Buffable, duration = 300) {
+    const buffer = target.bufferList.find(x => x.id == DAMAGE_ID);
+    if (buffer) {
+        buffer.dead = true;
+    }
+
+    target.bufferList.push(createDamageFlash(duration))
 }

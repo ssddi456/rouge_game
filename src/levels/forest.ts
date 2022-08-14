@@ -158,13 +158,13 @@ export class ForestLevel implements Level {
         const groups = createGroups(gameView);
         this.groups = groups;
 
-        // const warfog = new WarFog(
-        //     app.view.width,
-        //     app.view.height,
-        // );
-        // gameView.addChild(warfog.graphic);
-        // warfog.graphic.parentGroup = groups.skyGroup;
-        // this.warfog = warfog;
+        const warfog = new WarFog(
+            app.view.width,
+            app.view.height,
+        );
+        gameView.addChild(warfog.graphic);
+        warfog.graphic.parentGroup = groups.skyGroup;
+        this.warfog = warfog;
     }
 
 
@@ -207,24 +207,6 @@ export class ForestLevel implements Level {
             }
         }
 
-        // const children = overGroundContainer.children.slice(0);
-        // children.sort((a, b) => {
-        //     if (a.position.y > b.position.y) {
-        //         return 1;
-        //     }
-        //     if (a.position.y < b.position.y) {
-        //         return -1;
-        //     }
-        //     if (a.position.x > b.position.x) {
-        //         return 1;
-        //     }
-        //     if (a.position.x < b.position.x) {
-        //         return -1;
-        //     }
-        //     return a.updateOrder! - b.updateOrder!;
-        // });
-
-        // (overGroundContainer as any).children = children;
         // this.debug();
 
         grass.tilePosition = camera.offset.clone().multiplyScalar(-1) as any;

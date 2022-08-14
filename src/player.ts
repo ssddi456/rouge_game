@@ -3,11 +3,11 @@ import { AnimatedSprite, Container, DisplayObject, Graphics, Text } from "pixi.j
 import { Vector } from "./vector";
 import { keypressed, mouse } from "./user_input";
 import { AmmoPool } from "./ammo";
-import { ECollisionType, EFacing, ICollisionable, IMovable, Shootable, Buffer, LivingObject, LeveledObject } from "./types";
+import { ECollisionType, EFacing, ICollisionable, IMovable, Shootable, Buffer, LivingObject, LeveledObject, UpdatableObject } from "./types";
 import { checkCollision } from "./collision_helper";
 import { Enemy } from "./enemy";
 import { getRunnerApp } from "./runnerApp";
-import { applyBuffer, checkBufferAlive, createTimerBuffer } from "./buffer";
+import { applyBuffer, applyKnockback, checkBufferAlive, createTimerBuffer } from "./buffer";
 import { GlowFilter } from '@pixi/filter-glow';
 
 import easingsFunctions, { twean } from "./easingFunctions";
@@ -16,7 +16,7 @@ import { Bow1 } from "./bow";
 import { overGroundCenterHeight } from "./groups";
 import { HotClass } from "./helper/class_reloader";
 @HotClass({ module })
-export class Player implements IMovable, Shootable, ICollisionable, LivingObject, LeveledObject {
+export class Player extends UpdatableObject implements IMovable, Shootable, ICollisionable, LivingObject, LeveledObject {
     sprite: Container = new Container();
     bodyContainer: Container = this.sprite.addChild(new Container());
 
@@ -85,6 +85,8 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
         public container: Container,
         startPosition: Vector,
     ) {
+        super();
+
         container.addChild(this.sprite);
         this.position.setV(startPosition);
 
@@ -250,7 +252,7 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
             }
         }
 
-        applyBuffer(this.bufferList, this);
+        applyBuffer(this);
     }
 
     updatePosition() {
@@ -266,13 +268,9 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
                 const enemy = enemies[index];
                 const checkRes = checkCollision(this, enemy);
                 if (checkRes) {
-                    !enemy.bufferList.some(x => x.id == 'knock_back') && enemy.bufferList.push(createTimerBuffer({
-                        duration: 200,
-                        id: 'knock_back',
-                        properties: {
-                            direct: enemy.position.clone().sub(this.position).normalize().multiplyScalar(this.speed * 3.1),
-                        }
-                    }))
+                    applyKnockback(enemy, 
+                        enemy.position.clone().sub(this.position).normalize().multiplyScalar(this.speed * 3.1)
+                    );
                 }
             }
         } else {
@@ -376,14 +374,16 @@ export class Player implements IMovable, Shootable, ICollisionable, LivingObject
     }
 
     updateBuffer() {
-        this.bufferList = checkBufferAlive(this.bufferList);
+        this.bufferList = checkBufferAlive(this);
     }
 
     update() {
-        this.cacheProperty();
-        this.getInput();
-        this.updatePosition();
+        super.update();
         this.updateBuffer();
+
+        this.getInput();
+
+        this.updatePosition();
         this.updateSprite();
 
         this.bow.position.set(this.position.x, this.position.y - this.centerHeight);

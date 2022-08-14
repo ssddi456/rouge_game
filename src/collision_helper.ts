@@ -25,6 +25,7 @@ export function checkCollision ( a: ICollisionable, b: ICollisionable){
             collision: true,
             collisionPos,
             collisionHitPos,
+            normal,
         };
     }
     return false;

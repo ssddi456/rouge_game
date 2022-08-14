@@ -151,4 +151,9 @@ export class Vector {
             return true;
         }
     }
+
+    reflect(v: Vector) {
+        const nv = v.clone().normalize();
+        this.sub(nv.multiplyScalar(2 * this.dot(nv)));
+    }
 }

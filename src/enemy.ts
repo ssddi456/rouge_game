@@ -7,7 +7,7 @@ import { IMovable, ICollisionable, EFacing, IObjectPools, ECollisionType, Living
 import { checkCollision } from "./collision_helper";
 import { Droplets as Droplet } from "./droplet";
 import { getRunnerApp } from "./runnerApp";
-import { applyBuffer, checkBufferAlive } from "./buffer";
+import { applyBuffer, applyDamageFlash, checkBufferAlive } from "./buffer";
 import { cloneAnimationSprites } from "./sprite_utils";
 import { overGroundCenterHeight } from "./groups";
 import { debugInfo } from "./debug_info";
@@ -103,6 +103,9 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
                 },
                 Infinity
             );
+            
+            applyDamageFlash(this);
+
             this.sprite.parent.removeChild(this.sprite);
             this.sprite.parentGroup = undefined;
         }
@@ -117,6 +120,7 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
         this.sprite.y = position.y;
         this.sprite.visible = true;
         this.dead = false;
+        this.health = 30;
     }
 
     cacheProperty() {
@@ -145,7 +149,7 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
                 .setY(0);
         }
 
-        applyBuffer(this.bufferList, this);
+        applyBuffer(this);
 
 
         this.position.x += this.direct.x;
@@ -198,7 +202,7 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
     }
 
     updateBuffer() {
-        this.bufferList = checkBufferAlive(this.bufferList);
+        this.bufferList = checkBufferAlive(this);
     }
 
     update() {
@@ -206,11 +210,11 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
             this.sprite.visible = false;
             return;
         }
-        this.cacheProperty();
-        this.updatePosition();
-        this.updateBuffer();
-        this.updateSprite();
         super.update();
+        this.updateBuffer();
+
+        this.updatePosition();
+        this.updateSprite();
     }
 }
 
@@ -273,8 +277,8 @@ export class EnemyPool extends UpdatableObject implements IObjectPools {
         const player = app.getEntities({
             collisionTypes: [ECollisionType.player],
         })[0];
-        const radius = 400;
-        const n = Math.floor(Math.log2(app.now() / 20e3)) + 1;
+        const radius = 800;
+        const n = Math.min(Math.floor(Math.log2(app.now() / 20e3)) + 1, 5);
         const minR = 10;
         let r = Math.random() * 360;
         for (let index = 0; index < n; index++) {
