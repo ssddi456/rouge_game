@@ -103,7 +103,7 @@ export function checkBufferAlive(target: Buffable) {
 export const DAMAGE_ID = 'damage_flash';
 const damageFilter = new ColorOverlayFilter(
     [1, 1, 1],
-    1
+    0.8
 );
 export function createDamageFlash(duration: number) {
     return createTimerBuffer({
@@ -122,7 +122,7 @@ export function createDamageFlash(duration: number) {
     })
 }
 
-export function applyDamageFlash(target: Buffable, duration = 300) {
+export function applyDamageFlash(target: Buffable, duration = 100) {
     const buffer = target.bufferList.find(x => x.id == DAMAGE_ID);
     if (buffer) {
         buffer.dead = true;

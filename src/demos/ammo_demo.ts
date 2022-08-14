@@ -9,6 +9,7 @@ import { loadSpriteSheet } from "../loadAnimation";
 import { getRunnerApp } from "../runnerApp";
 import { Vector } from "../vector";
 import { createDemoContext } from "../helper/demo_util";
+import { ColorOverlayFilter } from "pixi-filters";
 
 const context = createDemoContext(
     module,
@@ -38,8 +39,18 @@ const context = createDemoContext(
             const triangleT = app.renderer.generateTexture(triangle);
             const ammoA = new AnimatedSprite([app.renderer.generateTexture(ammoG)]);
 
-
             const runnerApp = getRunnerApp();
+
+            const colorOverlay = animateContainer.addChild(new Container());
+            colorOverlay.filters = [
+                new ColorOverlayFilter(
+                    [1, 1, 1],
+                    0.8
+                )
+            ];
+            colorOverlay.addChild(enemyAnimateMap.idle_back);
+
+            colorOverlay.position.set(400, 30);
 
             (function () {
                 const camera = runnerApp.getCamera();

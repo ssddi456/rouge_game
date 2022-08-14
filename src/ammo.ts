@@ -1,4 +1,5 @@
 import { AnimatedSprite, Container, Point, SimpleRope, Texture } from "pixi.js";
+import { applyKnockback } from "./buffer";
 import { checkCollision } from "./collision_helper";
 import { Enemy } from "./enemy";
 import { overGroundCenterHeight } from "./groups";
@@ -219,6 +220,9 @@ export class AmmoPool implements IObjectPools {
                                         };
                                     }
                                 }, -1);
+
+                            applyKnockback(enemy, ammo.direct.clone(), 100);
+
                             if (ammo.current_piecing_count < ammo.max_piecing_counnt) {
                                 ammo.current_piecing_count += 1;
                             } else if (ammo.currrent_bouncing_count < ammo.max_bouncing_count) {

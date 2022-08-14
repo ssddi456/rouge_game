@@ -81,6 +81,7 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
         this.health -= damage;
         const app = getRunnerApp();
         app.emitDamageParticles(hitPos, damage);
+        applyDamageFlash(this);
 
         if (this.health <= 0) {
             this.dead = true;
@@ -104,7 +105,6 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
                 Infinity
             );
             
-            applyDamageFlash(this);
 
             this.sprite.parent.removeChild(this.sprite);
             this.sprite.parentGroup = undefined;
