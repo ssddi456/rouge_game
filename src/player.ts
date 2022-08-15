@@ -7,7 +7,7 @@ import { ECollisionType, EFacing, ICollisionable, IMovable, Shootable, Buffer, L
 import { checkCollision } from "./collision_helper";
 import { Enemy } from "./enemy";
 import { getRunnerApp } from "./runnerApp";
-import { applyBuffer, applyKnockback, checkBufferAlive, createTimerBuffer } from "./buffer";
+import { applyBuffer, applyFireAura, applyKnockback, Buffable, checkBufferAlive, createTimerBuffer } from "./buffer";
 import { GlowFilter } from '@pixi/filter-glow';
 
 import easingsFunctions, { twean } from "./easingFunctions";
@@ -16,7 +16,14 @@ import { Bow1 } from "./bow";
 import { overGroundCenterHeight } from "./groups";
 import { HotClass } from "./helper/class_reloader";
 @HotClass({ module })
-export class Player extends UpdatableObject implements IMovable, Shootable, ICollisionable, LivingObject, LeveledObject {
+export class Player extends UpdatableObject
+    implements
+    IMovable,
+    Shootable,
+    ICollisionable,
+    LivingObject,
+    LeveledObject,
+    Buffable {
     sprite: Container = new Container();
     bodyContainer: Container = this.sprite.addChild(new Container());
 
@@ -41,11 +48,12 @@ export class Player extends UpdatableObject implements IMovable, Shootable, ICol
     speed = 4;
 
     pointer: Graphics;
-    text = this.sprite.addChild(new Text('', {
-        fill: '#ffffff',
-        fontSize: 14,
-        fontWeight: "700",
-    }));
+
+    // text = this.sprite.addChild(new Text('', {
+    //     fill: '#ffffff',
+    //     fontSize: 14,
+    //     fontWeight: "700",
+    // }));
 
     mainSpirtIndex = 1;
 
@@ -64,6 +72,7 @@ export class Player extends UpdatableObject implements IMovable, Shootable, ICol
 
     baseScale = 0.5;
     centerHeight = overGroundCenterHeight;
+    showBuff = false;
 
     receiveExp(exp: number) {
         this.exp += exp;
@@ -113,7 +122,7 @@ export class Player extends UpdatableObject implements IMovable, Shootable, ICol
         buff_right.play();
         this.effects.buff_left = buff_left;
         this.effects.buff_right = buff_right;
-        
+
         const buff_left_back = playerSpirtes.buff_left_back;
         const buff_right_back = playerSpirtes.buff_right_back;
         buff_left_back.anchor.set(0.5, 0.5);
@@ -126,7 +135,7 @@ export class Player extends UpdatableObject implements IMovable, Shootable, ICol
         this.effects.buff_right_back = buff_right_back;
         buff_left.tint = 0xffffff;
         const glow = new GlowFilter({ distance: 15, outerStrength: 2 })
-        buff_left.onFrameChange = tween(function(percent){
+        buff_left.onFrameChange = tween(function (percent) {
             const tint = 0xff2600 + Math.floor(38 + Math.sin(percent * Math.PI) * 200);
             glow.color = tint;
             buff_left.tint = tint;
@@ -137,10 +146,10 @@ export class Player extends UpdatableObject implements IMovable, Shootable, ICol
         }, {
             speedFactor: 4
         });
-        buff_left.filters = [glow ];
-        buff_right.filters = [ glow ];
-        buff_left_back.filters = [ glow ];
-        buff_right_back.filters = [ glow ];
+        buff_left.filters = [glow];
+        buff_right.filters = [glow];
+        buff_left_back.filters = [glow];
+        buff_right_back.filters = [glow];
 
         this.bow = new Bow1(weaponSpirtes);
         this.bow.sprite.scale.set(0.6 * this.baseScale, 0.6 * this.baseScale);
@@ -156,12 +165,16 @@ export class Player extends UpdatableObject implements IMovable, Shootable, ICol
         this.sprite.addChild(pointer);
 
         this.ammoPools = new AmmoPool(
-            this.playerSpirtes.ammo, 
+            this.playerSpirtes.ammo,
             this.ammoTextures.ammoTrail,
             this.container,
-            this.hitSpirtes.hit_1, 
+            this.hitSpirtes.hit_1,
         );
+
+        applyFireAura(this);
     }
+    assets: PIXI.DisplayObject[] = [];
+    ground_assets: PIXI.DisplayObject[] = [];
 
     health: number = 100;
     prev_health: number = 100;
@@ -268,7 +281,7 @@ export class Player extends UpdatableObject implements IMovable, Shootable, ICol
                 const enemy = enemies[index];
                 const checkRes = checkCollision(this, enemy);
                 if (checkRes) {
-                    applyKnockback(enemy, 
+                    applyKnockback(enemy,
                         enemy.position.clone().sub(this.position).normalize().multiplyScalar(this.speed * 3.1)
                     );
                 }
@@ -286,7 +299,7 @@ export class Player extends UpdatableObject implements IMovable, Shootable, ICol
     }
 
     doShoot() {
-        const worldPos = getRunnerApp().screenPosToWorldPos(new Vector(mouse.x, mouse.y)).sub({x: 0, y: -this.centerHeight});
+        const worldPos = getRunnerApp().screenPosToWorldPos(new Vector(mouse.x, mouse.y)).sub({ x: 0, y: -this.centerHeight });
 
         this.ammoPools.emit(
             worldPos.sub(this.position).normalize().multiplyScalar(Math.random() * 1 + 2),
@@ -354,23 +367,26 @@ export class Player extends UpdatableObject implements IMovable, Shootable, ICol
             }
         }
         // reset order
-        this.bodyContainer.removeChildren(0, this.bodyContainer.children.length);
         const mainSprite = this.getMainSpirt();
         console.assert(mainSprite != null, 'mainSprite != null');
-        (this.facing == EFacing.bottom ? [
-            this.effects.shadow,
-            this.effects.buff_left,
-            mainSprite,
-            this.effects.buff_right,
-        ] : [
-            this.effects.shadow,
-            this.effects.buff_left_back,
-            mainSprite,
-            this.effects.buff_right_back,
-        ]).forEach(sprite => {
-            this.bodyContainer.addChild(sprite);
-        });
-
+        this.bodyContainer.removeChildren();
+        this.bodyContainer.addChild(
+            ...(this.facing == EFacing.bottom ? [
+                this.effects.shadow,
+                ...this.ground_assets,
+                this.showBuff && this.effects.buff_left,
+                mainSprite,
+                this.showBuff && this.effects.buff_right,
+                ...this.assets,
+            ] : [
+                this.effects.shadow,
+                ...this.ground_assets,
+                this.showBuff && this.effects.buff_left_back,
+                mainSprite,
+                this.showBuff && this.effects.buff_right_back,
+                ...this.assets,
+            ]).filter(Boolean) as DisplayObject[]
+        );
     }
 
     updateBuffer() {
@@ -390,9 +406,6 @@ export class Player extends UpdatableObject implements IMovable, Shootable, ICol
         this.bow.update();
 
         this.ammoPools.update();
-
-        this.text.text = String(this.sprite.parent.children.indexOf(this.sprite));
-        this.text.position.x = 20;
     }
 
     dispose() {

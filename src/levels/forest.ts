@@ -23,7 +23,6 @@ export class ForestLevel implements Level {
     enemys: EnemyPool | undefined = undefined;
     droplets: DropletPool | undefined = undefined;
     blockContext: (Updatable & Disposible) | undefined = undefined;
-    overGroundContainer: Container | undefined = undefined;
     groups: ReturnType<typeof createGroups> | undefined = undefined;
     grass: TilingSprite | undefined = undefined;
     forest: Forest | undefined = undefined;
@@ -71,10 +70,6 @@ export class ForestLevel implements Level {
         gameView.addChildAt(grass, 0);
         this.grass = grass;
 
-        const overGroundContainer = gameView.addChild(new Container());
-        // const overGroundContainer = new Container();
-        overGroundContainer.zIndex = overGroundZindex;
-        this.overGroundContainer = overGroundContainer;
         window.addEventListener('resize', () => {
             grass.width = app.view.width;
             grass.height = app.view.height;
@@ -83,6 +78,9 @@ export class ForestLevel implements Level {
         });
 
         const runnerApp = getRunnerApp();
+        const groups = createGroups(gameView);
+        this.groups = groups;
+        runnerApp.setGroups(groups);
 
         const player = new Player(playerAnimateMap,
             {
@@ -94,7 +92,7 @@ export class ForestLevel implements Level {
             },
             hitEffect,
             100,
-            overGroundContainer,
+            gameView,
             new Vector(
                 app.view.width / 2,
                 app.view.height / 2,
@@ -114,7 +112,7 @@ export class ForestLevel implements Level {
         dropS.anchor.set(0.5, 0.5);
 
 
-        const enemys = new EnemyPool(enemyAnimateMap, overGroundContainer);
+        const enemys = new EnemyPool(enemyAnimateMap, gameView);
         runnerApp.setEnemys(enemys);
         this.enemys = enemys;
 
@@ -129,7 +127,7 @@ export class ForestLevel implements Level {
         runnerApp.setCamera(camera);
         this.camera = camera;
 
-        const forest = new Forest(treeAnimateMap, overGroundContainer);
+        const forest = new Forest(treeAnimateMap, gameView);
         this.forest = forest;
 
         const blockContext = createBlockContext({
@@ -155,8 +153,7 @@ export class ForestLevel implements Level {
             },
         });
         this.blockContext = blockContext;
-        const groups = createGroups(gameView);
-        this.groups = groups;
+
 
         const warfog = new WarFog(
             app.view.width,
@@ -175,7 +172,6 @@ export class ForestLevel implements Level {
         const enemys = this.enemys!;
         const droplets = this.droplets!;
         const blockContext = this.blockContext!;
-        const overGroundContainer = this.overGroundContainer!;
         const groups = this.groups!;
         const grass = this.grass!;
         const forest = this.forest!;
@@ -257,27 +253,7 @@ export class ForestLevel implements Level {
             }
         }
     }
-
-    debug() {
-        const ret: number[][] = [];
-        this.overGroundContainer?.children.forEach((element, i, arr) => {
-            const next = arr[i + 1];
-            if (next) {
-                console.assert(next.position.y >= element.position.y, 'error happened at ' + i);
-                if (!(next.position.y >= element.position.y)) {
-                    if (isNaN(next.position.y)) {
-                        console.log(next, i + 1);
-                    } else {
-                        console.log(element, i);
-                    }
-                }
-            }
-            ret.push([ element.position.x, element.position.y ]);
-        });
-
-        console.log(ret);
-    }
-
+    
     dispose() {
         const player = this.player!;
         player.dispose();
@@ -295,10 +271,6 @@ export class ForestLevel implements Level {
         const blockContext = this.blockContext!;
         blockContext.dispose();
 
-        const overGroundContainer = this.overGroundContainer!;
-        setTimeout(() => {
-            console.log('overGroundContainer.children', overGroundContainer.children, overGroundContainer.children.length)
-        }, 100);
         const groups = this.groups!;
         const grass = this.grass!;
 
@@ -312,7 +284,6 @@ export class ForestLevel implements Level {
         this.enemys = undefined;
         this.droplets = undefined;
         this.blockContext = undefined;
-        this.overGroundContainer = undefined;
         this.groups = undefined;
         this.grass = undefined;
         this.forest = undefined;

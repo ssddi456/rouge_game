@@ -10,10 +10,10 @@ export class Tree implements GameObject {
     prev_position: Vector = new Vector(0, 0);
     sprite = new Container();
     dead = false;
-    scale = 0.8 +Math.random() * 0.8;
+    scale = 0.6 +Math.random() * 0.1;
     debugInfo = debugInfo();
 
-    text: Text;
+    // text: Text;
 
     constructor(
         sprites: Record<string, AnimatedSprite>,
@@ -32,13 +32,12 @@ export class Tree implements GameObject {
         this.sprite.addChild(sprite);
         this.sprite.addChild(this.debugInfo.pointer);
 
-        this.text = this.sprite.addChild(new Text('', {
-            fill: '#ffffff',
-            fontSize: 14,
-            fontWeight: "700",
-        }));
-
-        this.text.position.x = 20;
+        // this.text = this.sprite.addChild(new Text('', {
+        //     fill: '#ffffff',
+        //     fontSize: 14,
+        //     fontWeight: "700",
+        // }));
+        // this.text.position.x = 20;
     }
 
     updatePosition() {
@@ -57,9 +56,7 @@ export class Tree implements GameObject {
     update(): void {
         this.updatePosition();
         this.updateSprite();
-
-        this.text.text = String(this.sprite.parent.children.indexOf(this.sprite));
-
+        // this.text.text = String(this.sprite.parent.children.indexOf(this.sprite));
     }
 }
 
@@ -68,7 +65,7 @@ export class Forest {
 
     trees: Tree[] = [];
 
-    pieces = 4;
+    pieces = 3;
     inited = false;
     constructor(
         public sprites: Record<string, AnimatedSprite>,
@@ -85,8 +82,8 @@ export class Forest {
         for (let index = 1; index < this.pieces  + 1; index++) {
             for (let jndex = 0; jndex < this.pieces; jndex++) {
                 poses.push({
-                    x: toArea.x + Math.random() * 50 - 25 + _w * (index + (jndex % 2) * 0.5),
-                    y: toArea.y + Math.random() * 50 - 25 + _h * jndex,
+                    x: toArea.x + Math.random() * 100 - 25 + _w * (index + (jndex % 2) * 0.5),
+                    y: toArea.y + Math.random() * 100 - 25 + _h * jndex,
                 });
             }
         }

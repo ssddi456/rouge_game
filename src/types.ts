@@ -4,6 +4,7 @@ import { AmmoPool } from "./ammo";
 import { Camera } from "./camara";
 import { DropletPool } from "./droplet";
 import { EnemyPool } from "./enemy";
+import { createGroups } from "./groups";
 import { LevelManager } from "./level";
 import { Particle } from "./particle";
 import { Player } from "./player";
@@ -20,6 +21,7 @@ export interface Disposible {
 export abstract class UpdatableObject implements Updatable, Disposible {
     updations: Updatable[] = [];
     dispositions: Disposible[] = [];
+    disposed = false;
 
     cacheProperty?(): void;
 
@@ -38,6 +40,7 @@ export abstract class UpdatableObject implements Updatable, Disposible {
     }
 
     dispose() {
+        this.disposed = true;
         for (let index = 0; index < this.dispositions.length; index++) {
             const element = this.dispositions[index];
             element.dispose();
@@ -108,6 +111,9 @@ export interface IObjectPools {
     pool: ICollisionable[]
 }
 
+export interface GetResourceFunc {
+    (): Record<string, Record<string, DisplayObject>>;
+}
 export interface EntityManager {
     getEntities(options: { collisionTypes: ECollisionType[]}): ICollisionable[];
 
@@ -146,6 +152,12 @@ export interface EntityManager {
 
     getLevelManager(): LevelManager;
     setLevelManager(_levelManager: LevelManager): void;
+
+    getGetResourceMap(): GetResourceFunc;
+    setGetResourceMap(getResources: GetResourceFunc): void;
+
+    getGroups(): ReturnType<typeof createGroups>;
+    setGroups(groups: ReturnType<typeof createGroups>): void;
 }
 
 export interface BaseBuffer {

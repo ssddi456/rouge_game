@@ -1,20 +1,21 @@
 import { Viewport } from "pixi-viewport";
-import { AnimatedSprite, Application, Sprite, Text } from "pixi.js";
+import { AnimatedSprite, Application, DisplayObject, Sprite, Text } from "pixi.js";
 import { Camera } from "./camara";
 import { DropletPool } from "./droplet";
-import { EnemyPoolInner } from "./enemy";
+import { EnemyPool } from "./enemy";
 import { Particle } from "./particle";
 import { Player } from "./player";
 import { cloneAnimationSprite } from "./sprite_utils";
-import { ECollisionType, EntityManager, ICollisionable } from "./types";
+import { ECollisionType, EntityManager, GetResourceFunc, ICollisionable } from "./types";
 import { Vector } from "./vector";
 import {mouse} from './user_input';
 import { LevelManager } from "./level";
+import { createGroups } from "./groups";
 
 let timeElipsed = 0;
 let app: Application;
 let player: Player;
-let enemys: EnemyPoolInner;
+let enemys: EnemyPool;
 let droplets: DropletPool;
 let camera: Camera;
 let particles: Particle[] = [];
@@ -22,6 +23,8 @@ let textParticles: Particle[] = [];
 let gameView: Viewport;
 let mouseWorldPos: Vector | undefined;
 let levelManager: LevelManager;
+let getResourceMap: GetResourceFunc;
+let groups: ReturnType<typeof createGroups>;
 
 const runnerApp: EntityManager = {
     getEntities: ({
@@ -150,7 +153,7 @@ const runnerApp: EntityManager = {
     setPlayer( _player: Player) {
         player = _player;
     },
-    setEnemys( _enemys: EnemyPoolInner) {
+    setEnemys( _enemys: EnemyPool) {
         enemys = _enemys;
     },
     setDroplets( _droplets: DropletPool) {
@@ -198,7 +201,21 @@ const runnerApp: EntityManager = {
         }
         mouseWorldPos = runnerApp.screenPosToWorldPos(new Vector(mouse.x, mouse.y));
         return mouseWorldPos.clone();
+    },
+    getGetResourceMap() {
+        return getResourceMap;
+    },
+    setGetResourceMap(_getResourceMap) {
+        getResourceMap = _getResourceMap
+    },
+
+    getGroups() {
+        return groups;
+    },
+    setGroups(_groups) {
+        groups = _groups;
     }
+
 };
 
 export function getRunnerApp (){

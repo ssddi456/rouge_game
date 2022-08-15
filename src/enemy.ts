@@ -7,7 +7,7 @@ import { IMovable, ICollisionable, EFacing, IObjectPools, ECollisionType, Living
 import { checkCollision } from "./collision_helper";
 import { Droplets as Droplet } from "./droplet";
 import { getRunnerApp } from "./runnerApp";
-import { applyBuffer, applyDamageFlash, checkBufferAlive } from "./buffer";
+import { applyBuffer, applyDamageFlash, Buffable, checkBufferAlive } from "./buffer";
 import { cloneAnimationSprites } from "./sprite_utils";
 import { overGroundCenterHeight } from "./groups";
 import { debugInfo } from "./debug_info";
@@ -20,7 +20,7 @@ type ReinitableProps = Pick<Enemy,
 >;
 
 @HotClass({ module })
-export class Enemy extends UpdatableObject implements IMovable, ICollisionable, LivingObject {
+export class Enemy extends UpdatableObject implements IMovable, ICollisionable, LivingObject, Buffable {
     prev_dead: boolean = false;
     dead = false;
     prev_direct = new Vector(0, 0);
@@ -83,6 +83,9 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
 
         this.sprite.addChild(this.debugInfo.pointer);
     }
+
+    assets: PIXI.DisplayObject[] = [];
+    ground_assets: PIXI.DisplayObject[] = [];
 
     health: number = 1;
     prev_health: number = 1;

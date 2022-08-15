@@ -3,9 +3,12 @@ import { getRunnerApp } from './runnerApp';
 import { Buffer, EntityManager, IMovable, TimerBuffer } from './types';
 import { Vector } from './vector';
 import { ColorOverlayFilter } from 'pixi-filters';
+import { AnimatedSprite, DisplayObject, Sprite, Texture } from 'pixi.js';
 
 export interface Buffable {
     bufferList: Buffer[];
+    assets: DisplayObject[];
+    ground_assets: DisplayObject[];
 }
 
 
@@ -13,7 +16,9 @@ export function applyBuffer(target: Buffable) {
     const app = getRunnerApp();
     const bufferList = target.bufferList;
     bufferList.forEach(buffer => {
-
+        if (buffer.type !== 'timer' && buffer.type !== 'counter') {
+            return;
+        }
         if (buffer.canEffect) {
             if (!buffer.canEffect(target)) {
                 return;
@@ -129,4 +134,29 @@ export function applyDamageFlash(target: Buffable, duration = 100) {
     }
 
     target.bufferList.push(createDamageFlash(duration))
+}
+
+export const FIRE_AURA_ID = 'fire_aura';
+
+export function applyFireAura(target: Buffable){
+    if (target.bufferList.some(x => x.id == FIRE_AURA_ID)) {
+        return;
+    }
+    const app = getRunnerApp();
+    const sprites = app.getGetResourceMap()();
+
+    const maskInner = new Sprite((sprites.playerAnimateMap.magicCircle2 as AnimatedSprite).textures[0] as Texture);
+    maskInner.anchor.set(0.5, 0.5);
+    maskInner.tint = 0x560f0f;
+    maskInner.y = 100;
+    maskInner.scale.y = 0.5;
+    maskInner.parentGroup = app.getGroups().overGroundGroup;
+    target.ground_assets.push(maskInner);
+
+    target.bufferList.push({
+        type: 'event',
+        id: FIRE_AURA_ID,
+        properties: {},
+        afterEffect: () => {}
+    });
 }

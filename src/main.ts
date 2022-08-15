@@ -9,12 +9,13 @@ import { ForestLevel } from './levels/forest';
 import { LevelManager } from './level';
 import { SnowFieldLevel } from './levels/snowfield';
 import { cloneAnimationSprites } from './sprite_utils';
-import { AnimatedSprite, Container, Graphics } from 'pixi.js';
+import { AnimatedSprite, Container, Graphics, LoaderResource, Texture } from 'pixi.js';
 import { LevelMenu } from './menu/level';
 import { DimmyLevel } from './levels/dimmy';
 import { Curser } from './curser';
 import { StatusMenu } from './menu/status';
 import { WelcomeLevel } from './levels/welcome';
+import { GetResourceFunc } from './types';
 
 document.body.style.padding = "0";
 document.body.style.margin = "0";
@@ -70,6 +71,32 @@ app.loader
         const hitEffect = await loadSpriteSheet(loader, 'crosscode_hiteffect');
         const treeAnimateMap = await loadSpriteSheet(loader, 'Hazel Tree');
 
+        await new Promise<void>(r => {
+            const name1 = 'magicCircle1';
+            const name2 = 'magicCircle2';
+            if (app.loader.resources[name1]
+                || app.loader.resources[name1]
+            ) {
+                final(app.loader.resources);
+                return;
+            }
+            app.loader
+                .add(name1, 'http://localhost:7001/public/spell_circle_1.rgba.png')
+                .add(name2, 'http://localhost:7001/public/spell_circle_2.rgba.png')
+                .load((loader, resources) => {
+                    final(resources);
+                });
+
+            function final(resources: Record<string, LoaderResource>) {
+                playerAnimateMap[name1] = new AnimatedSprite([
+                    resources[name1].texture as Texture
+                ]);
+                playerAnimateMap[name2] = new AnimatedSprite([
+                    resources[name2].texture as Texture
+                ]);
+                r();
+            }
+        });
 
         // seems high render rate leads to some bug
         app.ticker.maxFPS = 60;
@@ -88,6 +115,7 @@ app.loader
         const runnerApp = getRunnerApp();
         runnerApp.setApp(app);
         runnerApp.setGameView(gameView);
+        runnerApp.setGetResourceMap((cloneResourceMap as unknown) as GetResourceFunc);
 
         const curserG = new Graphics()
             .beginFill(0xffffff)
