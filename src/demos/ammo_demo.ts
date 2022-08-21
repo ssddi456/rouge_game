@@ -112,9 +112,8 @@ const context = createDemoContext(
                 animateContainer,
                 hitAnimateMap.hit_1
             );
-            const gun = new ShootManager();
+            const gun = new ShootManager(new Vector(0, 0), ammos);
             gun.position.setV(new Vector(400, 80))
-            gun.setAmmoPool(ammos);
             gun.dispersionRad = (10 * Math.PI) / 180;
             gun.projectileCount = 3;
 

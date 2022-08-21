@@ -9,7 +9,9 @@
  */
 
 import { AmmoPool } from "./ammo";
+import { HotClass } from "./helper/class_reloader";
 import { getRunnerApp } from "./runnerApp";
+import { keypressed, mouse } from "./user_input";
 import { Vector } from "./vector";
 
 interface ShootInfo {
@@ -18,21 +20,35 @@ interface ShootInfo {
     target?: Vector;
     shooted: boolean;
 }
+@HotClass({ module })
 export class ShootManager {
     position: Vector = new Vector(0, 0);
     // 15deg = 15/180 * Math.PI
     dispersionRad: number = 0;
     projectileCount: number = 1;
 
-    ammoPool?: AmmoPool;
     shootQueue: ShootInfo[] = [];
     shootInterval: number = 400;
     lastShootTime: number = 0;
     shootPrepareTime: number = 700;
 
-    setAmmoPool(ammoPool: AmmoPool) {
-        this.ammoPool = ammoPool;
+    maxClipAmmoCount = 12;
+    currentAmmoCount = 12;
+
+    reloading = false;
+    timeToReload = 3000;
+    startTimeToReload = 0;
+
+    shooting = false;
+
+    constructor(
+        public center: Vector,
+        public ammoPool: AmmoPool,
+
+    ) {
+
     }
+
 
     isShooting() {
         return (this.lastShootTime + this.shootPrepareTime) > getRunnerApp().now();
@@ -41,6 +57,10 @@ export class ShootManager {
     shoot(
         target: Vector,
     ) {
+        if (this.reloading) {
+            return;
+        }
+
         const now = getRunnerApp().now()
         if ((this.lastShootTime + this.shootInterval) > now) {
             return;
@@ -78,6 +98,15 @@ export class ShootManager {
     }
 
     doShoot(shootInfo: ShootInfo) {
+        const app = getRunnerApp();
+
+        if (this.currentAmmoCount <= 0) {
+            shootInfo.shooted = true;
+            this.doReload();
+            return;
+        }
+
+        this.currentAmmoCount -= 1;
         if (shootInfo.dir) {
             shootInfo.shooted = true;
             this.ammoPool!.emit(
@@ -94,9 +123,48 @@ export class ShootManager {
                 600
             );
         }
+
+        if (this.lastShootTime < app.now() - this.shootInterval) {
+            this.shooting = true;
+        } else {
+            this.shooting = false;
+        }
+    }
+
+    doReload() {
+        if (this.reloading) {
+            return;
+        }
+        const app = getRunnerApp();
+        this.reloading = true;
+        this.startTimeToReload = app.now();
+    }
+
+    checkReload() {
+        const app = getRunnerApp();
+        if (app.now() > this.startTimeToReload + this.timeToReload) {
+            this.reloading = false;
+            this.currentAmmoCount = this.maxClipAmmoCount;
+        }
+        this.shooting = false;
     }
 
     update() {
+        if (this.reloading) {
+            this.checkReload();
+            return;
+        }
+
+        if (keypressed.shoot
+            || mouse.left
+        ) {
+
+            const worldPos = getRunnerApp().screenPosToWorldPos(new Vector(mouse.x, mouse.y)).sub(this.center);
+
+            this.shoot(worldPos);
+        }
+
+
         if (this.shootQueue.length) {
             for (let index = 0; index < this.shootQueue.length; index++) {
                 const element = this.shootQueue[index];

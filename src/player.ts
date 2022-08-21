@@ -15,6 +15,7 @@ import tween from "./tween";
 import { Bow1 } from "./bow";
 import { overGroundCenterHeight } from "./groups";
 import { HotClass } from "./helper/class_reloader";
+import { ShootManager } from "./shootManager";
 @HotClass({ module })
 export class Player extends UpdatableObject
     implements
@@ -61,18 +62,21 @@ export class Player extends UpdatableObject
     shootCd = 400;
     shootInterval = 400;
 
-    ammoPools: AmmoPool;
-
+    
     bufferList: Buffer[] = [];
-
+    
     exp: number = 0;
     lv: number = 1;
     nextLevelExp: number = 10;
-    bow: Bow1;
-
+    
     baseScale = 0.5;
     centerHeight = overGroundCenterHeight;
     showBuff = false;
+    
+    
+    ammoPools: AmmoPool;
+    bow!: Bow1;
+    shootManager!: ShootManager;
 
     receiveExp(exp: number) {
         this.exp += exp;
@@ -151,18 +155,6 @@ export class Player extends UpdatableObject
         buff_left_back.filters = [glow];
         buff_right_back.filters = [glow];
 
-        this.bow = new Bow1(weaponSpirtes);
-        this.bow.sprite.scale.set(0.6 * this.baseScale, 0.6 * this.baseScale);
-        this.bow.sprite.position.y = - this.centerHeight;
-        this.sprite.addChild(this.bow.sprite);
-
-        // center point indicator
-        const pointer = new PIXI.Graphics();
-        this.pointer = pointer;
-        pointer.beginFill(0xff0000);
-        pointer.drawCircle(0, 0, 10);
-        pointer.endFill();
-        this.sprite.addChild(pointer);
 
         this.ammoPools = new AmmoPool(
             this.playerSpirtes.ammo,
@@ -171,6 +163,18 @@ export class Player extends UpdatableObject
             this.hitSpirtes.hit_1,
         );
 
+        this.equipeRangedWeapon(
+            ShootManager,
+            Bow1
+        );
+        
+        // center point indicator
+        const pointer = new PIXI.Graphics();
+        this.pointer = pointer;
+        pointer.beginFill(0xff0000);
+        pointer.drawCircle(0, 0, 10);
+        pointer.endFill();
+        this.sprite.addChild(pointer);
         applyFireAura(this);
     }
     assets: PIXI.DisplayObject[] = [];
@@ -202,6 +206,7 @@ export class Player extends UpdatableObject
     }
 
     getInput() {
+        const app = getRunnerApp();
 
         if (keypressed.up) {
             this.direct.y = -1 * this.speed;
@@ -251,16 +256,8 @@ export class Player extends UpdatableObject
             this.direct.x = 0;
             this.direct.y = 0;
         } else {
-            if (this.shootCd + this.lastShootTime < Date.now()) {
-                if (keypressed.shoot
-                    || mouse.left
-                ) {
-                    this.lastShootTime = Date.now();
-                    this.doShoot();
-                }
-            }
             // 射击后200毫秒内移速减半
-            if (this.lastShootTime + this.shootInterval > Date.now()) {
+            if (this.shootManager.shooting) {
                 this.direct.multiplyScalar(0.5);
             }
         }
@@ -298,15 +295,6 @@ export class Player extends UpdatableObject
 
     }
 
-    doShoot() {
-        const worldPos = getRunnerApp().screenPosToWorldPos(new Vector(mouse.x, mouse.y)).sub({ x: 0, y: -this.centerHeight });
-
-        this.ammoPools.emit(
-            worldPos.sub(this.position).normalize().multiplyScalar(Math.random() * 1 + 2),
-            this.position.clone(),
-            800,
-        );
-    }
 
     current_attack_animation: AnimatedSprite | null = null;
     getAttackSprite() {
@@ -393,6 +381,25 @@ export class Player extends UpdatableObject
         this.bufferList = checkBufferAlive(this);
     }
 
+    equipeRangedWeapon(
+        ShootManagerClass: new (center: Vector, ammoPools: AmmoPool) => ShootManager,
+        BowClass: new (weaponSpirtes: Record<string, AnimatedSprite>) => Bow1
+    ) {
+        this.shootManager = new ShootManagerClass(new Vector(0, 0), this.ammoPools);
+        this.bow = new BowClass(this.weaponSpirtes);
+        this.bow.sprite.scale.set(0.6 * this.baseScale, 0.6 * this.baseScale);
+        this.bow.sprite.position.y = - this.centerHeight;
+        this.sprite.addChild(this.bow.sprite);
+    }
+
+    updateRangedWeapon() {
+        this.shootManager.position.set(this.position.x, this.position.y);
+        this.shootManager.update();
+        this.bow.position.set(this.position.x, this.position.y - this.centerHeight);
+        this.bow.update();
+        this.ammoPools.update();
+    }
+
     update() {
         super.update();
         this.updateBuffer();
@@ -402,10 +409,7 @@ export class Player extends UpdatableObject
         this.updatePosition();
         this.updateSprite();
 
-        this.bow.position.set(this.position.x, this.position.y - this.centerHeight);
-        this.bow.update();
-
-        this.ammoPools.update();
+        this.updateRangedWeapon();
     }
 
     dispose() {

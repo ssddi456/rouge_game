@@ -152,6 +152,15 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
             }
         }
         this.health = 30;
+
+
+        this.bodySprite.removeChildAt(this.mainSpirtIndex);
+        if (this.facing == EFacing.top) {
+            this.bodySprite.addChildAt(this.spirtes[this.sprite_names.idle_back], this.mainSpirtIndex);
+        }
+        if (this.facing == EFacing.bottom) {
+            this.bodySprite.addChildAt(this.spirtes[this.sprite_names.idle], this.mainSpirtIndex);
+        }
     }
 
     cacheProperty() {

@@ -155,13 +155,13 @@ export class ForestLevel implements Level {
         this.blockContext = blockContext;
 
 
-        const warfog = new WarFog(
-            app.view.width,
-            app.view.height,
-        );
-        gameView.addChild(warfog.graphic);
-        warfog.graphic.parentGroup = groups.skyGroup;
-        this.warfog = warfog;
+        // const warfog = new WarFog(
+        //     app.view.width,
+        //     app.view.height,
+        // );
+        // gameView.addChild(warfog.graphic);
+        // warfog.graphic.parentGroup = groups.skyGroup;
+        // this.warfog = warfog;
     }
 
 
