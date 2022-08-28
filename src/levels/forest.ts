@@ -2,12 +2,13 @@ import { Viewport } from "pixi-viewport";
 import { AnimatedSprite, Application, Container, DisplayObject, Graphics, Point, Sprite, TilingSprite } from "pixi.js";
 import { createBlockContext } from "../block_context";
 import { Camera } from "../camara";
-import { Curser } from "../curser";
 import { DropletPool } from "../droplet";
 import { EnemyPool } from "../enemy";
-import { createGroups, overGroundZindex } from "../groups";
+import { GameSession } from "../game_session";
+import { createGroups } from "../groups";
 import { HotClass } from "../helper/class_reloader";
 import { Level } from "../level";
+import { withChooseUpgradeMenuBtn } from "../menu/chooseUpgrade";
 import { Player } from "../player";
 import { getRunnerApp } from "../runnerApp";
 import { Forest, Tree } from "../tree";
@@ -26,6 +27,7 @@ export class ForestLevel implements Level {
     groups: ReturnType<typeof createGroups> | undefined = undefined;
     grass: TilingSprite | undefined = undefined;
     forest: Forest | undefined = undefined;
+    session: GameSession | undefined = undefined;
 
     constructor(
         public app: Application,
@@ -101,6 +103,9 @@ export class ForestLevel implements Level {
         this.player = player;
         runnerApp.setPlayer(player);
 
+        this.session = new GameSession();
+        runnerApp.setSession(this.session);
+
         const curserG = new Graphics();
         curserG.beginFill(0xffffff);
         curserG.drawCircle(0, 0, 10);
@@ -154,6 +159,8 @@ export class ForestLevel implements Level {
         });
         this.blockContext = blockContext;
 
+        const button = withChooseUpgradeMenuBtn(gameView);
+        button.position.set(150, 10);
 
         // const warfog = new WarFog(
         //     app.view.width,
@@ -166,6 +173,7 @@ export class ForestLevel implements Level {
 
 
     update() {
+        const session = this.session!;
         const player = this.player!;
         const warfog = this.warfog!;
         const camera = this.camera!;
@@ -179,6 +187,7 @@ export class ForestLevel implements Level {
         const runnerApp = getRunnerApp();
         
         // each frame we spin the bunny around a bit
+        session.update();
         player.update();
         camera.update(player);
         warfog?.update();
@@ -255,6 +264,8 @@ export class ForestLevel implements Level {
     }
     
     dispose() {
+        const session = this.session!;
+
         const player = this.player!;
         player.dispose();
 
@@ -277,7 +288,7 @@ export class ForestLevel implements Level {
         const forest = this.forest!;
         forest.trees = [];
 
-
+        this.session = undefined;
         this.player = undefined;
         this.warfog = undefined;
         this.camera = undefined;

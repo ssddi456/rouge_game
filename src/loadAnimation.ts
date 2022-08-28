@@ -1,4 +1,4 @@
-import { AnimatedSprite } from 'pixi.js';
+import { AnimatedSprite, Rectangle, Sprite, Texture } from 'pixi.js';
 import * as PIXI from 'pixi.js';
 
 export async function loadAnimation(loader: PIXI.Loader,
@@ -109,7 +109,61 @@ export async function loadSpriteSheet(loader: PIXI.Loader, name: string) {
     const url = getImageUrl(`${name}.rgba.png`);
     return await loadAnimation(loader, name, url, spriteSheet, animateIndexMap);
 }
+export async function loadSprites(loader: PIXI.Loader, name: string): Promise<Record<string, Sprite>> {
+    const [
+        spriteSheet,
+    ] = await Promise.all([
+        fetch(
+            `http://localhost:7001/get_marked?name=${encodeURIComponent(name)}`
+        )
+            .then((res) => res.json())
+            .then(({ data: { config } }) => config),
+    ]);
+    const url = getImageUrl(`${name}.rgba.png`);
+    return new Promise(resolve => {
+        if (loader.resources[name]) {
+            resourceLoaded();
+            return;
+        }
+        doCheckComplete();
 
+        function doCheckComplete() {
+            setTimeout(() => {
+                if (loader.loading) {
+                    loader.onComplete.once(doCheckComplete)
+                } else {
+                    if (loader.resources[name]) {
+                        resourceLoaded();
+                        return;
+                    }
+
+                    // load the texture we need
+                    loader.add(name, url)
+                        .load((loader, resources) => {
+                            resourceLoaded();
+                        })
+                }
+            });
+        }
+        function resourceLoaded() {
+            // This creates a texture from a 'bunny.png' image
+            const LiezerotaDark = loader.resources[name].texture!;
+            const spriteMap: Record<string, Sprite> = {};
+
+            for (const key in spriteSheet) {
+                if (Object.prototype.hasOwnProperty.call(spriteSheet, key)) {
+                    const element = spriteSheet[key];
+                    spriteMap[key] = new Sprite(
+                        new Texture(LiezerotaDark.baseTexture,
+                            new Rectangle(...element)
+                    ));
+                }
+            }
+            
+            resolve(spriteMap);
+        }
+    });
+}
 export function getImageUrl(name: string) {
     return `http://localhost:7001/public/${name}`
 }

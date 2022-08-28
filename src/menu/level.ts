@@ -1,6 +1,7 @@
 import { Container, Graphics, Text } from "pixi.js";
+import { BaseMenu } from "./base";
 
-export class LevelMenu {
+export class LevelMenu extends BaseMenu {
     sprite!: Container | null;
     
     paddingHorizontal = 500;
@@ -22,7 +23,7 @@ export class LevelMenu {
         public onCancel: () => void,
 
     ) {
-
+        super(container, width, height);
     }
 
     init () {
@@ -33,20 +34,14 @@ export class LevelMenu {
         if (!this.sprite) {
             this.sprite = this.container.addChild(new Container());
         }
-        const main = this.sprite!;
-        main.addChild(new Graphics())
-            .beginFill(0x111111, 0.1)
-            .drawRect(0, 0,
-                this.width,
-                this.height,
-            )
-            .endFill();
+        this.addBg();
+
         const containerLeft = this.paddingHorizontal - this.containerRadius;
         const containerTop = this.paddingVertical - 2 * this.containerRadius;
 
         console.log('containerLeft', containerLeft, 'containerTop', containerTop);
         
-        main.addChild(new Graphics())
+        this.sprite.addChild(new Graphics())
             .beginFill(0xeeeeee)
             .drawRoundedRect(containerLeft, this.paddingVertical - 2 * this.containerRadius,
                 this.width - 2 * this.paddingHorizontal - 2 * this.containerRadius,
@@ -56,33 +51,14 @@ export class LevelMenu {
             .endFill()
         for (let index = 0; index < this.buttons.length; index++) {
             const element = this.buttons[index];
-            this.addButton(element.label, element.handle);
+            this.addLevelButton(element.label, element.handle);
         }
 
-        const cancel = main.addChild(new Container)
-        cancel.position.x = this.width - this.paddingHorizontal - 2 * this.containerRadius - 24 - 20;
-        cancel.position.y = containerTop + 20;
+        this.addCancel();
 
-        console.log('cancel', cancel.position);
-
-        cancel.interactive = true;
-        cancel.on('click', () => {
-            this.dispose();
-            this.onCancel();
-        });
-        cancel.addChild(new Graphics())
-            .beginFill(0xdddddd)
-            .drawRoundedRect(-2, -2, 20, 20, 2)
-            .endFill()
-            .lineStyle({
-                color: 0x000000,
-                width: 4
-            })
-            .moveTo(0, 0).lineTo(20, 20)
-            .moveTo(0, 20).lineTo(20, 0)
     }
 
-    addButton( text: string, handler: () => void) {
+    addLevelButton( text: string, handler: () => void) {
         const main = this.sprite!;
         const containerTop = this.paddingVertical - 2 * this.containerRadius;
         const buttonTop = containerTop + this.containerPadding + this.buttonCount * (this.buttonMargin + this.buttonHeight);
@@ -112,16 +88,4 @@ export class LevelMenu {
         });
     }
 
-    update() {
-
-    }
-
-    dispose() {
-        if (this.sprite) {
-            this.sprite.parent.removeChild(this.sprite);
-            this.sprite.destroy();
-            this.sprite = null;
-        }
-        this.buttonCount = 0;
-    }
 }

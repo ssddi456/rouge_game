@@ -1,17 +1,23 @@
+import { Sprite } from "pixi.js";
 import { GameSession } from "../game_session";
 import { Player } from "../player";
+import { health } from "./health";
 
 export interface Upgrade {
     title: string;
     id: string;
     description: string;
-    icon: string;
+    icon?: Sprite;
+    iconIdentifier: any;
     requirements: string[];
     apply( player: Player, session: GameSession): void;
 }
 
 
-export const allUpgrades : Upgrade[] = [];
+export const allUpgrades : Upgrade[] = [
+    ...health
+];
+
 export const upgradeManager = {
     pickableUpgrades(session: GameSession, pickCount = 4) {
         const currentUpgrades: Upgrade[] = session.upgrades;
@@ -36,3 +42,10 @@ export const upgradeManager = {
         return ret.slice(0, pickCount);
     }
 };
+
+export function initUpgradeSprites(spriteMap: Record<string, Sprite>) {
+    for (let index = 0; index < allUpgrades.length; index++) {
+        const element = allUpgrades[index];
+        element.icon = spriteMap[element.iconIdentifier];
+    }
+}

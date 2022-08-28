@@ -1,4 +1,5 @@
 import { Application, Container } from "pixi.js";
+import { GameSession } from "./game_session";
 import { getRunnerApp } from "./runnerApp";
 
 export interface Level {

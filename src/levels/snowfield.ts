@@ -4,6 +4,7 @@ import { createBlockContext } from "../block_context";
 import { Camera } from "../camara";
 import { DropletPool } from "../droplet";
 import { EnemyPool } from "../enemy";
+import { GameSession } from "../game_session";
 import { createGroups, overGroundZindex } from "../groups";
 import { Level } from "../level";
 import { Player } from "../player";
@@ -15,6 +16,7 @@ import WarFog from "../warfog";
 
 
 export class SnowFieldLevel implements Level {
+    session: GameSession | undefined = undefined;
     player: Player | undefined = undefined;
     warfog: WarFog | undefined = undefined;
     camera: Camera | undefined = undefined;
@@ -102,6 +104,8 @@ export class SnowFieldLevel implements Level {
         );
         this.player = player;
         runnerApp.setPlayer(player);
+        this.session = new GameSession();
+        runnerApp.setSession(this.session);
 
         const curserG = new Graphics();
         curserG.beginFill(0xffffff);
@@ -168,6 +172,7 @@ export class SnowFieldLevel implements Level {
 
 
     update() {
+        const session = this.session!;
         const player = this.player!;
         const warfog = this.warfog!;
         const camera = this.camera!;
@@ -181,6 +186,7 @@ export class SnowFieldLevel implements Level {
         
         const runnerApp = getRunnerApp();
         
+        session.update();
         // each frame we spin the bunny around a bit
         player.update();
         camera.update(player);
@@ -293,7 +299,7 @@ export class SnowFieldLevel implements Level {
         const forest = this.forest!;
         forest.trees = [];
 
-
+        this.session = undefined;
         this.player = undefined;
         this.warfog = undefined;
         this.camera = undefined;

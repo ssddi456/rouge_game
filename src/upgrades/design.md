@@ -93,10 +93,10 @@ graph TD;
     style D1 text-align:left
 
     subgraph "health[defence][damage]"
-        A1[more hitpoint<br />more hit point]
-        A1--->B1["gaint<br />more hit point, bigger size (all skill)"]
-        A1--->C1[illusion duration<br />more health and time]
-        B1 & C1 ---> D1[illusion caster<br />create illusion on cast, recast a little delay]
+        A1[strong<br />more hit point]
+        A1--->B1["bigboy<br />more hit point, bigger size (all skill)"]
+        A1--->C1[berserker<br />the lower hitpoint the faster shoot and reload]
+        B1 & C1 ---> D1[troll<br />recover every minute]
     end
 ```
 ### branching

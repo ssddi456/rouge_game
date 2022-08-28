@@ -1,6 +1,7 @@
 import { Container, Sprite } from "pixi.js";
 import { Group, Layer } from '@pixi/layers';
 
+export const uiZIndex = 300;
 export const skyZIndex = 200;
 export const textParticleZIndex = 130;
 export const ammoZIndex = 110;
@@ -40,6 +41,7 @@ export function createGroup(container: Container, zIndex: number){
 
 export function createGroups (container: Container){
     return {
+        uiGroup: createGroup(container, uiZIndex),
         skyGroup: createGroup(container, skyZIndex),
         textGroup: createGroup(container, textParticleZIndex),
         ammoGroup: createGroup(container, ammoZIndex),

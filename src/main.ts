@@ -2,7 +2,7 @@ import * as PIXI from 'pixi.js'
 import './user_input';
 
 import { Viewport } from 'pixi-viewport'
-import { getImageUrl, loadSpriteSheet } from './loadAnimation';
+import { getImageUrl, loadSprites, loadSpriteSheet } from './loadAnimation';
 import { getRunnerApp } from './runnerApp';
 import { Stage } from '@pixi/layers';
 import { ForestLevel } from './levels/forest';
@@ -16,6 +16,7 @@ import { Curser } from './curser';
 import { StatusMenu } from './menu/status';
 import { WelcomeLevel } from './levels/welcome';
 import { GetResourceFunc } from './types';
+import { initUpgradeSprites } from './upgrades/base';
 
 document.body.style.padding = "0";
 document.body.style.margin = "0";
@@ -70,6 +71,7 @@ app.loader
         const enemyAnimateMap = await loadSpriteSheet(loader, 'Nintendo Switch - Disgaea 5 Complete - Miscellaneous Monsters');
         const hitEffect = await loadSpriteSheet(loader, 'crosscode_hiteffect');
         const treeAnimateMap = await loadSpriteSheet(loader, 'Hazel Tree');
+        const upgradeSpriteMap = await loadSprites(loader, '20m2d_powerups');
 
         await new Promise<void>(r => {
             const name1 = 'magicCircle1';
@@ -97,6 +99,8 @@ app.loader
                 r();
             }
         });
+
+        initUpgradeSprites(upgradeSpriteMap);
 
         // seems high render rate leads to some bug
         app.ticker.maxFPS = 60;
@@ -163,9 +167,9 @@ app.loader
 
         const toolBar = app.stage.addChild(new Container());
         const levelMenu = new LevelMenu(
-            app.stage,
-            app.stage.width,
-            app.stage.height,
+            gameView,
+            gameView.width,
+            gameView.height,
             [
                 {
                     label: 'switch to forest',
