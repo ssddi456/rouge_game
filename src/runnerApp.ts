@@ -11,6 +11,7 @@ import { Vector } from "./vector";
 import {mouse} from './user_input';
 import { LevelManager } from "./level";
 import { createGroups } from "./groups";
+import { GameSession } from "./game_session";
 
 let timeElipsed = 0;
 let app: Application;
@@ -25,6 +26,7 @@ let mouseWorldPos: Vector | undefined;
 let levelManager: LevelManager;
 let getResourceMap: GetResourceFunc;
 let groups: ReturnType<typeof createGroups>;
+let session: GameSession;
 
 const runnerApp: EntityManager = {
     getEntities: ({
@@ -214,7 +216,14 @@ const runnerApp: EntityManager = {
     },
     setGroups(_groups) {
         groups = _groups;
-    }
+    },
+
+    getSession() {
+        return session;
+    },
+    setSession(_session) {
+        session = _session
+    },
 
 };
 

@@ -4,6 +4,7 @@ import { AmmoPool } from "./ammo";
 import { Camera } from "./camara";
 import { DropletPool } from "./droplet";
 import { EnemyPool } from "./enemy";
+import { GameSession } from "./game_session";
 import { createGroups } from "./groups";
 import { LevelManager } from "./level";
 import { Particle } from "./particle";
@@ -158,6 +159,9 @@ export interface EntityManager {
 
     getGroups(): ReturnType<typeof createGroups>;
     setGroups(groups: ReturnType<typeof createGroups>): void;
+
+    getSession(): GameSession;
+    setSession(session: GameSession): void;
 }
 
 export interface BaseBuffer {
