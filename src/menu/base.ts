@@ -80,21 +80,26 @@ export abstract class BaseMenu {
         const buttonTop = containerTop + this.containerPadding + this.rowsHeight.reduce((sum, pre) => sum + pre, 0);
 
         const row = main.addChild(new Container())
-        row.position.x = (this.width - row.width) / 2;
+        row.position.x = this.containerPadding;
         row.position.y = buttonTop + (this.rowHeight - row.height) / 2;
         this.rowsHeight.push(rowHeight + this.rowMargin);
         return row;
     }
 
-    addButton(parent: Container, text: string, options: {}) {
+    addButton(parent: Container, text: string, options: Partial<{ height: number }>) {
+        const cOptioons = {
+            height: 20,
+            ...options,
+        };
+
         const container = parent.addChild(new Container());
         container.addChild(new Graphics())
             .beginFill(0xdddddd)
-            .drawRoundedRect(-2, -2, 120, 20, 2)
+            .drawRoundedRect(-2, -2, 120, cOptioons.height, 2)
             .endFill();
         const textEl = container.addChild(new Text(text));
         textEl.anchor.set(0.5, 0.5)
-        textEl.position.set(60, 10);
+        textEl.position.set(60, cOptioons.height / 2);
         return container;
     }
 

@@ -1,4 +1,4 @@
-import { AnimatedSprite, Texture } from "pixi.js";
+import { AnimatedSprite, Sprite, Texture } from "pixi.js";
 
 export function cloneAnimationSprites(spriteMap: Record<string, AnimatedSprite>) {
     const ret: Record<string, AnimatedSprite> = {};
@@ -23,5 +23,10 @@ export function cloneAnimationSprite(sprite: AnimatedSprite) {
     ret.autoUpdate = sprite.autoUpdate;
     ret.gotoAndStop(0);
 
+    return ret;
+}
+
+export function cloneSprite(sprite: Sprite) {
+    const ret = new Sprite(sprite.texture);
     return ret;
 }

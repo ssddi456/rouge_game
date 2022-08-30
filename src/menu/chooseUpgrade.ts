@@ -1,5 +1,6 @@
-import { Container, Graphics, Sprite, Text } from "pixi.js";
+import { Container, Graphics, ObservablePoint, Sprite, Text } from "pixi.js";
 import { getRunnerApp } from "../runnerApp";
+import { cloneSprite } from "../sprite_utils";
 import { Upgrade, upgradeManager } from "../upgrades/base";
 import { BaseMenu } from "./base";
 
@@ -11,6 +12,8 @@ export class ChooseUpgradeMenu extends BaseMenu {
     bgColor = 0x333333;
     bgAlpha = 0.8;
 
+    rowMargin = 30;
+
     currentChoosedUpgrade!: Upgrade;
     detailTitle!: Text;
     detailDesc!: Text;
@@ -18,7 +21,8 @@ export class ChooseUpgradeMenu extends BaseMenu {
     confirmed: (() => void) | undefined = undefined;
 
     init(confirmed: () => void) {
-        super.init();
+        this.initSprite();
+        this.addBg();
         this.confirmed = confirmed;
         this.addBorder();
         this.addChoosable();
@@ -31,26 +35,30 @@ export class ChooseUpgradeMenu extends BaseMenu {
         const top = this.paddingVertical
         this.sprite?.addChild(new Graphics())
             .beginFill(0x333131, 0.8)
-            .drawRect(0, 0, this.width - 2 * left, 5 * this.rowHeight + 2 * this.rowMargin + 2 * this.containerPadding)
+            .drawRect(0, 0, this.getRowWidth(), 3 * 64 + 2 * this.rowHeight + 2 * this.rowMargin + 2 * this.containerPadding)
             .endFill()
             .position.set(left, top)
 
         console.log(this.width);
     }
 
+    getRowWidth() {
+        return this.width - 2 * this.paddingHorizontal
+    }
+
     addChoosable() {
-        
+
         const row = this.addRow();
         const session = getRunnerApp().getSession();
         const choosableUpgrades = upgradeManager.pickableUpgrades(session, 4);
-
+        const rowWidth = this.getRowWidth();
         for (let index = 0; index < choosableUpgrades.length; index++) {
             const element = choosableUpgrades[index];
             const item = row.addChild(new Container());
 
-            item.position.set(index * row.width / 4, 0);
-            item.addChild(element.icon!);
-
+            item.position.set((index + 0.5) * rowWidth / 4, 0);
+            const icon = item.addChild(cloneSprite(element.icon!));
+            icon.scale.set(2, 2);
             item.interactive = true;
             item.on('click', () => {
                 this.updateDetail(element);
@@ -60,37 +68,42 @@ export class ChooseUpgradeMenu extends BaseMenu {
     }
 
     addDetail() {
-        const row = this.addRow(this.rowHeight * 3);
+        const row = this.addRow(64 * 3);
         const desc = row.addChild(new Container());
-
+        desc.position.x = 200;
         const tree = row.addChild(new Container());
-        tree.position.x = row.width / 2;
+        tree.position.x = this.getRowWidth() - 64 * 2;
 
-        this.detailTitle = desc.addChild(new Text(''));
-        this.detailDesc = desc.addChild(new Text(''));
+        this.detailTitle = desc.addChild(new Text('', { fontSize: 40, fill: 0xffffff, fontWeight: 'bolder' }));
+        this.detailDesc = desc.addChild(new Text('', { fontSize: 28, fill: 0xffffff }));
         this.detailDesc.position.y = 40;
         this.detailTree = tree;
     }
-    
+
     updateDetail(item: Upgrade) {
         this.currentChoosedUpgrade = item;
         this.detailTitle.text = item.title;
         this.detailDesc.text = item.description;
         this.detailTree.removeChildren();
-        this.detailTree.addChild(item.icon!)
-            .position.set(this.width / 4, 0);
-        this.detailTree.addChild(item.icon!)
-            .position.set(0, this.rowHeight);
-        this.detailTree.addChild(item.icon!)
-            .position.set(this.width / 4  - 20, this.rowHeight);
-        this.detailTree.addChild(item.icon!)
-            .position.set(this.width / 4, this.rowHeight*2);
+        const icon1 = this.detailTree.addChild(cloneSprite(item.upgradeTree?.[0].icon!));
+        icon1.position.set(64, 0);
+        icon1.scale.set(2, 2);
+        const icon2 = this.detailTree.addChild(cloneSprite(item.upgradeTree?.[1].icon!));
+        icon2.position.set(64 - 64, 64);
+        icon2.scale.set(2, 2);
+        const icon3 = this.detailTree.addChild(cloneSprite(item.upgradeTree?.[2].icon!));
+        icon3.position.set(64 + 64, 64);
+        icon3.scale.set(2, 2);
+        const icon4 = this.detailTree.addChild(cloneSprite(item.upgradeTree?.[3].icon!));
+        icon4.position.set(64, 64 * 2);
+        icon4.scale.set(2, 2);
     }
 
     addConfirm() {
         const row = this.addRow();
 
-        const btn = this.addButton(row, 'Confirm', {});
+        const btn = this.addButton(row, 'Confirm', { height: 30 });
+        btn.position.x = this.getRowWidth() / 2;
         btn.interactive = true;
         btn.addListener('click', () => {
             if (!this.currentChoosedUpgrade) {
@@ -126,7 +139,7 @@ export function withChooseUpgradeMenuBtn(container: Container) {
         .moveTo(10 + 5, 45 + 5,).lineTo(10 + 50 - 5, 45 + 5,);
 
     switchButton.interactive = true;
-    switchButton.on('click', () => {
+    const click = () => {
         const app = getRunnerApp();
         const chooseUpgradeMenu = new ChooseUpgradeMenu(container, (container as any).worldWidth, (container as any).worldHeight);
         const levelManager = app.getLevelManager();
@@ -134,7 +147,8 @@ export function withChooseUpgradeMenuBtn(container: Container) {
         chooseUpgradeMenu.init(() => {
             levelManager.levelResume();
         });
-    });
-
+    };
+    switchButton.on('click', click);
+    click();
     return switchButton;
 }

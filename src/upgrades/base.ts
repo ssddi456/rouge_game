@@ -2,12 +2,14 @@ import { Sprite } from "pixi.js";
 import { GameSession } from "../game_session";
 import { Player } from "../player";
 import { health } from "./health";
+import { ice_arrow } from "./icon_arrow";
 
 export interface Upgrade {
     title: string;
     id: string;
     description: string;
     icon?: Sprite;
+    upgradeTree: Upgrade[];
     iconIdentifier: any;
     requirements: string[];
     apply( player: Player, session: GameSession): void;
@@ -15,7 +17,8 @@ export interface Upgrade {
 
 
 export const allUpgrades : Upgrade[] = [
-    ...health
+    ...health,
+    ...ice_arrow
 ];
 
 export const upgradeManager = {

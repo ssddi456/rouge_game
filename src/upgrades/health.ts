@@ -8,6 +8,7 @@ export const strong: Upgrade = {
     description: "more hit point",
     iconIdentifier: "52",
     requirements: [],
+    upgradeTree: [],
     apply: function (player: Player, session: GameSession): void {
         // throw new Error("Function not implemented.");
     }
@@ -18,6 +19,7 @@ export const bigboy: Upgrade = {
     description: "more hit point, bigger size (all skill)",
     iconIdentifier: "53",
     requirements: [strong.id],
+    upgradeTree: [],
     apply: function (player: Player, session: GameSession): void {
         // throw new Error("Function not implemented.");
     }
@@ -28,6 +30,7 @@ export const berserker: Upgrade = {
     description: "the lower hitpoint the faster shoot and reload",
     iconIdentifier: "54",
     requirements: [strong.id],
+    upgradeTree: [],
     apply: function (player: Player, session: GameSession): void {
         // throw new Error("Function not implemented.");
     }
@@ -38,6 +41,7 @@ export const troll: Upgrade = {
     description: "recover every minute",
     iconIdentifier: "55",
     requirements: [bigboy.id, berserker.id],
+    upgradeTree: [],
     apply: function (player: Player, session: GameSession): void {
         // throw new Error("Function not implemented.");
     }
@@ -49,3 +53,5 @@ export const health = [
     berserker,
     troll
 ];
+
+health.map(x => x.upgradeTree = health);
