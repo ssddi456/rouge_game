@@ -72,6 +72,8 @@ app.loader
         const hitEffect = await loadSpriteSheet(loader, 'crosscode_hiteffect');
         const treeAnimateMap = await loadSpriteSheet(loader, 'Hazel Tree');
         const upgradeSpriteMap = await loadSprites(loader, '20m2d_powerups');
+        const freezeFXSmallSpriteMap = await loadSprites(loader, '20m2d_FreezeFXSmall');
+        const powerupPanelSpriteMap = await loadSprites(loader, '20m2d_PowerupPanel');
 
         await new Promise<void>(r => {
             const name1 = 'magicCircle1';
@@ -113,6 +115,9 @@ app.loader
             enemyAnimateMap: cloneAnimationSprites(enemyAnimateMap),
             hitEffect,
             treeAnimateMap,
+            upgradeSpriteMap,
+            freezeFXSmallSpriteMap,
+            powerupPanelSpriteMap,
         });
 
 

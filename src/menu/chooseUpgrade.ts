@@ -48,17 +48,16 @@ export class ChooseUpgradeMenu extends BaseMenu {
 
     addChoosable() {
 
-        const row = this.addRow();
+        const row = this.addRow(64);
         const session = getRunnerApp().getSession();
         const choosableUpgrades = upgradeManager.pickableUpgrades(session, 4);
-        const rowWidth = this.getRowWidth();
+        const rowWidth = this.getRowWidth() - 64 * 2;
         for (let index = 0; index < choosableUpgrades.length; index++) {
             const element = choosableUpgrades[index];
             const item = row.addChild(new Container());
 
-            item.position.set((index + 0.5) * rowWidth / 4, 0);
-            const icon = item.addChild(cloneSprite(element.icon!));
-            icon.scale.set(2, 2);
+            item.position.set((index + 0.8) * rowWidth / 4, 0);
+            item.addChild(upgradeIcon(element.icon!, { size: 1 }));
             item.interactive = true;
             item.on('click', () => {
                 this.updateDetail(element);
@@ -72,7 +71,8 @@ export class ChooseUpgradeMenu extends BaseMenu {
         const desc = row.addChild(new Container());
         desc.position.x = 200;
         const tree = row.addChild(new Container());
-        tree.position.x = this.getRowWidth() - 64 * 2;
+        tree.position.x = this.getRowWidth() - 64 * 1.5;
+        tree.position.y = - 10 - 64;
 
         this.detailTitle = desc.addChild(new Text('', { fontSize: 40, fill: 0xffffff, fontWeight: 'bolder' }));
         this.detailDesc = desc.addChild(new Text('', { fontSize: 28, fill: 0xffffff }));
@@ -85,18 +85,14 @@ export class ChooseUpgradeMenu extends BaseMenu {
         this.detailTitle.text = item.title;
         this.detailDesc.text = item.description;
         this.detailTree.removeChildren();
-        const icon1 = this.detailTree.addChild(cloneSprite(item.upgradeTree?.[0].icon!));
+        const icon1 = this.detailTree.addChild(upgradeIcon(item.upgradeTree?.[0].icon!));
         icon1.position.set(64, 0);
-        icon1.scale.set(2, 2);
-        const icon2 = this.detailTree.addChild(cloneSprite(item.upgradeTree?.[1].icon!));
+        const icon2 = this.detailTree.addChild(upgradeIcon(item.upgradeTree?.[1].icon!));
         icon2.position.set(64 - 64, 64);
-        icon2.scale.set(2, 2);
-        const icon3 = this.detailTree.addChild(cloneSprite(item.upgradeTree?.[2].icon!));
+        const icon3 = this.detailTree.addChild(upgradeIcon(item.upgradeTree?.[2].icon!));
         icon3.position.set(64 + 64, 64);
-        icon3.scale.set(2, 2);
-        const icon4 = this.detailTree.addChild(cloneSprite(item.upgradeTree?.[3].icon!));
+        const icon4 = this.detailTree.addChild(upgradeIcon(item.upgradeTree?.[3].icon!));
         icon4.position.set(64, 64 * 2);
-        icon4.scale.set(2, 2);
     }
 
     addConfirm() {
@@ -151,4 +147,19 @@ export function withChooseUpgradeMenuBtn(container: Container) {
     switchButton.on('click', click);
     click();
     return switchButton;
+}
+
+export function upgradeIcon(baseIcon: Sprite, options: { size?: number, selected?: boolean } = {}) {
+    const resources = getRunnerApp().getGetResourceMap()();
+    const ret = new Container();
+    ret.addChild(cloneSprite(resources.powerupPanelSpriteMap[options.size ? 3 : 1] as Sprite));
+    const border = ret.addChild(cloneSprite(resources.powerupPanelSpriteMap[options.size ? 2 : 0] as Sprite));
+    if (!options.selected) {
+        border.alpha = 0.5;
+    }
+    const icon = ret.addChild(cloneSprite(baseIcon));
+    const factor = options.size ? 1.5 : 1;
+    icon.scale.set(factor, factor);
+    ret.scale.set(1.5, 1.5);
+    return ret;
 }

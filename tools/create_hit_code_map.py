@@ -10,11 +10,19 @@ def create_formated_sprite_map(
     vertical_count=12,
     width=64,
     height=64,
+    sprites_map = None,
+    animation_map = None,
+    index = 0,
+    write = True
 ):
-    sprites_map = {}
-    animation_map = {}
+    if sprites_map == None:
+        sprites_map = {}
+    if animation_map == None:
+        animation_map = {}
 
-    index = 0
+    print('horizontal_count', horizontal_count,
+          'vertical_count', vertical_count,
+          'sprites_map', sprites_map)
     for i in range(vertical_count):
         for j in range(horizontal_count):
             sprites_map[index] = [
@@ -37,15 +45,25 @@ def create_formated_sprite_map(
         hit_effect_start_x += hit_effect_sizes[hit_effect_count % 3]
         hit_effect_count += 1
 
-    with open(
-            get_file_path('%s.marked.json' % name), 'wb') as f:
-        f.write(json.dumps(sprites_map).encode('utf-8'))
+    if write:
+        with open(
+                get_file_path('%s.marked.json' % name), 'wb') as f:
+            f.write(json.dumps(sprites_map).encode('utf-8'))
 
-    with open(
-            get_file_path('%s.animation.json' % name), 'wb') as f:
-        f.write(json.dumps(animation_map).encode('utf-8'))
+        with open(
+                get_file_path('%s.animation.json' % name), 'wb') as f:
+            f.write(json.dumps(animation_map).encode('utf-8'))
+    
+    return (sprites_map, animation_map, index)
 
 
 create_formated_sprite_map('crosscode_hiteffect')
 create_formated_sprite_map('20m2d_powerups',
                            0, 0, 12, 13, 32, 32)
+create_formated_sprite_map('20m2d_FreezeFXSmall',
+                           0, 0, 5, 1, 32, 32)
+(powerup_sprites_map, powerup_animation_map, powerup_index) = create_formated_sprite_map('20m2d_PowerupPanel',
+                           0, 0, 2, 1, 32, 32, write=False)
+create_formated_sprite_map('20m2d_PowerupPanel',
+                           0, 48, 2, 1, 48, 48, powerup_sprites_map, powerup_sprites_map, powerup_index)
+print(powerup_sprites_map)
