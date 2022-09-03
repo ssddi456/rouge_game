@@ -1,4 +1,5 @@
 import { Container, Graphics, ObservablePoint, Sprite, Text } from "pixi.js";
+import { rect } from "../debug_info";
 import { getRunnerApp } from "../runnerApp";
 import { cloneSprite } from "../sprite_utils";
 import { Upgrade, upgradeManager } from "../upgrades/base";
@@ -32,7 +33,7 @@ export class ChooseUpgradeMenu extends BaseMenu {
 
     addBorder() {
         const left = this.paddingHorizontal;
-        const top = this.paddingVertical
+        const top = this.paddingVertical + 64 * 2 + this.rowMargin;
         this.sprite?.addChild(new Graphics())
             .beginFill(0x333131, 0.8)
             .drawRect(0, 0, this.getRowWidth(), 3 * 64 + 2 * this.rowHeight + 2 * this.rowMargin + 2 * this.containerPadding)
@@ -51,48 +52,75 @@ export class ChooseUpgradeMenu extends BaseMenu {
         const row = this.addRow(64);
         const session = getRunnerApp().getSession();
         const choosableUpgrades = upgradeManager.pickableUpgrades(session, 4);
-        const rowWidth = this.getRowWidth() - 64 * 2;
+        const rowWidth = this.getRowWidth();
+        
+        const columnWidth = (rowWidth * 0.6) / 4;
+        const columnStart = 32 + 0.5 * columnWidth + 0.2 * rowWidth;
+        // console.log('rowWidth', rowWidth, 'columnWidth', columnWidth, 'columnStart', columnStart);
+        const allIcons: { selected?: boolean }[] = [];
         for (let index = 0; index < choosableUpgrades.length; index++) {
             const element = choosableUpgrades[index];
             const item = row.addChild(new Container());
 
-            item.position.set((index + 0.8) * rowWidth / 4, 0);
-            item.addChild(upgradeIcon(element.icon!, { size: 1 }));
+            item.position.set(index * columnWidth + columnStart, 0);
+            const icon = item.addChild(upgradeIcon(element.icon!, { size: 1, hoverable: true }));
             item.interactive = true;
+            allIcons.push(icon);
             item.on('click', () => {
                 this.updateDetail(element);
+                allIcons.forEach(x => x.selected = false);
+                icon.selected = true;
             });
-            console.log(item);
         }
     }
 
     addDetail() {
-        const row = this.addRow(64 * 3);
+        const paddingTop = 40;
+        const row = this.addRow(64 * 4 + paddingTop, paddingTop);
         const desc = row.addChild(new Container());
-        desc.position.x = 200;
+        desc.position.x = this.containerPadding;
+        desc.position.y = paddingTop;
         const tree = row.addChild(new Container());
-        tree.position.x = this.getRowWidth() - 64 * 1.5;
-        tree.position.y = - 10 - 64;
+        tree.position.x = this.getRowWidth() - 64 * 3 - this.containerPadding;
+        tree.position.y = paddingTop;
 
         this.detailTitle = desc.addChild(new Text('', { fontSize: 40, fill: 0xffffff, fontWeight: 'bolder' }));
         this.detailDesc = desc.addChild(new Text('', { fontSize: 28, fill: 0xffffff }));
-        this.detailDesc.position.y = 40;
+        this.detailDesc.position.y = 40 + 20;
         this.detailTree = tree;
+    }
+
+    updateDesc(item: Upgrade) {
+        this.detailTitle.text = item.title;
+        this.detailDesc.text = item.description;
     }
 
     updateDetail(item: Upgrade) {
         this.currentChoosedUpgrade = item;
-        this.detailTitle.text = item.title;
-        this.detailDesc.text = item.description;
+        this.updateDesc(item);
         this.detailTree.removeChildren();
+        const applyHoverDetail = (icon: Container, upgrade: Upgrade) => {
+            icon.interactive = true;
+            icon.on('pointerover', () => {
+                this.updateDesc(upgrade);
+            });
+            icon.on('pointerout', () => {
+                this.updateDesc(item);
+            });
+        }
+
         const icon1 = this.detailTree.addChild(upgradeIcon(item.upgradeTree?.[0].icon!));
         icon1.position.set(64, 0);
+        applyHoverDetail(icon1, item.upgradeTree?.[0]);
         const icon2 = this.detailTree.addChild(upgradeIcon(item.upgradeTree?.[1].icon!));
-        icon2.position.set(64 - 64, 64);
+        icon2.position.set(64 - 64 - 10, 64 + 10);
+        applyHoverDetail(icon2, item.upgradeTree?.[1]);
         const icon3 = this.detailTree.addChild(upgradeIcon(item.upgradeTree?.[2].icon!));
-        icon3.position.set(64 + 64, 64);
+        icon3.position.set(64 + 64 + 10, 64 + 10);
+        applyHoverDetail(icon3, item.upgradeTree?.[2]);
         const icon4 = this.detailTree.addChild(upgradeIcon(item.upgradeTree?.[3].icon!));
-        icon4.position.set(64, 64 * 2);
+        icon4.position.set(64, (64 + 10) * 2);
+        applyHoverDetail(icon4, item.upgradeTree?.[3]);
     }
 
     addConfirm() {
@@ -149,17 +177,40 @@ export function withChooseUpgradeMenuBtn(container: Container) {
     return switchButton;
 }
 
-export function upgradeIcon(baseIcon: Sprite, options: { size?: number, selected?: boolean } = {}) {
+export function upgradeIcon(baseIcon: Sprite, options: Partial<{ size: number, selected: boolean, hoverable: boolean }> = {}) {
     const resources = getRunnerApp().getGetResourceMap()();
-    const ret = new Container();
-    ret.addChild(cloneSprite(resources.powerupPanelSpriteMap[options.size ? 3 : 1] as Sprite));
+    const ret: Container & { selected?: boolean} = new Container();
+    const bg = ret.addChild(cloneSprite(resources.powerupPanelSpriteMap[options.size ? 3 : 1] as Sprite));
+    bg.anchor.set(0.5, 0.5);
     const border = ret.addChild(cloneSprite(resources.powerupPanelSpriteMap[options.size ? 2 : 0] as Sprite));
+    border.anchor.set(0.5, 0.5);
     if (!options.selected) {
         border.alpha = 0.5;
     }
     const icon = ret.addChild(cloneSprite(baseIcon));
+    icon.anchor.set(0.5, 0.5);
     const factor = options.size ? 1.5 : 1;
     icon.scale.set(factor, factor);
     ret.scale.set(1.5, 1.5);
+    
+    if (options.hoverable) {
+        ret.interactive = true;
+        ret.on('pointerover', () => {
+            ret.scale.set(2, 2);
+        });
+        ret.on('pointerout', () => {
+            ret.scale.set(1.5, 1.5);
+        });
+    }
+    let selected = options.selected || false;
+    Object.defineProperty(ret, 'selected', {
+        get() {
+            return selected;
+        },
+        set(_selected: boolean) {
+            selected = _selected;
+            border.alpha = selected ? 1: 0.5;
+        }
+    });
     return ret;
 }

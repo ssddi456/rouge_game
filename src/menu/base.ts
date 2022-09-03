@@ -74,15 +74,15 @@ export abstract class BaseMenu {
             .moveTo(0, 20).lineTo(20, 0)
     }
 
-    addRow(rowHeight = this.rowHeight) {
+    addRow(rowHeight = this.rowHeight, rowMargin = this.rowMargin) {
         const main = this.sprite!;
         const containerTop = this.paddingVertical;
         const buttonTop = containerTop + this.containerPadding + this.rowsHeight.reduce((sum, pre) => sum + pre, 0);
 
         const row = main.addChild(new Container())
-        row.position.x = this.containerPadding;
+        row.position.x = this.paddingHorizontal;
         row.position.y = buttonTop + (this.rowHeight - row.height) / 2;
-        this.rowsHeight.push(rowHeight + this.rowMargin);
+        this.rowsHeight.push(rowHeight + rowMargin);
         return row;
     }
 
