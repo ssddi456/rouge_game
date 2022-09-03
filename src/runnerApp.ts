@@ -2,16 +2,17 @@ import { Viewport } from "pixi-viewport";
 import { AnimatedSprite, Application, DisplayObject, Sprite, Text } from "pixi.js";
 import { Camera } from "./camara";
 import { DropletPool } from "./droplet";
-import { EnemyPool } from "./enemy";
+import { Enemy, EnemyPool } from "./enemy";
 import { Particle } from "./particle";
 import { Player } from "./player";
 import { cloneAnimationSprite } from "./sprite_utils";
-import { ECollisionType, EntityManager, GetResourceFunc, ICollisionable } from "./types";
+import { AreaOfEffect, ECollisionType, EntityManager, GetResourceFunc, ICollisionable } from "./types";
 import { Vector } from "./vector";
 import {mouse} from './user_input';
 import { LevelManager } from "./level";
 import { createGroups } from "./groups";
 import { GameSession } from "./game_session";
+import { checkCollision } from "./collision_helper";
 
 let timeElipsed = 0;
 let app: Application;
@@ -27,6 +28,7 @@ let levelManager: LevelManager;
 let getResourceMap: GetResourceFunc;
 let groups: ReturnType<typeof createGroups>;
 let session: GameSession;
+let aoes: AreaOfEffect[] = [];
 
 const runnerApp: EntityManager = {
     getEntities: ({
@@ -109,6 +111,36 @@ const runnerApp: EntityManager = {
     ) => {
         droplets.emit(position, pickUp, duration);
     },
+
+    emitAOE: (
+        position: Vector,
+        aoe
+    ) => {
+        aoes.push(aoe);
+    },
+
+    updateAOE: () => {
+        // 这里应该预先分组
+        // 首先假设aoe只能打敌人
+        const enemies = getRunnerApp().getEntities({ collisionTypes: [ECollisionType.enemy] }) as Enemy[];
+        for (let index = 0; index < aoes.length; index++) {
+            const aoe = aoes[index]; 
+            if (aoe.enabled) {
+                for (let jndex = 0; jndex < enemies.length; jndex++) {
+                    const enemy = enemies[jndex] as Enemy;
+                    if (!enemy.dead) {
+                        const ifCollision = checkCollision(aoe, enemy);
+                        if (ifCollision) {
+                            aoe.apply(enemy);
+                        }
+                    }
+                }
+            }
+            aoe.update();
+        }
+        aoes = aoes.filter(x => !x.dead);
+    },
+
     screenPosToWorldPos: (screenPos: Vector) => {
         return camera.screenPosToWorldPos(screenPos);
     },
@@ -136,11 +168,19 @@ const runnerApp: EntityManager = {
         for (let index = 0; index < particles.length; index++) {
             const particle = particles[index];
             particle.update();
+            if (!particle.dead) {
+                particle.sprite.parentGroup = groups.overGroundGroup;
+                camera.updateItemPos(particle);
+            }
         }
 
         for (let index = 0; index < textParticles.length; index++) {
             const particle = textParticles[index];
             particle.update();
+            particle.sprite.parentGroup = groups.textGroup;
+            if (!particle.dead) {
+                camera.updateItemPos(particle);
+            }
         }
     },
 
@@ -195,6 +235,7 @@ const runnerApp: EntityManager = {
 
             particles.splice(0, particles.length);
             textParticles.splice(0, textParticles.length);
+            aoes.splice(0, aoes.length);
         }
     },
     getMouseWorldPos() {

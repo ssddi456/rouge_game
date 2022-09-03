@@ -15,23 +15,7 @@ import { Vector } from "../vector";
 import WarFog from "../warfog";
 
 
-export class SnowFieldLevel implements Level {
-    session: GameSession | undefined = undefined;
-    player: Player | undefined = undefined;
-    warfog: WarFog | undefined = undefined;
-    camera: Camera | undefined = undefined;
-    enemys: EnemyPool | undefined = undefined;
-    droplets: DropletPool | undefined = undefined;
-    blockContext: Updatable & Disposible | undefined = undefined;
-    overGroundContainer: Container | undefined = undefined;
-    groups: ReturnType<typeof createGroups> | undefined = undefined;
-    ground: TilingSprite | undefined = undefined;
-    forest: Forest | undefined = undefined;
-
-    constructor(
-        public app: Application,
-        public getResources: () => Record<string, Record<string, any>>
-    ) {}
+export class SnowFieldLevel extends Level {
 
 
     init(gameView: Viewport) {
@@ -73,10 +57,6 @@ export class SnowFieldLevel implements Level {
         gameView.addChildAt(snowfield, 0);
         this.ground = snowfield;
 
-        const overGroundContainer = gameView.addChild(new Container());
-        // const overGroundContainer = new Container();
-        overGroundContainer.zIndex = overGroundZindex;
-        this.overGroundContainer = overGroundContainer;
         window.addEventListener('resize', () => {
             snowfield.width = app.view.width;
             snowfield.height = app.view.height;
@@ -96,7 +76,7 @@ export class SnowFieldLevel implements Level {
             },
             hitEffect,
             100,
-            overGroundContainer,
+            gameView,
             new Vector(
                 app.view.width / 2,
                 app.view.height / 2,
@@ -117,7 +97,7 @@ export class SnowFieldLevel implements Level {
         const dropS = new Sprite(curserT);
         dropS.anchor.set(0.5, 0.5);
 
-        const enemys = new EnemyPool(enemyAnimateMap, overGroundContainer);
+        const enemys = new EnemyPool(enemyAnimateMap, gameView);
         runnerApp.setEnemys(enemys);
         this.enemys = enemys;
 
@@ -132,7 +112,7 @@ export class SnowFieldLevel implements Level {
         runnerApp.setCamera(camera);
         this.camera = camera;
 
-        const forest = new Forest(treeAnimateMap, overGroundContainer);
+        const forest = new Forest(treeAnimateMap, gameView);
         this.forest = forest;
 
         const blockContext = createBlockContext({
@@ -170,145 +150,4 @@ export class SnowFieldLevel implements Level {
         this.warfog = warfog;
     }
 
-
-    update() {
-        const session = this.session!;
-        const player = this.player!;
-        const warfog = this.warfog!;
-        const camera = this.camera!;
-        const enemys = this.enemys!;
-        const droplets = this.droplets!;
-        const blockContext = this.blockContext!;
-        const overGroundContainer = this.overGroundContainer!;
-        const groups = this.groups!;
-        const grass = this.ground!;
-        const forest = this.forest!;
-        
-        const runnerApp = getRunnerApp();
-        
-        session.update();
-        // each frame we spin the bunny around a bit
-        player.update();
-        camera.update(player);
-        warfog.update();
-
-        enemys.update();
-
-        droplets.update();
-        blockContext.update(player.position.x, player.position.y);
-
-        // for debugers
-        // collisionView.update();
-
-        player.sprite.parentGroup = groups.overGroundGroup;
-        camera.updateItemPos(player);
-
-        overGroundContainer.children.sort((a, b) => {
-            if (a.position.y > b.position.y) {
-                return 1;
-            }
-            if (a.position.y < b.position.y) {
-                return -1;
-            }
-            if (a.position.x > b.position.x) {
-                return 1;
-            }
-            if (a.position.x < b.position.x) {
-                return -1;
-            }
-            return a.updateOrder! - b.updateOrder!;
-        });
-
-        grass.tilePosition = camera.offset.clone().multiplyScalar(-1) as any;
-        for (let index = 0; index < player.ammoPools.pool.length; index++) {
-            const element = player.ammoPools.pool[index];
-            element.sprite.parentGroup = groups.ammoGroup;
-
-            if (!element.dead) {
-                camera.updateItemPos(element);
-            }
-        }
-        for (let index = 0; index < enemys.pool.length; index++) {
-            const element = enemys.pool[index];
-            element.sprite.parentGroup = groups.overGroundGroup;
-            if (!element.dead) {
-                camera.updateItemPos(element);
-            }
-        }
-
-        for (let index = 0; index < droplets.pool.length; index++) {
-            const element = droplets.pool[index];
-            element.sprite.parentGroup = groups.dropletGroup;
-
-            if (!element.dead) {
-                camera.updateItemPos(element);
-            }
-        }
-
-        for (let index = 0; index < forest.trees.length; index++) {
-            const element = forest.trees[index];
-            if (!element.dead) {
-                element.sprite.parentGroup = groups.overGroundGroup;
-                element.update();
-                camera.updateItemPos(element);
-            }
-        }
-
-        runnerApp.updateParticles();
-        const particles = runnerApp.getPariticles();
-
-        for (let index = 0; index < particles.length; index++) {
-            const element = particles[index];
-            element.sprite.parentGroup = groups.overGroundGroup;
-            if (!element.dead) {
-                camera.updateItemPos(element);
-            }
-        }
-        const textParticles = runnerApp.getTextParticles();
-
-        for (let index = 0; index < textParticles.length; index++) {
-            const element = textParticles[index];
-            element.sprite.parentGroup = groups.textGroup;
-            if (!element.dead) {
-                camera.updateItemPos(element);
-            }
-        }
-    }
-
-    dispose() {
-        const player = this.player!;
-        player.dispose();
-
-        const warfog = this.warfog!;
-        warfog.graphic.destroy();
-
-        const camera = this.camera!;
-        const enemys = this.enemys!;
-        enemys.dispose();
-
-        const droplets = this.droplets!;
-        droplets.pool = [];
-
-        const blockContext = this.blockContext!;
-        blockContext.dispose();
-
-        const overGroundContainer = this.overGroundContainer!;
-        const groups = this.groups!;
-        const grass = this.ground!;
-
-        const forest = this.forest!;
-        forest.trees = [];
-
-        this.session = undefined;
-        this.player = undefined;
-        this.warfog = undefined;
-        this.camera = undefined;
-        this.enemys = undefined;
-        this.droplets = undefined;
-        this.blockContext = undefined;
-        this.overGroundContainer = undefined;
-        this.groups = undefined;
-        this.ground = undefined;
-        this.forest = undefined;
-    }
 }

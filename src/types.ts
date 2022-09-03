@@ -127,6 +127,8 @@ export interface EntityManager {
     updateParticles(): void;
 
     emitDroplets(position: Vector, pickUp: () => void, duration: number): void;
+    emitAOE(position: Vector, aoe: AreaOfEffect): void;
+    updateAOE(): void;
 
     pause(): void;
     resume(): void;
@@ -162,6 +164,19 @@ export interface EntityManager {
 
     getSession(): GameSession;
     setSession(session: GameSession): void;
+}
+
+export enum AreaOfEffectType {
+    oneTimePropertyChangeApply,
+    bufferApply,
+}
+export interface AreaOfEffect extends ICollisionable, GameObject {
+    type: AreaOfEffectType
+    enabled: boolean;
+    dead: boolean;
+    hitType: ECollisionType;
+    update: () => void;
+    apply: (target: ICollisionable) => void;
 }
 
 export interface BaseBuffer {
