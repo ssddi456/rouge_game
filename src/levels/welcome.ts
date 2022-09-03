@@ -1,6 +1,15 @@
-import { Application, Container, Graphics, Text } from "pixi.js";
+import { Group } from "@pixi/layers";
+import { Application, Container, Graphics, Text, TilingSprite } from "pixi.js";
+import { Camera } from "../camara";
+import { DropletPool } from "../droplet";
+import { EnemyPool } from "../enemy";
+import { GameSession } from "../game_session";
 import { Level } from "../level";
+import { Player } from "../player";
 import { getRunnerApp } from "../runnerApp";
+import { Forest } from "../tree";
+import { Updatable, Disposible } from "../types";
+import warfog from "../warfog";
 
 export class WelcomeLevel implements Level {
     sprite: Container | undefined = undefined;
@@ -10,6 +19,16 @@ export class WelcomeLevel implements Level {
     ) {
 
     }
+    player: Player | undefined;
+    warfog: warfog | undefined;
+    camera: Camera | undefined;
+    enemys: EnemyPool | undefined;
+    droplets: DropletPool | undefined;
+    blockContext: (Updatable & Disposible) | undefined;
+    groups: { uiGroup: Group; skyGroup: Group; textGroup: Group; ammoGroup: Group; overGroundGroup: Group; groundGroup: Group; dropletGroup: Group; } | undefined;
+    ground: TilingSprite | undefined;
+    forest: Forest | undefined;
+    session: GameSession | undefined;
 
     init(
         gameView: Container,
