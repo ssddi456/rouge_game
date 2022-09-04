@@ -1,6 +1,7 @@
 import { getRunnerApp } from "./runnerApp";
+import { Updatable } from "./types";
 
-export class CountDown {
+export class CountDown implements Updatable {
     last_update_time = 0;
     exec_times = 0;
     constructor(

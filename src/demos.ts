@@ -7,11 +7,14 @@ import { default as initRopeDemo } from './demos/rope_demo';
 import { default as initIkDemo } from './demos/ik_demo';
 import { default as initBowDemo } from './demos/bow_demo';
 import { default as initTreeDemo } from './demos/tree_demo';
+import { default as initAoeDemo } from './demos/aoe_demo';
 
 import { getRunnerApp } from './runnerApp';
 import { Camera } from './camara';
 import { Player } from './player';
 import { Vector } from './vector';
+import { EnemyStub } from './demos/enemy_stub';
+import { loadSpriteSheet, setupResource } from './loadAnimation';
 
 const app = new PIXI.Application({
     backgroundColor: 0x1099bb,
@@ -72,10 +75,35 @@ const camera = new Camera(
 const runnerApp = getRunnerApp();
 runnerApp.setApp(app);
 runnerApp.setCamera(camera);
+runnerApp.setGameView(app.stage);
 
-initPlayerAttack(app);
-initAmmoDemo(app);
-initRopeDemo(app);
-initIkDemo(app);
-initBowDemo(app);
-initTreeDemo(app);
+(async function () {
+    
+    const cloneResourceMap = await setupResource(app);
+    const resourceMap = cloneResourceMap();
+
+    const enemys = new EnemyStub(
+        resourceMap.enemyAnimateMap,
+        app.stage,
+        [
+            new Vector(600, 100),
+            new Vector(600, 200),
+        ]
+    );
+    runnerApp.setEnemys(enemys);
+    app.ticker.add(() => {
+        enemys.update();
+    
+        runnerApp.updateParticles();
+        runnerApp.updateAOE();
+    });
+
+    initPlayerAttack(app);
+    initAmmoDemo(app);
+    initRopeDemo(app);
+    initIkDemo(app);
+    initBowDemo(app);
+    initTreeDemo(app);
+    initAoeDemo(app);
+    
+})();

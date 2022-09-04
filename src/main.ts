@@ -2,7 +2,7 @@ import * as PIXI from 'pixi.js'
 import './user_input';
 
 import { Viewport } from 'pixi-viewport'
-import { getImageUrl, loadSprites, loadSpriteSheet } from './loadAnimation';
+import { getImageUrl, loadSprites, loadSpriteSheet, setupResource } from './loadAnimation';
 import { getRunnerApp } from './runnerApp';
 import { Stage } from '@pixi/layers';
 import { ForestLevel } from './levels/forest';
@@ -65,66 +65,14 @@ app.loader
     .add('snowfield', getImageUrl('TIF9.png'))
     .load(async (loader, resources) => {
 
-        const playerAnimateMap = await loadSpriteSheet(loader, 'Nintendo Switch - Disgaea 5 Complete - LiezerotaDark');
-        const bowAnimateMap = await loadSpriteSheet(loader, 'Nintendo Switch - Disgaea 5 Complete - Weapons Bow');
-        const gunAnimateMap = await loadSpriteSheet(loader, 'Nintendo Switch - Disgaea 5 Complete - Weapons Gun');
-        const enemyAnimateMap = await loadSpriteSheet(loader, 'Nintendo Switch - Disgaea 5 Complete - Miscellaneous Monsters');
-        const hitEffect = await loadSpriteSheet(loader, 'crosscode_hiteffect');
-        const treeAnimateMap = await loadSpriteSheet(loader, 'Hazel Tree');
-        const upgradeSpriteMap = await loadSprites(loader, '20m2d_powerups');
-        const freezeFXSmallSpriteMap = await loadSprites(loader, '20m2d_FreezeFXSmall');
-        const powerupPanelSpriteMap = await loadSprites(loader, '20m2d_PowerupPanel');
-
-        await new Promise<void>(r => {
-            const name1 = 'magicCircle1';
-            const name2 = 'magicCircle2';
-            if (app.loader.resources[name1]
-                || app.loader.resources[name1]
-            ) {
-                final(app.loader.resources);
-                return;
-            }
-            app.loader
-                .add(name1, 'http://localhost:7001/public/spell_circle_1.rgba.png')
-                .add(name2, 'http://localhost:7001/public/spell_circle_2.rgba.png')
-                .load((loader, resources) => {
-                    final(resources);
-                });
-
-            function final(resources: Record<string, LoaderResource>) {
-                playerAnimateMap[name1] = new AnimatedSprite([
-                    resources[name1].texture as Texture
-                ]);
-                playerAnimateMap[name2] = new AnimatedSprite([
-                    resources[name2].texture as Texture
-                ]);
-                r();
-            }
-        });
-
-        initUpgradeSprites(upgradeSpriteMap);
+        const cloneResourceMap = await setupResource(app);
 
         // seems high render rate leads to some bug
         app.ticker.maxFPS = 60;
-        // Listen for frame updates
-        const cloneResourceMap = () => ({
-            resources,
-            playerAnimateMap: cloneAnimationSprites(playerAnimateMap),
-            bowAnimateMap: cloneAnimationSprites(bowAnimateMap),
-            gunAnimateMap: cloneAnimationSprites(gunAnimateMap),
-            enemyAnimateMap: cloneAnimationSprites(enemyAnimateMap),
-            hitEffect,
-            treeAnimateMap,
-            upgradeSpriteMap,
-            freezeFXSmallSpriteMap,
-            powerupPanelSpriteMap,
-        });
-
 
         const runnerApp = getRunnerApp();
         runnerApp.setApp(app);
         runnerApp.setGameView(gameView);
-        runnerApp.setGetResourceMap((cloneResourceMap as unknown) as GetResourceFunc);
 
         const curserG = new Graphics()
             .beginFill(0xffffff)

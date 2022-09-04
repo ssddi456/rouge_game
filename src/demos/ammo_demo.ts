@@ -10,6 +10,7 @@ import { getRunnerApp } from "../runnerApp";
 import { Vector } from "../vector";
 import { createDemoContext } from "../helper/demo_util";
 import { ColorOverlayFilter } from "pixi-filters";
+import { BUFFER_EVENTNAME_DEAD } from "../buffer";
 
 const context = createDemoContext(
     module,
@@ -84,24 +85,8 @@ const context = createDemoContext(
                 }
                 collisionView.update();
             });
-            class EnemyStub extends EnemyPool {
-                constructor(
-                    public spirtes: Record<string, AnimatedSprite>,
-                    public container: Container,
-                ) {
-                    super(spirtes, container);
-                    this.spawnTimer = new CountDown(50000, this.spawn);
-                }
-                spawn = () => {
-                    this.emit(new Vector(600, 100));
-                };
-            }
-            const enemys = new EnemyStub(
-                enemyAnimateMap,
-                animateContainer,
-            );
-            runnerApp.setGameView(animateContainer);
-            runnerApp.setEnemys(enemys);
+
+
             runnerApp.setDroplets(({
                 emit: () => { }
             } as any) as DropletPool);
@@ -127,7 +112,6 @@ const context = createDemoContext(
                     const ammo = ammos.pool[index];
                     camera.updateItemPos(ammo);
                 }
-                enemys.update();
             };
         }
     });

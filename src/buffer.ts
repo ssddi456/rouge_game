@@ -11,11 +11,31 @@ export interface Buffable {
     ground_assets: DisplayObject[];
 }
 
+export function execBuffer(buffer: Buffer, target: Buffable, app = getRunnerApp()) {
+    if (buffer.takeEffect) {
+
+        const percent = buffer.type == 'timer'
+            ? (app.now() - buffer.initialTime) / buffer.duration
+            : (buffer.type == 'counter'
+                ? buffer.currentCount / buffer.maxCount
+                : 1);
+
+        buffer.takeEffect(target, percent);
+    } else {
+        if (buffer.properties.direct) {
+            const movable = (target as unknown) as IMovable;
+            movable.direct.add(buffer.properties.direct);
+        }
+    }
+}
 
 export function applyBuffer(target: Buffable) {
     const app = getRunnerApp();
     const bufferList = target.bufferList;
     bufferList.forEach(buffer => {
+        if (buffer.dead) {
+            return;
+        }
         if (buffer.type !== 'timer' && buffer.type !== 'counter') {
             return;
         }
@@ -24,22 +44,7 @@ export function applyBuffer(target: Buffable) {
                 return;
             }
         }
-
-        if (buffer.takeEffect) {
-
-            const percent = buffer.type == 'timer' 
-                ? (app.now() - buffer.initialTime) / buffer.duration
-                : (buffer.type == 'counter' 
-                    ? buffer.currentCount / buffer.maxCount
-                    : 1);
-
-            buffer.takeEffect(target, percent);
-        } else {
-            if (buffer.properties.direct) {
-                const movable = (target as unknown) as IMovable;
-                movable.direct.add(buffer.properties.direct);
-            }
-        }
+        execBuffer(buffer, target, app);
     });
 }
 
@@ -152,11 +157,27 @@ export function applyFireAura(target: Buffable){
     maskInner.scale.y = 0.5;
     maskInner.parentGroup = app.getGroups().overGroundGroup;
     target.ground_assets.push(maskInner);
-
-    target.bufferList.push({
-        type: 'event',
-        id: FIRE_AURA_ID,
-        properties: {},
-        afterEffect: () => {}
-    });
 }
+
+export function applyEventBuffer(target: Buffable, eventName: string){
+    const app = getRunnerApp();
+    const bufferList = target.bufferList;
+    for (let index = 0; index < bufferList.length; index++) {
+        const buffer = bufferList[index];
+        if (!buffer.dead
+            && buffer.type === 'event'
+            && buffer.eventName === eventName
+            && (buffer.canEffect ? buffer.canEffect(target) : true)
+        ) {
+            execBuffer(buffer, target, app);
+        }
+    }
+}
+// when enemy dead
+export const BUFFER_EVENTNAME_DEAD = 'dead';
+// when ammo or aoe hitted
+export const BUFFER_EVENTNAME_HIT = 'hit';
+// when enemy or player hitted
+export const BUFFER_EVENTNAME_HITTED = 'hitted';
+// when enemy or player health change
+export const BUFFER_EVENTNAME_HEALTH_CHANGE = 'health_change';

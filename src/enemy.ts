@@ -7,7 +7,7 @@ import { IMovable, ICollisionable, EFacing, IObjectPools, ECollisionType, Living
 import { checkCollision } from "./collision_helper";
 import { Droplets as Droplet } from "./droplet";
 import { getRunnerApp } from "./runnerApp";
-import { applyBuffer, applyDamageFlash, Buffable, checkBufferAlive } from "./buffer";
+import { applyBuffer, applyDamageFlash, applyEventBuffer, Buffable, BUFFER_EVENTNAME_DEAD, BUFFER_EVENTNAME_HEALTH_CHANGE, BUFFER_EVENTNAME_HITTED, checkBufferAlive } from "./buffer";
 import { cloneAnimationSprites } from "./sprite_utils";
 import { overGroundCenterHeight } from "./groups";
 import { debugInfo } from "./debug_info";
@@ -92,8 +92,11 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
     recieveHealth(amount: number): void {
         throw new Error("Method not implemented.");
     }
+
     recieveDamage(damage: number, hitPos: Vector): void {
         this.health -= damage;
+        applyEventBuffer(this, BUFFER_EVENTNAME_HEALTH_CHANGE);
+
         const app = getRunnerApp();
         app.emitDamageParticles(hitPos, damage);
         applyDamageFlash(this);
@@ -123,6 +126,8 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
 
             this.sprite.parent.removeChild(this.sprite);
             this.sprite.parentGroup = undefined;
+
+            applyEventBuffer(this, BUFFER_EVENTNAME_DEAD);
         }
     }
 
@@ -161,6 +166,10 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
         if (this.facing == EFacing.bottom) {
             this.bodySprite.addChildAt(this.spirtes[this.sprite_names.idle], this.mainSpirtIndex);
         }
+        // clearups
+        this.bufferList = [];
+        this.assets = [];
+        this.ground_assets = [];
     }
 
     cacheProperty() {
@@ -261,7 +270,7 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
 @HotClass({ module })
 export class EnemyPool extends UpdatableObject implements IObjectPools {
     pool: Enemy[] = [];
-    spawnTimer: CountDown;
+    spawnTimer: Updatable;
     livenodes = 0;
 
 
@@ -300,10 +309,10 @@ export class EnemyPool extends UpdatableObject implements IObjectPools {
 
         if (module.hot) {
             module.hot.dispose((module) => {
-                const oldSpawnTimer = this.spawnTimer;
-                this.spawnTimer = new CountDown(5000, this.spawn);
-                this.spawnTimer.exec_times = oldSpawnTimer.exec_times;
-                this.spawnTimer.last_update_time = oldSpawnTimer.last_update_time;
+                const oldSpawnTimer = this.spawnTimer as any;
+                if (oldSpawnTimer.exec) {
+                    oldSpawnTimer.exec = this.spawn
+                }
             });
         }
     }
@@ -320,12 +329,14 @@ export class EnemyPool extends UpdatableObject implements IObjectPools {
         if (dead) {
             dead.init(position, type);
             this.container.addChild(dead.sprite);
+            return dead;
         } else {
             const enemy = new Enemy(cloneAnimationSprites(this.spirtes));
             this.container.addChild(enemy.sprite);
             this.pool.push(enemy);
             this.addChildren(enemy);
             enemy.init(position, type);
+            return enemy;
         }
     }
 

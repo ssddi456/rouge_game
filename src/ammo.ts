@@ -1,16 +1,16 @@
-import { AnimatedSprite, Container, Point, SimpleRope, Texture } from "pixi.js";
-import { applyKnockback } from "./buffer";
+import { AnimatedSprite, Container, DisplayObject, Point, SimpleRope, Texture } from "pixi.js";
+import { applyEventBuffer, applyKnockback, Buffable, BUFFER_EVENTNAME_HIT, BUFFER_EVENTNAME_HITTED } from "./buffer";
 import { checkCollision } from "./collision_helper";
 import { Enemy } from "./enemy";
 import { overGroundCenterHeight } from "./groups";
 import { HotClass } from "./helper/class_reloader";
 import { Particle } from "./particle";
 import { getRunnerApp } from "./runnerApp";
-import { ECollisionType, EFacing, ICollisionable, IMovable, IObjectPools } from "./types";
+import { Buffer, ECollisionType, EFacing, ICollisionable, IMovable, IObjectPools } from "./types";
 import { Vector } from "./vector";
 
 @HotClass({ module })
-export class Ammo implements IMovable, ICollisionable {
+export class Ammo implements IMovable, ICollisionable, Buffable {
     start_position = new Vector(0, 0);
     dead = false;
     prev_dead = false;
@@ -43,6 +43,10 @@ export class Ammo implements IMovable, ICollisionable {
         sprite.position.y = - overGroundCenterHeight;
         this.sprite.addChild(sprite);
     }
+
+    bufferList: Buffer[] = [];
+    assets: DisplayObject[] = [];
+    ground_assets: DisplayObject[] = [];
 
     size: number = 5;
     collisison_type: ECollisionType = ECollisionType.none;
@@ -93,6 +97,10 @@ export class Ammo implements IMovable, ICollisionable {
         this.range = range;
         this.dead = false;
         this.container.addChild(this.sprite);
+
+        this.bufferList = [];
+        this.assets = [];
+        this.ground_assets = [];
     }
 
     cacheProperty() {
@@ -206,6 +214,10 @@ export class AmmoPool implements IObjectPools {
                         _temp_hitting_items.push(enemy);
 
                         if (!ammo.current_hitting_items.includes(enemy)) {
+                            applyEventBuffer(ammo, BUFFER_EVENTNAME_HIT);
+
+                            applyEventBuffer(enemy, BUFFER_EVENTNAME_HITTED);
+
                             enemy.recieveDamage(1, ifCollision.collisionHitPos);
                             const app = getRunnerApp();
                             app.emitParticles(ifCollision.collisionHitPos,

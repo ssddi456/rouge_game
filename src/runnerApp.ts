@@ -28,7 +28,7 @@ let levelManager: LevelManager;
 let getResourceMap: GetResourceFunc;
 let groups: ReturnType<typeof createGroups>;
 let session: GameSession;
-let aoes: AreaOfEffect[] = [];
+let aoes: AreaOfEffect<any>[] = [];
 
 const runnerApp: EntityManager = {
     getEntities: ({
@@ -39,9 +39,9 @@ const runnerApp: EntityManager = {
                 case ECollisionType.player:
                     return [...acc, player];
                 case ECollisionType.enemy:
-                    return [...acc, ...enemys.pool.filter(e => !e.dead)];
+                    return [...acc, ...(enemys?.pool || []).filter(e => !e.dead)];
                 case ECollisionType.none:
-                    return [...acc, ...player.ammoPools.pool];
+                    return [...acc, ...(player.ammoPools.pool || [])];
                 default:
                     return acc;
             }
@@ -117,28 +117,35 @@ const runnerApp: EntityManager = {
         aoe
     ) => {
         aoes.push(aoe);
+        gameView.addChild(aoe.sprite);
     },
 
     updateAOE: () => {
         // 这里应该预先分组
         // 首先假设aoe只能打敌人
         const enemies = getRunnerApp().getEntities({ collisionTypes: [ECollisionType.enemy] }) as Enemy[];
+        let newAoes: AreaOfEffect<any>[] = [];
         for (let index = 0; index < aoes.length; index++) {
-            const aoe = aoes[index]; 
-            if (aoe.enabled) {
-                for (let jndex = 0; jndex < enemies.length; jndex++) {
-                    const enemy = enemies[jndex] as Enemy;
-                    if (!enemy.dead) {
-                        const ifCollision = checkCollision(aoe, enemy);
-                        if (ifCollision) {
-                            aoe.apply(enemy);
-                        }
+            const aoe = aoes[index];
+            aoe.update();
+            if (!aoe.dead) {
+                if (aoe.enabled) {
+                    for (let jndex = 0; jndex < enemies.length; jndex++) {
+                        const enemy = enemies[jndex] as Enemy;
+                        if (!enemy.dead) {
+                            const ifCollision = checkCollision(aoe, enemy);
+                            if (ifCollision) {
+                                aoe.apply(enemy);
+                            }
+                            newAoes.push(aoe);
+                        } 
                     }
                 }
+            } else {
+                aoe.sprite.destroy();
             }
-            aoe.update();
         }
-        aoes = aoes.filter(x => !x.dead);
+        aoes = newAoes;
     },
 
     screenPosToWorldPos: (screenPos: Vector) => {
@@ -165,23 +172,28 @@ const runnerApp: EntityManager = {
     },
 
     updateParticles() {
+        let newParticals: Particle[] = [];
         for (let index = 0; index < particles.length; index++) {
             const particle = particles[index];
             particle.update();
             if (!particle.dead) {
-                particle.sprite.parentGroup = groups.overGroundGroup;
+                particle.sprite.parentGroup = groups?.overGroundGroup;
                 camera.updateItemPos(particle);
+                newParticals.push(particle);
             }
         }
-
+        particles = newParticals;
+        let newTextParticals: Particle[] = [];
         for (let index = 0; index < textParticles.length; index++) {
             const particle = textParticles[index];
             particle.update();
-            particle.sprite.parentGroup = groups.textGroup;
+            particle.sprite.parentGroup = groups?.textGroup;
             if (!particle.dead) {
                 camera.updateItemPos(particle);
+                newTextParticals.push(particle);
             }
         }
+        textParticles = newTextParticals;
     },
 
     getPariticles() {

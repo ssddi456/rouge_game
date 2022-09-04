@@ -1,5 +1,9 @@
-import { AnimatedSprite, Rectangle, Sprite, Texture } from 'pixi.js';
+import { AnimatedSprite, Application, LoaderResource, Rectangle, Sprite, Texture } from 'pixi.js';
 import * as PIXI from 'pixi.js';
+import { initUpgradeSprites } from './upgrades/base';
+import { cloneAnimationSprites } from './sprite_utils';
+import { getRunnerApp } from './runnerApp';
+import { GetResourceFunc } from './types';
 
 export async function loadAnimation(loader: PIXI.Loader,
     name: string,
@@ -23,7 +27,7 @@ export async function loadAnimation(loader: PIXI.Loader,
                         resourceLoaded();
                         return;
                     }
-    
+
                     // load the texture we need
                     loader.add(name, url)
                         .load((loader, resources) => {
@@ -156,10 +160,10 @@ export async function loadSprites(loader: PIXI.Loader, name: string): Promise<Re
                     spriteMap[key] = new Sprite(
                         new Texture(LiezerotaDark.baseTexture,
                             new Rectangle(...element)
-                    ));
+                        ));
                 }
             }
-            
+
             resolve(spriteMap);
         }
     });
@@ -167,3 +171,73 @@ export async function loadSprites(loader: PIXI.Loader, name: string): Promise<Re
 export function getImageUrl(name: string) {
     return `http://localhost:7001/public/${name}`
 }
+
+
+export async function setupResource(app: Application,) {
+    const loader = app.loader;
+    const resources = app.loader.resources;
+
+    const playerAnimateMap = await loadSpriteSheet(loader, 'Nintendo Switch - Disgaea 5 Complete - LiezerotaDark');
+    const bowAnimateMap = await loadSpriteSheet(loader, 'Nintendo Switch - Disgaea 5 Complete - Weapons Bow');
+    const gunAnimateMap = await loadSpriteSheet(loader, 'Nintendo Switch - Disgaea 5 Complete - Weapons Gun');
+    const enemyAnimateMap = await loadSpriteSheet(loader, 'Nintendo Switch - Disgaea 5 Complete - Miscellaneous Monsters');
+    const hitEffect = await loadSpriteSheet(loader, 'crosscode_hiteffect');
+    const treeAnimateMap = await loadSpriteSheet(loader, 'Hazel Tree');
+    const upgradeSpriteMap = await loadSprites(loader, '20m2d_powerups');
+    const freezeFXSmallSpriteMap = await loadSprites(loader, '20m2d_FreezeFXSmall');
+    const powerupPanelSpriteMap = await loadSprites(loader, '20m2d_PowerupPanel');
+
+    await new Promise<void>(r => {
+        const name1 = 'magicCircle1';
+        const name2 = 'magicCircle2';
+        if (app.loader.resources[name1]
+            || app.loader.resources[name1]
+        ) {
+            final(app.loader.resources);
+            return;
+        }
+        app.loader
+            .add(name1, 'http://localhost:7001/public/spell_circle_1.rgba.png')
+            .add(name2, 'http://localhost:7001/public/spell_circle_2.rgba.png')
+            .load((loader, resources) => {
+                final(resources);
+            });
+
+        function final(resources: Record<string, LoaderResource>) {
+            playerAnimateMap[name1] = new AnimatedSprite([
+                resources[name1].texture as Texture
+            ]);
+            playerAnimateMap[name2] = new AnimatedSprite([
+                resources[name2].texture as Texture
+            ]);
+            r();
+        }
+    });
+
+    initUpgradeSprites(upgradeSpriteMap);
+
+    // Listen for frame updates
+    const cloneResourceMap = () => ({
+        resources,
+        playerAnimateMap: cloneAnimationSprites(playerAnimateMap),
+        bowAnimateMap: cloneAnimationSprites(bowAnimateMap),
+        gunAnimateMap: cloneAnimationSprites(gunAnimateMap),
+        enemyAnimateMap: cloneAnimationSprites(enemyAnimateMap),
+        hitEffect,
+        treeAnimateMap,
+        upgradeSpriteMap,
+        freezeFXSmallSpriteMap,
+        powerupPanelSpriteMap,
+    });
+
+
+    const runnerApp = getRunnerApp();
+    runnerApp.setGetResourceMap((cloneResourceMap as unknown) as GetResourceFunc);
+
+    return cloneResourceMap;
+}
+
+type ResolveType<T extends Promise<any>> = T extends Promise<infer R> ? R : any;
+
+
+export type CurrentResourceMapFunc = ReturnType<(ResolveType<(ReturnType<(typeof setupResource)>)>)>;
