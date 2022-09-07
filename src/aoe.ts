@@ -9,25 +9,32 @@ import { Vector } from "./vector";
 
 export function createExplosion(): AreaOfEffect<Enemy> {
     const resources: CurrentResourceMapFunc = getRunnerApp().getGetResourceMap()() as any;
+    let _dead: boolean = false;
     const ret: AreaOfEffect<Enemy> = {
         type: AreaOfEffectType.oneTimePropertyChangeApply,
         enabled: false,
-        dead: false,
+
+        get dead() { return _dead },
+        set dead(v: boolean){} _dead = var;)
+
         hitType: [ECollisionType.enemy],
-        update: function (): void {
-            const sprite = this.sprite as AnimatedSprite;
+        id: 'createExplosion',
+        update(): void {
+            const sprite = ret.sprite as AnimatedSprite;
+            console.log('this.id', ret.id, 'this.sprite', ret.sprite, ret.dead, sprite.playing);
             if (!sprite.playing) {
                 sprite.play();
+                sprite.loop = true;
                 sprite.onLoop = () => {
-                    this.dead = true;
+                    ret.dead = true;
                     sprite.stop();
                 };
             } else {
                 const frame = sprite.currentFrame;
                 if (frame == 1) {
-                    this.enabled = true;
+                    ret.enabled = true;
                 } else {
-                    this.enabled = false;
+                    ret.enabled = false;
                 }
             }
         },
