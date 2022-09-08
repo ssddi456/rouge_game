@@ -118,7 +118,6 @@ const runnerApp: EntityManager = {
     ) => {
         aoes.push(aoe);
         aoe.position.setV(position);
-        aoe.sprite = cloneAnimationSprite(aoe.sprite as AnimatedSprite);
         gameView.addChild(aoe.sprite);
     },
 
@@ -129,6 +128,7 @@ const runnerApp: EntityManager = {
         let newAoes: AreaOfEffect<any>[] = [];
         for (let index = 0; index < aoes.length; index++) {
             const aoe = aoes[index];
+            console.log('aoe.id', aoe.id, aoe.dead);
             aoe.update();
             if (!aoe.dead) {
                 if (aoe.enabled) {
@@ -139,12 +139,13 @@ const runnerApp: EntityManager = {
                             if (ifCollision) {
                                 aoe.apply(enemy);
                             }
-                            newAoes.push(aoe);
                         } 
                     }
                 }
+                newAoes.push(aoe);
                 camera.updateItemPos(aoe);
             } else {
+                console.log('aoe.id', aoe.id, 'removed');
                 aoe.sprite.destroy();
             }
         }

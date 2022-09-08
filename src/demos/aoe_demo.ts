@@ -53,8 +53,10 @@ const context = createDemoContext(
 
             });
 
-            countdown = new CountDown(1000, () => {
+            countdown = new CountDown(3000, () => {
                 getRunnerApp().emitAOE(new Vector(600, 200), createExplosion());
+                getRunnerApp().emitAOE(new Vector(900, 200), createExplosion({ radius: 90 }));
+
             });
 
             return function () {

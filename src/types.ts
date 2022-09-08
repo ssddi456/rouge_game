@@ -52,6 +52,7 @@ export abstract class UpdatableObject implements Updatable, Disposible {
 }
 
 export interface GameObject {
+    id?: string;
     position: Vector;
     prev_position: Vector;
     sprite: DisplayObject;
