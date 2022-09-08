@@ -117,6 +117,8 @@ const runnerApp: EntityManager = {
         aoe
     ) => {
         aoes.push(aoe);
+        aoe.position.setV(position);
+        aoe.sprite = cloneAnimationSprite(aoe.sprite as AnimatedSprite);
         gameView.addChild(aoe.sprite);
     },
 
@@ -141,6 +143,7 @@ const runnerApp: EntityManager = {
                         } 
                     }
                 }
+                camera.updateItemPos(aoe);
             } else {
                 aoe.sprite.destroy();
             }

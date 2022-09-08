@@ -170,6 +170,7 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
         this.bufferList = [];
         this.assets = [];
         this.ground_assets = [];
+        this.sprite.filters = [];
     }
 
     cacheProperty() {

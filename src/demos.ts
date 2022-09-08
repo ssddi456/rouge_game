@@ -14,7 +14,7 @@ import { Camera } from './camara';
 import { Player } from './player';
 import { Vector } from './vector';
 import { EnemyStub } from './demos/enemy_stub';
-import { loadSpriteSheet, setupResource } from './loadAnimation';
+import { setupResource } from './loadAnimation';
 
 const app = new PIXI.Application({
     backgroundColor: 0x1099bb,

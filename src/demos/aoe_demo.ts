@@ -1,12 +1,13 @@
-import { AnimatedSprite, Container, Graphics, Point, Renderer } from "pixi.js";
-import { Camera } from "../camara";
 import { CountDown } from "../countdown";
 import { loadSpriteSheet } from "../loadAnimation";
 import { getRunnerApp } from "../runnerApp";
 import { Vector } from "../vector";
 import { createDemoContext } from "../helper/demo_util";
-import { HotClass } from "../helper/class_reloader";
 import { cloneAnimationSprite } from "../sprite_utils";
+import { createExplosion } from "../aoe";
+
+let countdown = undefined as (CountDown | undefined);
+
 
 const context = createDemoContext(
     module,
@@ -50,11 +51,18 @@ const context = createDemoContext(
                 item.scale.set(x.scale, x.scale);
                 item.play();
 
-            })
+            });
+
+            countdown = new CountDown(1000, () => {
+                getRunnerApp().emitAOE(new Vector(600, 200), createExplosion());
+            });
 
             return function () {
-
+                countdown!.update();
             }
+        },
+        dispose() {
+            countdown = undefined;
         }
     });
 

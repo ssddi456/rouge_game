@@ -2,21 +2,18 @@ import * as PIXI from 'pixi.js'
 import './user_input';
 
 import { Viewport } from 'pixi-viewport'
-import { getImageUrl, loadSprites, loadSpriteSheet, setupResource } from './loadAnimation';
+import { getImageUrl, setupResource } from './loadAnimation';
 import { getRunnerApp } from './runnerApp';
 import { Stage } from '@pixi/layers';
 import { ForestLevel } from './levels/forest';
 import { LevelManager } from './level';
 import { SnowFieldLevel } from './levels/snowfield';
-import { cloneAnimationSprites } from './sprite_utils';
-import { AnimatedSprite, Container, Graphics, LoaderResource, Texture } from 'pixi.js';
+import { AnimatedSprite, Container, Graphics } from 'pixi.js';
 import { LevelMenu } from './menu/level';
 import { DimmyLevel } from './levels/dimmy';
 import { Curser } from './curser';
 import { StatusMenu } from './menu/status';
 import { WelcomeLevel } from './levels/welcome';
-import { GetResourceFunc } from './types';
-import { initUpgradeSprites } from './upgrades/base';
 
 document.body.style.padding = "0";
 document.body.style.margin = "0";
