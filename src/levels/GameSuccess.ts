@@ -14,29 +14,24 @@ import { GameSuccessMenu } from "../menu/gameSuccess";
 import { getRunnerApp } from "../runnerApp";
 
 @HotClass({ module })
-export class GameSuccessLevel implements Level {    ui: GameSuccessMenu;
+export class GameSuccessLevel extends Level {
+    ui: GameSuccessMenu;
 
     constructor(
         public app: Application,
         public getResources: () => Record<string, Record<string, any>>
     ) {
+        super(app, getResources);
         this.ui = new GameSuccessMenu((null as any) as Container, 0, 0,);
     }
-
-    player: Player | undefined;
-    warfog: warfog | undefined;
-    camera: Camera | undefined;
-    enemys: EnemyPool | undefined;
-    droplets: DropletPool | undefined;
-    blockContext: (Updatable & Disposible) | undefined;
-    groups: { uiGroup: Group; skyGroup: Group; textGroup: Group; ammoGroup: Group; overGroundGroup: Group; groundGroup: Group; dropletGroup: Group; } | undefined;
-    ground: TilingSprite | undefined;
-    forest: Forest | undefined;
-    session: GameSession | undefined;
 
     init(
         gameView: Container,
     ): void {
+
+        this.session = new GameSession();
+        getRunnerApp().setSession(this.session);
+
         this.ui.container = gameView;
         this.ui.width = (gameView as any).worldWidth;
         this.ui.height = (gameView as any).worldHeight;
@@ -45,12 +40,16 @@ export class GameSuccessLevel implements Level {    ui: GameSuccessMenu;
     }
 
     update(): void {
+        super.update();
+
         // make a keyup events
         getRunnerApp().getLevelManager().enterLevel('welcome');
 
     }
 
     dispose(): void {
+        super.dispose();
+
         this.ui.dispose();
         (this.ui as any) = undefined;
     }

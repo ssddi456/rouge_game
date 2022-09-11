@@ -10,6 +10,8 @@ export class GameSession {
     
     upgrades: Upgrade[] = [];
     sessionStart: number = 0;
+    timeElipsed: number = 0;
+
     constructor() {
         
     }
@@ -17,6 +19,7 @@ export class GameSession {
     init(player: Player) {
         this.player = player;
         this.sessionStart = getRunnerApp().now();
+        this.timeElipsed = 0;
         // init values
     }
 
@@ -34,15 +37,20 @@ export class GameSession {
         return false;
     }
 
+    now(): number {
+        return this.timeElipsed;
+    }
+
     ifSessionFailed(): boolean {
-        const app = getRunnerApp();
-        if (app.now() - this.sessionStart > 30e3) {
+        if (this.now() > 30e3) {
             return true;
         }
         return false;
     }
 
     update() {
+        this.timeElipsed += getRunnerApp().getApp().ticker.elapsedMS;
+
         if (this.ifSessionSuccess()) {
             getRunnerApp().getLevelManager().enterLevel('gamesuccess');
             return true;

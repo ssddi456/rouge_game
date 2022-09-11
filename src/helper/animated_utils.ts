@@ -14,7 +14,6 @@ export class IdleJump implements Disposible {
             height: number
         }
     ) {
-        this.handler = this.handler.bind(this);
         Ticker.shared.add(this.handler);
     }
 

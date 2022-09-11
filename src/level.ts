@@ -31,10 +31,10 @@ export abstract class Level {
     
     update() {
         const session = this.session!;
-        const player = this.player!;
+        const player = this.player;
         const warfog = this.warfog!;
         const camera = this.camera!;
-        const enemys = this.enemys!;
+        const enemys = this.enemys;
         const droplets = this.droplets!;
         const blockContext = this.blockContext!;
         const groups = this.groups!;
@@ -44,107 +44,98 @@ export abstract class Level {
         const runnerApp = getRunnerApp();
 
         // each frame we spin the bunny around a bit
-        session.update();
-        player.update();
-        camera.update(player);
+        session?.update();
+        player?.update();
+        camera?.update(player!);
         warfog?.update();
 
-        runnerApp.updateAOE();
-        enemys.update();
+        runnerApp?.updateAOE();
+        enemys?.update();
 
-        droplets.update();
-        blockContext.update(player.position.x, player.position.y);
+        droplets?.update();
+        blockContext?.update(player?.position.x, player?.position.y);
 
         // for debugers
         // collisionView.update();
 
-        player.sprite.parentGroup = groups.overGroundGroup;
-        camera.updateItemPos(player);
+        player && (player.sprite.parentGroup = groups.overGroundGroup);
+        camera?.updateItemPos(player!);
         // do
-
-        for (let index = 0; index < enemys.pool.length; index++) {
-            const element = enemys.pool[index];
-            element.sprite.parentGroup = groups.overGroundGroup;
-            if (!element.dead) {
-                camera.updateItemPos(element);
+        if (enemys) {
+            for (let index = 0; index < enemys.pool.length; index++) {
+                const element = enemys.pool[index];
+                element.sprite.parentGroup = groups.overGroundGroup;
+                if (!element.dead) {
+                    camera.updateItemPos(element);
+                }
             }
         }
 
         // this.debug();
+        if (grass) {
+            grass.tilePosition = camera.offset.clone().multiplyScalar(-1) as any;
+        }
 
-        grass.tilePosition = camera.offset.clone().multiplyScalar(-1) as any;
-        for (let index = 0; index < player.ammoPools.pool.length; index++) {
-            const element = player.ammoPools.pool[index];
-            element.sprite.parentGroup = groups.ammoGroup;
-
-            if (!element.dead) {
-                camera.updateItemPos(element);
+        if (player) {
+            for (let index = 0; index < player.ammoPools.pool.length; index++) {
+                const element = player.ammoPools.pool[index];
+                element.sprite.parentGroup = groups.ammoGroup;
+                
+                if (!element.dead) {
+                    camera.updateItemPos(element);
+                }
             }
         }
 
-        for (let index = 0; index < droplets.pool.length; index++) {
-            const element = droplets.pool[index];
-            element.sprite.parentGroup = groups.dropletGroup;
-
-            if (!element.dead) {
-                camera.updateItemPos(element);
+        if (droplets) {
+            for (let index = 0; index < droplets.pool.length; index++) {
+                const element = droplets.pool[index];
+                element.sprite.parentGroup = groups.dropletGroup;
+    
+                if (!element.dead) {
+                    camera.updateItemPos(element);
+                }
             }
         }
 
-        for (let index = 0; index < forest.trees.length; index++) {
-            const element = forest.trees[index];
-            if (!element.dead) {
-                element.sprite.parentGroup = groups.overGroundGroup;
-                element.update();
-                camera.updateItemPos(element);
+        if (forest) {
+            for (let index = 0; index < forest.trees.length; index++) {
+                const element = forest.trees[index];
+                if (!element.dead) {
+                    element.sprite.parentGroup = groups.overGroundGroup;
+                    element.update();
+                    camera.updateItemPos(element);
+                }
             }
         }
 
         runnerApp.updateParticles();
-        const particles = runnerApp.getPariticles();
-
-        for (let index = 0; index < particles.length; index++) {
-            const element = particles[index];
-            element.sprite.parentGroup = groups.overGroundGroup;
-            if (!element.dead) {
-                camera.updateItemPos(element);
-            }
-        }
-        const textParticles = runnerApp.getTextParticles();
-
-        for (let index = 0; index < textParticles.length; index++) {
-            const element = textParticles[index];
-            element.sprite.parentGroup = groups.textGroup;
-            if (!element.dead) {
-                camera.updateItemPos(element);
-            }
-        }
     }
 
     dispose() {
-        const session = this.session!;
+        const session = this.session;
 
-        const player = this.player!;
-        player.dispose();
+        const player = this.player;
+        player?.dispose();
 
-        const warfog = this.warfog!;
+        const warfog = this.warfog;
         warfog?.graphic.destroy();
-        const camera = this.camera!;
+        const camera = this.camera;
 
-        const enemys = this.enemys!;
-        enemys.pool = [];
+        const enemys = this.enemys;
+        enemys?.dispose();
 
-        const droplets = this.droplets!;
-        droplets.pool = [];
+        const droplets = this.droplets;
+        droplets && (droplets.pool = []);
 
-        const blockContext = this.blockContext!;
-        blockContext.dispose();
+        const blockContext = this.blockContext;
+        blockContext?.dispose();
 
-        const groups = this.groups!;
-        const grass = this.ground!;
+        const groups = this.groups;
+        const grass = this.ground;
 
-        const forest = this.forest!;
-        forest.trees = [];
+        const forest = this.forest;
+        forest && (forest.trees = []);
 
         this.session = undefined;
         this.player = undefined;

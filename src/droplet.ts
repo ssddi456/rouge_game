@@ -2,11 +2,11 @@ import { Container, Sprite } from "pixi.js";
 import { checkCollision } from "./collision_helper";
 import { Player } from "./player";
 import { getRunnerApp } from "./runnerApp";
-import { ECollisionType, GameObject, ICollisionable, IObjectPools } from "./types";
+import { ECollisionType, GameObject, ICollisionable, IObjectPools, UpdatableObject } from "./types";
 import { Vector } from "./vector";
 
 
-export class Droplets implements GameObject, ICollisionable {
+export class Droplets extends UpdatableObject implements GameObject, ICollisionable {
     prev_position: Vector = new Vector(0, 0);
     position: Vector = new Vector(0, 0);
     sprite = new Container();
@@ -23,6 +23,7 @@ export class Droplets implements GameObject, ICollisionable {
         sprite: Sprite,
         public container: Container,
     ) {
+        super();
         this.sprite.addChild(sprite);
         container.addChild(this.sprite);
     }
@@ -105,7 +106,13 @@ export class DropletPool implements IObjectPools {
                 }
             }
         }
-
     }
 
+    dispose(): void {
+        for (let index = 0; index < this.pool.length; index++) {
+            const element = this.pool[index];
+            element.dispose();
+        }
+        this.pool.length = 0;
+    }
 }

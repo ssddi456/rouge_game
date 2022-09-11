@@ -8,7 +8,7 @@ export class CountDown implements Updatable {
         public interval: number,
         public exec: Function
     ) {
-        
+        this.last_update_time = getRunnerApp().now() || 0;
     }
 
     update() {

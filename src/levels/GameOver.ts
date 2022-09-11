@@ -16,7 +16,7 @@ import { getRunnerApp } from "../runnerApp";
 import { CountDown } from "../countdown";
 
 @HotClass({ module })
-export class GameOverLevel implements Level {
+export class GameOverLevel extends Level {
 
     ui: GameOverMenu;
 
@@ -24,40 +24,37 @@ export class GameOverLevel implements Level {
         public app: Application,
         public getResources: () => Record<string, Record<string, any>>
     ) {
+        super(app, getResources);
         this.ui = new GameOverMenu((null as any) as Container, 0, 0,);
     }
 
-    player: Player | undefined;
-    warfog: warfog | undefined;
-    camera: Camera | undefined;
-    enemys: EnemyPool | undefined;
-    droplets: DropletPool | undefined;
-    blockContext: (Updatable & Disposible) | undefined;
-    groups: { uiGroup: Group; skyGroup: Group; textGroup: Group; ammoGroup: Group; overGroundGroup: Group; groundGroup: Group; dropletGroup: Group; } | undefined;
-    ground: TilingSprite | undefined;
-    forest: Forest | undefined;
-    session: GameSession | undefined;
-
     minDisplayTimer: CountDown | undefined;
     listeningKey: boolean = false;
+    updateFrames = 0;
 
     init(
         gameView: Container,
     ): void {
+
+        this.session = new GameSession();
+        getRunnerApp().setSession(this.session);
+
         this.ui.container = gameView;
         this.ui.width = (gameView as any).worldWidth;
         this.ui.height = (gameView as any).worldHeight;
-
+        this.listeningKey = false;
+        this.updateFrames = 0;
         this.minDisplayTimer = new CountDown(3000, () => {
+            console.log('updateFrames', this.updateFrames, 'change this.listeningKey', this.listeningKey);
             cleanInput();
             this.listeningKey = true;
         });
-        this.listeningKey = false;
 
         this.ui.init();
     }
 
     waitForAnyKey() {
+        console.log('updateFrames', this.updateFrames, 'this.listeningKey', this.listeningKey);
         for (const key in keypressed) {
             if (Object.prototype.hasOwnProperty.call(keypressed, key)) {
                 const element = keypressed[key];
@@ -71,14 +68,20 @@ export class GameOverLevel implements Level {
 
     update(): void {
         // make a keyup events
-        
-        this.minDisplayTimer!.update();
+        super.update();
+
         if (this.listeningKey) {
             this.waitForAnyKey();
+        } else {
+            this.minDisplayTimer!.update();
         }
+        this.updateFrames ++;
+
     }
 
     dispose(): void {
+        super.dispose();
+
         this.ui.dispose();
         this.minDisplayTimer = undefined;
     }

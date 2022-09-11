@@ -162,7 +162,7 @@ const runnerApp: EntityManager = {
         app.ticker.start();
     },
     now() {
-        return timeElipsed;
+        return session ? session.now() : timeElipsed;
     },
     setApp(a: Application) {
         app = a;
