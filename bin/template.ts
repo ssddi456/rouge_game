@@ -2,6 +2,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import template from 'lodash/template';
 import * as inquirer from 'inquirer';
+import { camelCase } from 'lodash';
 
 
 (async () => {
@@ -11,7 +12,8 @@ import * as inquirer from 'inquirer';
         type: 'list',
         choices: [
             'demo',
-            'level'
+            'level',
+            'menu',
         ]
     });
 
@@ -24,9 +26,11 @@ import * as inquirer from 'inquirer';
     console.log('templatingType', templatingType, 'templatingName', templatingName);
     
     const templateText = await fs.readFile(path.join(__dirname, `../template/${templatingType.templateType}.ts.tpl`), 'utf8');
+    const templateName = templatingName.templateName;
     const rendered = template(templateText)({
         ...templatingType,
-        ...templatingName
+        templateName,
+        camelCasetemplateName: templateName[0].toUpperCase() + templateName.slice(1)
     });
     
     switch (templatingType.templateType) {
@@ -35,6 +39,9 @@ import * as inquirer from 'inquirer';
             break;
         case 'level':
             await fs.writeFile(path.join(__dirname, `../src/levels/${templatingName.templateName}.ts`), rendered);
+            break;
+        case 'menu':
+            await fs.writeFile(path.join(__dirname, `../src/menu/${templatingName.templateName}.ts`), rendered);
             break;
         default:
             throw new Error('illegal templatingType');

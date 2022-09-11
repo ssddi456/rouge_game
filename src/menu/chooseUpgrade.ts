@@ -43,9 +43,6 @@ export class ChooseUpgradeMenu extends BaseMenu {
         console.log(this.width);
     }
 
-    getRowWidth() {
-        return this.width - 2 * this.paddingHorizontal
-    }
 
     addChoosable() {
 

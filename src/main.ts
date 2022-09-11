@@ -14,6 +14,8 @@ import { DimmyLevel } from './levels/dimmy';
 import { Curser } from './curser';
 import { StatusMenu } from './menu/status';
 import { WelcomeLevel } from './levels/welcome';
+import { GameOverLevel } from './levels/GameOver';
+import { GameSuccessLevel } from './levels/GameSuccess';
 
 document.body.style.padding = "0";
 document.body.style.margin = "0";
@@ -107,9 +109,12 @@ app.loader
         levelManager.registerLevel('forest', ForestLevel);
         levelManager.registerLevel('snowfield', SnowFieldLevel);
         levelManager.registerLevel('dimmy', DimmyLevel);
+        levelManager.registerLevel('gameover', GameOverLevel);
+        levelManager.registerLevel('gamesuccess', GameSuccessLevel);
 
-        // levelManager.enterLevel('welcome');
-        levelManager.enterLevel('forest');
+        levelManager.enterLevel('welcome');
+        // levelManager.enterLevel('forest');
+        // levelManager.enterLevel('gameover');
 
         (window as any).switchLevel = function (level: string) {
             levelManager.enterLevel(level);

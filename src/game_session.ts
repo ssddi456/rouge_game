@@ -1,5 +1,6 @@
 import { HotClass } from "./helper/class_reloader";
 import { Player } from "./player";
+import { getRunnerApp } from "./runnerApp";
 import { Upgrade } from "./upgrades/base";
 
 @HotClass({ module })
@@ -33,6 +34,10 @@ export class GameSession {
     }
 
     ifSessionFailed(): boolean {
+        const app = getRunnerApp();
+        if (app.now() > 30e3) {
+            return true;
+        }
         return false;
     }
 

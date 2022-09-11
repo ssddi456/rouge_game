@@ -86,6 +86,10 @@ export abstract class BaseMenu {
         return row;
     }
 
+    getRowWidth() {
+        return this.width - 2 * this.paddingHorizontal
+    }
+
     addButton(parent: Container, text: string, options: Partial<{ height: number }>) {
         const cOptioons = {
             height: 20,
