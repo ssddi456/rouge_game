@@ -54,7 +54,6 @@ export class GameOverLevel extends Level {
     }
 
     waitForAnyKey() {
-        console.log('updateFrames', this.updateFrames, 'this.listeningKey', this.listeningKey);
         for (const key in keypressed) {
             if (Object.prototype.hasOwnProperty.call(keypressed, key)) {
                 const element = keypressed[key];
