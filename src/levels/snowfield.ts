@@ -85,6 +85,7 @@ export class SnowFieldLevel extends Level {
         this.player = player;
         runnerApp.setPlayer(player);
         this.session = new GameSession();
+        this.session.init(this.player);
         runnerApp.setSession(this.session);
 
         const curserG = new Graphics();

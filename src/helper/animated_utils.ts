@@ -4,6 +4,7 @@ import { Disposible, } from "../types";
 export class IdleJump implements Disposible {
 
     currentFrame = 0;
+    disposed: boolean = false;
 
     constructor(
         public target: DisplayObject,
@@ -13,10 +14,14 @@ export class IdleJump implements Disposible {
             height: number
         }
     ) {
+        this.handler = this.handler.bind(this);
         Ticker.shared.add(this.handler);
     }
 
     handler = () => {
+        if (this.disposed) {
+            return;
+        }
         this.currentFrame += 1;
         const realFrame = this.currentFrame % this.options.frames;
         const percent = realFrame / this.options.frames;

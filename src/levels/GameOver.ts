@@ -11,7 +11,7 @@ import { Forest } from "../tree";
 import { Updatable, Disposible } from "../types";
 import warfog from "../warfog";
 import { GameOverMenu } from "../menu/gameOver";
-import { keypressed } from "../user_input";
+import { cleanInput, keypressed } from "../user_input";
 import { getRunnerApp } from "../runnerApp";
 import { CountDown } from "../countdown";
 
@@ -39,6 +39,7 @@ export class GameOverLevel implements Level {
     session: GameSession | undefined;
 
     minDisplayTimer: CountDown | undefined;
+    listeningKey: boolean = false;
 
     init(
         gameView: Container,
@@ -46,17 +47,23 @@ export class GameOverLevel implements Level {
         this.ui.container = gameView;
         this.ui.width = (gameView as any).worldWidth;
         this.ui.height = (gameView as any).worldHeight;
-        this.minDisplayTimer = new CountDown(3000, () => this.waitForAnyKey());
+
+        this.minDisplayTimer = new CountDown(3000, () => {
+            cleanInput();
+            this.listeningKey = true;
+        });
+        this.listeningKey = false;
 
         this.ui.init();
     }
 
-    waitForAnyKey = () => {
+    waitForAnyKey() {
         for (const key in keypressed) {
             if (Object.prototype.hasOwnProperty.call(keypressed, key)) {
                 const element = keypressed[key];
                 if (element == 1) {
                     getRunnerApp().getLevelManager().enterLevel('welcome');
+                    return;
                 }
             }
         }
@@ -66,13 +73,13 @@ export class GameOverLevel implements Level {
         // make a keyup events
         
         this.minDisplayTimer!.update();
-
+        if (this.listeningKey) {
+            this.waitForAnyKey();
+        }
     }
 
     dispose(): void {
         this.ui.dispose();
-        (this.ui as any) = undefined;
         this.minDisplayTimer = undefined;
-
     }
 }

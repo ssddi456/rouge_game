@@ -15,8 +15,11 @@ export interface Updatable {
     update(...args: any[]): void;
 }
 
-export interface Disposible {
-    dispose(): void
+export abstract class Disposible {
+    disposed: boolean = false;
+    dispose() {
+        this.disposed = true;
+    }
 }
 
 export abstract class UpdatableObject implements Updatable, Disposible {

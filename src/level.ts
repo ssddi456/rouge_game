@@ -192,19 +192,24 @@ export class LevelManager {
 
     enterLevel(levelId: string) {
         this.app.ticker.stop();
-        this.dispose();
-
-        if (!this.levelClassMap[levelId]) {
-            throw new Error(`cannot found level ${levelId}`);
-        }
-        if (!this.levelMap[levelId]) {
-            this.levelMap[levelId] = new this.levelClassMap[levelId](this.app, this.getResources);
-        }
-        const currentLevel = this.levelMap[levelId];
-
-        currentLevel.init(this.gameView);
-        this.currentLevel = currentLevel;
-        this.app.ticker.start();
+        return new Promise<void>(resolve => {
+            requestAnimationFrame(() => {
+                this.dispose();
+        
+                if (!this.levelClassMap[levelId]) {
+                    throw new Error(`cannot found level ${levelId}`);
+                }
+                if (!this.levelMap[levelId]) {
+                    this.levelMap[levelId] = new this.levelClassMap[levelId](this.app, this.getResources);
+                }
+                const currentLevel = this.levelMap[levelId];
+        
+                currentLevel.init(this.gameView);
+                this.currentLevel = currentLevel;
+                this.app.ticker.start();
+                resolve();
+            });
+        });
     }
 
     registerLevel(name: string, level: new (...args: any[]) => Level) {

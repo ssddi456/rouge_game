@@ -219,6 +219,7 @@ export function createBlockContext<T>({
 
     return {
         update,
-        dispose
+        disposed: false,
+        dispose,
     };
 }

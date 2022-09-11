@@ -12,6 +12,14 @@ function keyAlias() {
     keypressed.shoot = keypressed.c;
 }
 
+export function cleanInput() {
+    for (const key in keypressed) {
+        if (Object.prototype.hasOwnProperty.call(keypressed, key)) {
+            keypressed[key] = 0;
+        }
+    }
+    keyAlias();
+}
 
 window.addEventListener('keydown', (e) => {
     keypressed[e.key] = 1;

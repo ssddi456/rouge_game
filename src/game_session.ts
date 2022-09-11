@@ -9,13 +9,14 @@ export class GameSession {
     metric:Record<string, number> = {};
     
     upgrades: Upgrade[] = [];
-
+    sessionStart: number = 0;
     constructor() {
         
     }
 
     init(player: Player) {
         this.player = player;
+        this.sessionStart = getRunnerApp().now();
         // init values
     }
 
@@ -35,7 +36,7 @@ export class GameSession {
 
     ifSessionFailed(): boolean {
         const app = getRunnerApp();
-        if (app.now() > 30e3) {
+        if (app.now() - this.sessionStart > 30e3) {
             return true;
         }
         return false;
@@ -43,9 +44,11 @@ export class GameSession {
 
     update() {
         if (this.ifSessionSuccess()) {
+            getRunnerApp().getLevelManager().enterLevel('gamesuccess');
             return true;
         }
         if (this.ifSessionFailed()) {
+            getRunnerApp().getLevelManager().enterLevel('gameover');
             return true;
         }
     }

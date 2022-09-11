@@ -88,6 +88,7 @@ export class ForestLevel extends Level {
         runnerApp.setPlayer(player);
 
         this.session = new GameSession();
+        this.session.init(this.player);
         runnerApp.setSession(this.session);
 
         const curserG = new Graphics();

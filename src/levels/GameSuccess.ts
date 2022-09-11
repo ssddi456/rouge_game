@@ -10,7 +10,6 @@ import { Player } from "../player";
 import { Forest } from "../tree";
 import { Updatable, Disposible } from "../types";
 import warfog from "../warfog";
-import { GameOverMenu } from "../menu/gameOver";
 import { GameSuccessMenu } from "../menu/gameSuccess";
 import { getRunnerApp } from "../runnerApp";
 

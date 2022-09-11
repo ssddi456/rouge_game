@@ -372,6 +372,10 @@ export class EnemyPool extends UpdatableObject implements IObjectPools {
 
     dispose(): void {
         super.dispose();
+        for (let index = 0; index < this.pool.length; index++) {
+            const element = this.pool[index];
+            element.dispose();
+        }
         this.pool.length = 0;
     }
 }
