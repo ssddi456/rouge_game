@@ -22,9 +22,6 @@ export class PlayerStatusMenu extends BaseMenu {
     init() {
         this.initSprite();
         (this.sprite as any).displayName = 'PlayerStatusMenu';
-        this.sprite!.render = hookRender(this.sprite!.render, () => {
-            console.log('PlayerStatusMenu rendering');
-        });
 
         this.initTime();
         this.initHealth();
