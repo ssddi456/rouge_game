@@ -30,3 +30,11 @@ export function cloneSprite(sprite: Sprite) {
     const ret = new Sprite(sprite.texture);
     return ret;
 }
+
+
+export function hookRender(_oldRender: Function, handle: Function) {
+    return function render(this: any, ...args: any[]) {
+        handle.call(this);
+        return _oldRender.call(this, ...args);
+    };
+}

@@ -1,9 +1,11 @@
-import { Application, Container, TilingSprite } from "pixi.js";
+import { Stage } from "@pixi/layers";
+import { Application, Container, State, TilingSprite } from "pixi.js";
 import { Camera } from "./camara";
 import { DropletPool } from "./droplet";
 import { EnemyPool } from "./enemy";
 import { GameSession } from "./game_session";
 import { createGroups } from "./groups";
+import { BaseMenu } from "./menu/base";
 import { Player } from "./player";
 import { getRunnerApp } from "./runnerApp";
 import { Forest } from "./tree";
@@ -11,13 +13,13 @@ import { Updatable, Disposible } from "./types";
 import WarFog from "./warfog";
 
 export abstract class Level {
+    ui: BaseMenu | undefined = undefined;
     player: Player | undefined = undefined;
     warfog: WarFog | undefined = undefined;
     camera: Camera | undefined = undefined;
     enemys: EnemyPool | undefined = undefined;
     droplets: DropletPool | undefined = undefined;
     blockContext: (Updatable & Disposible) | undefined = undefined;
-    groups: ReturnType<typeof createGroups> | undefined = undefined;
     ground: TilingSprite | undefined = undefined;
     forest: Forest | undefined = undefined;
     session: GameSession | undefined = undefined;
@@ -30,18 +32,19 @@ export abstract class Level {
     abstract init(gameView: Container): void;
     
     update() {
-        const session = this.session!;
+        const session = this.session;
         const player = this.player;
-        const warfog = this.warfog!;
-        const camera = this.camera!;
+        const warfog = this.warfog;
+        const camera = this.camera;
         const enemys = this.enemys;
-        const droplets = this.droplets!;
-        const blockContext = this.blockContext!;
-        const groups = this.groups!;
-        const grass = this.ground!;
-        const forest = this.forest!;
+        const droplets = this.droplets;
+        const blockContext = this.blockContext;
+        const grass = this.ground;
+        const forest = this.forest;
+        const ui = this.ui;
 
         const runnerApp = getRunnerApp();
+        const groups = runnerApp.getGroups();
 
         // each frame we spin the bunny around a bit
         session?.update();
@@ -54,17 +57,18 @@ export abstract class Level {
 
         droplets?.update();
         blockContext?.update(player?.position.x, player?.position.y);
+        ui?.update();
 
         // for debugers
         // collisionView.update();
 
-        player && (player.sprite.parentGroup = groups.overGroundGroup);
+        player && (player.sprite.parentGroup = groups?.overGroundGroup);
         camera?.updateItemPos(player!);
         // do
-        if (enemys) {
+        if (enemys && camera) {
             for (let index = 0; index < enemys.pool.length; index++) {
                 const element = enemys.pool[index];
-                element.sprite.parentGroup = groups.overGroundGroup;
+                element.sprite.parentGroup = groups?.overGroundGroup;
                 if (!element.dead) {
                     camera.updateItemPos(element);
                 }
@@ -72,14 +76,14 @@ export abstract class Level {
         }
 
         // this.debug();
-        if (grass) {
+        if (grass && camera) {
             grass.tilePosition = camera.offset.clone().multiplyScalar(-1) as any;
         }
 
-        if (player) {
+        if (player && camera) {
             for (let index = 0; index < player.ammoPools.pool.length; index++) {
                 const element = player.ammoPools.pool[index];
-                element.sprite.parentGroup = groups.ammoGroup;
+                element.sprite.parentGroup = groups?.ammoGroup;
                 
                 if (!element.dead) {
                     camera.updateItemPos(element);
@@ -87,10 +91,10 @@ export abstract class Level {
             }
         }
 
-        if (droplets) {
+        if (droplets && camera) {
             for (let index = 0; index < droplets.pool.length; index++) {
                 const element = droplets.pool[index];
-                element.sprite.parentGroup = groups.dropletGroup;
+                element.sprite.parentGroup = groups?.dropletGroup;
     
                 if (!element.dead) {
                     camera.updateItemPos(element);
@@ -98,11 +102,11 @@ export abstract class Level {
             }
         }
 
-        if (forest) {
+        if (forest && camera) {
             for (let index = 0; index < forest.trees.length; index++) {
                 const element = forest.trees[index];
                 if (!element.dead) {
-                    element.sprite.parentGroup = groups.overGroundGroup;
+                    element.sprite.parentGroup = groups?.overGroundGroup;
                     element.update();
                     camera.updateItemPos(element);
                 }
@@ -131,11 +135,13 @@ export abstract class Level {
         const blockContext = this.blockContext;
         blockContext?.dispose();
 
-        const groups = this.groups;
         const grass = this.ground;
 
         const forest = this.forest;
         forest && (forest.trees = []);
+
+        const ui = this.ui;
+        ui?.dispose();
 
         this.session = undefined;
         this.player = undefined;
@@ -144,9 +150,9 @@ export abstract class Level {
         this.enemys = undefined;
         this.droplets = undefined;
         this.blockContext = undefined;
-        this.groups = undefined;
         this.ground = undefined;
         this.forest = undefined;
+        this.ui = undefined;
     }
 }
 
@@ -190,11 +196,12 @@ export class LevelManager {
                 if (!this.levelClassMap[levelId]) {
                     throw new Error(`cannot found level ${levelId}`);
                 }
+                getRunnerApp().setGroups(createGroups(this.gameView as Stage));
                 if (!this.levelMap[levelId]) {
                     this.levelMap[levelId] = new this.levelClassMap[levelId](this.app, this.getResources);
                 }
                 const currentLevel = this.levelMap[levelId];
-        
+
                 currentLevel.init(this.gameView);
                 this.currentLevel = currentLevel;
                 this.app.ticker.start();

@@ -42,7 +42,7 @@ export class GameSession {
     }
 
     ifSessionFailed(): boolean {
-        if (this.now() > 30e3) {
+        if (this.now() > 30*60e3) {
             return true;
         }
         return false;

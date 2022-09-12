@@ -19,7 +19,6 @@ export class LevelMenu extends BaseMenu {
         public width: number,
         public height: number,
         public buttons: { label: string, handle: () => void}[],
-        public onOk: () => void,
         public onCancel: () => void,
 
     ) {
@@ -27,13 +26,7 @@ export class LevelMenu extends BaseMenu {
     }
 
     init () {
-        if (this.sprite) {
-            return;
-        }
-
-        if (!this.sprite) {
-            this.sprite = this.container.addChild(new Container());
-        }
+        this.initSprite();
         this.addBg();
 
         const containerLeft = this.paddingHorizontal - this.containerRadius;
@@ -41,7 +34,7 @@ export class LevelMenu extends BaseMenu {
 
         console.log('containerLeft', containerLeft, 'containerTop', containerTop);
         
-        this.sprite.addChild(new Graphics())
+        this.sprite!.addChild(new Graphics())
             .beginFill(0xeeeeee)
             .drawRoundedRect(containerLeft, this.paddingVertical - 2 * this.containerRadius,
                 this.width - 2 * this.paddingHorizontal - 2 * this.containerRadius,
@@ -84,8 +77,13 @@ export class LevelMenu extends BaseMenu {
         button.on('click', () => {
             handler();
             this.dispose();
-            this.onOk();
         });
+    }
+
+    dispose(): void {
+        super.dispose();
+        this.buttonCount = 0;
+        this.onCancel();
     }
 
 }

@@ -141,6 +141,7 @@ export interface EntityManager {
     setApp(a: Application): void;
     getApp(): Application;
 
+    getPlayer(): Player;
     setPlayer(_player: Player): void;
 
     setEnemys(_enemys: EnemyPool): void;

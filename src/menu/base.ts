@@ -17,6 +17,7 @@ export abstract class BaseMenu {
     bgAlpha = 1;
 
     constructor(
+        /** @internal dont use this */
         public container: Container,
         public width: number,
         public height: number,
@@ -105,6 +106,11 @@ export abstract class BaseMenu {
         textEl.anchor.set(0.5, 0.5)
         textEl.position.set(60, cOptioons.height / 2);
         return container;
+    }
+
+    update() {
+        const groups = getRunnerApp().getGroups();
+        this.sprite!.parentGroup = groups.uiGroup;
     }
 
     dispose() {

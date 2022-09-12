@@ -1,18 +1,19 @@
 import { Viewport } from "pixi-viewport";
-import { AnimatedSprite, Application, Container, DisplayObject, Graphics, Point, Sprite, TilingSprite } from "pixi.js";
+import { AnimatedSprite, Graphics, Point, Sprite, TilingSprite } from "pixi.js";
 import { createBlockContext } from "../block_context";
 import { Camera } from "../camara";
+import { EnemyStub } from "../demos/enemy_stub";
 import { DropletPool } from "../droplet";
 import { EnemyPool } from "../enemy";
 import { GameSession } from "../game_session";
-import { createGroups } from "../groups";
 import { HotClass } from "../helper/class_reloader";
 import { Level } from "../level";
 import { withChooseUpgradeMenuBtn } from "../menu/chooseUpgrade";
+import { PlayerStatusMenu } from "../menu/playerStatus";
 import { Player } from "../player";
+import { Rect } from "../rect";
 import { getRunnerApp } from "../runnerApp";
 import { Forest, Tree } from "../tree";
-import { Disposible, Updatable } from "../types";
 import { Vector } from "../vector";
 import WarFog from "../warfog";
 
@@ -64,8 +65,8 @@ export class ForestLevel extends Level {
         });
 
         const runnerApp = getRunnerApp();
-        const groups = createGroups(gameView);
-        this.groups = groups;
+        const groups = runnerApp.getGroups();
+
         runnerApp.setGroups(groups);
 
         const player = new Player(playerAnimateMap,
@@ -144,8 +145,11 @@ export class ForestLevel extends Level {
         });
         this.blockContext = blockContext;
 
-        const button = withChooseUpgradeMenuBtn(gameView);
-        button.position.set(150, 10);
+
+        this.ui = new PlayerStatusMenu(gameView, (gameView as any).worldWidth, (gameView as any).worldHeight);
+        this.ui.init();
+        // const button = withChooseUpgradeMenuBtn(gameView);
+        // button.position.set(150, 10);
 
         // const warfog = new WarFog(
         //     app.view.width,

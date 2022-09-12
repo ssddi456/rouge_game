@@ -1,16 +1,16 @@
 import { Viewport } from "pixi-viewport";
-import { AnimatedSprite, Application, Container, DisplayObject, Graphics, Point, Sprite, TilingSprite } from "pixi.js";
+import { AnimatedSprite, Graphics, Point, Sprite, TilingSprite } from "pixi.js";
 import { createBlockContext } from "../block_context";
 import { Camera } from "../camara";
 import { DropletPool } from "../droplet";
 import { EnemyPool } from "../enemy";
 import { GameSession } from "../game_session";
-import { createGroups, overGroundZindex } from "../groups";
+import { createGroups } from "../groups";
 import { Level } from "../level";
+import { PlayerStatusMenu } from "../menu/playerStatus";
 import { Player } from "../player";
 import { getRunnerApp } from "../runnerApp";
 import { Forest, Tree } from "../tree";
-import { Disposible, Updatable } from "../types";
 import { Vector } from "../vector";
 import WarFog from "../warfog";
 
@@ -65,6 +65,7 @@ export class SnowFieldLevel extends Level {
         });
 
         const runnerApp = getRunnerApp();
+        const groups = runnerApp.getGroups();
 
         const player = new Player(playerAnimateMap,
             {
@@ -139,8 +140,6 @@ export class SnowFieldLevel extends Level {
             },
         });
         this.blockContext = blockContext;
-        const groups = createGroups(gameView);
-        this.groups = groups;
 
         const warfog = new WarFog(
             app.view.width,
@@ -149,6 +148,9 @@ export class SnowFieldLevel extends Level {
         gameView.addChild(warfog.graphic);
         warfog.graphic.parentGroup = groups.skyGroup;
         this.warfog = warfog;
+
+        this.ui = new PlayerStatusMenu(gameView, (gameView as any).worldWidth, (gameView as any).worldHeight);
+        this.ui.init();
     }
 
 }

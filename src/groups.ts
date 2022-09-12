@@ -1,5 +1,5 @@
 import { Container, Sprite } from "pixi.js";
-import { Group, Layer } from '@pixi/layers';
+import { Group, Layer, Stage } from '@pixi/layers';
 
 export const uiZIndex = 300;
 export const skyZIndex = 200;
@@ -12,7 +12,7 @@ export const groundZIndex = 0;
 
 export const overGroundCenterHeight = 50;
 
-export function createGroup(container: Container, zIndex: number){
+export function createGroup(container: Stage, zIndex: number){
     const displayGroup = new Group(zIndex, true);
     const displayLayer = new Layer(displayGroup);
     // if (zIndex == overGroundZindex) {
@@ -39,7 +39,7 @@ export function createGroup(container: Container, zIndex: number){
     return displayGroup;
 }
 
-export function createGroups (container: Container){
+export function createGroups (container: Stage){
     return {
         uiGroup: createGroup(container, uiZIndex),
         skyGroup: createGroup(container, skyZIndex),

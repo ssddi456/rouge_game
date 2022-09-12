@@ -16,14 +16,13 @@ import { StatusMenu } from './menu/status';
 import { WelcomeLevel } from './levels/welcome';
 import { GameOverLevel } from './levels/GameOver';
 import { GameSuccessLevel } from './levels/GameSuccess';
+import { addTestToolbar } from './menu/test_ui';
 
 document.body.style.padding = "0";
 document.body.style.margin = "0";
 document.body.style.overflow = 'hidden';
 document.documentElement.style.margin = "0";
 document.documentElement.style.padding = "0";
-
-console.log(window.innerWidth, document.documentElement.clientWidth, document.body.clientWidth, document.body.offsetWidth);
 
 // The application will create a renderer using WebGL, if possible,
 // with a fallback to a canvas render. It will also setup the ticker
@@ -104,6 +103,7 @@ app.loader
 
         const levelManager = new LevelManager(app, gameView, cloneResourceMap);
         runnerApp.setLevelManager(levelManager);
+
         // may lazyload but not now
         levelManager.registerLevel('welcome', WelcomeLevel);
         levelManager.registerLevel('forest', ForestLevel);
@@ -112,86 +112,13 @@ app.loader
         levelManager.registerLevel('gameover', GameOverLevel);
         levelManager.registerLevel('gamesuccess', GameSuccessLevel);
 
-        levelManager.enterLevel('welcome');
-        // levelManager.enterLevel('forest');
+        // levelManager.enterLevel('welcome');
+        levelManager.enterLevel('forest');
         // levelManager.enterLevel('gameover');
 
         (window as any).switchLevel = function (level: string) {
             levelManager.enterLevel(level);
         };
 
-        const toolBar = app.stage.addChild(new Container());
-        const levelMenu = new LevelMenu(
-            gameView,
-            gameView.width,
-            gameView.height,
-            [
-                {
-                    label: 'switch to forest',
-                    handle: () => levelManager.enterLevel('forest')
-                },
-                {
-                    label: 'switch to snowfield',
-                    handle: () => levelManager.enterLevel('snowfield')
-                },
-                {
-                    label: 'switch to dimmy',
-                    handle: () => levelManager.enterLevel('dimmy')
-                },
-                {
-                    label: 'switch to welcome',
-                    handle: () => levelManager.enterLevel('welcome')
-                },
-            ],
-            () => {
-                levelManager.levelResume();
-                toolBar.visible = true;
-            },
-            () => {
-                levelManager.levelResume();
-                toolBar.visible = true;
-            },
-        );
-
-        const switchButton = toolBar.addChild(new Graphics())
-            .beginFill(0x666666)
-            .drawRoundedRect(10, 10, 50, 50, 3)
-            .endFill()
-            .lineStyle({
-                color: 0xffffff,
-                width: 4
-            })
-            .moveTo(10 + 5, 15 + 5,).lineTo(10 + 50 - 5, 15 + 5,)
-            .moveTo(10 + 5, 30 + 5,).lineTo(10 + 50 - 5, 30 + 5,)
-            .moveTo(10 + 5, 45 + 5,).lineTo(10 + 50 - 5, 45 + 5,);
-
-        switchButton.interactive = true;
-        switchButton.on('click', () => {
-            levelManager.levelPause();
-            levelMenu.init();
-            toolBar.visible = false;
-        });
-
-        const statusMenu = new StatusMenu(
-            app.stage,
-            app.stage.width,
-            app.stage.height,
-        );
-        const statusButton = toolBar.addChild(new Graphics())
-            .beginFill(0x666666)
-            .drawRoundedRect(10, 10, 50, 50, 3)
-            .endFill()
-            .lineStyle({
-                color: 0xffffff,
-                width: 4
-            })
-            .moveTo(10 + 5, 15 + 5,).lineTo(10 + 50 - 5, 15 + 5,)
-            .moveTo(10 + 5, 30 + 5,).lineTo(10 + 50 - 5, 30 + 5,)
-            .moveTo(10 + 5, 45 + 5,).lineTo(10 + 50 - 5, 45 + 5,);
-
-        statusButton.position.x = 60;
-        statusButton.interactive = true;
-        statusButton.on('click', () => {
-            statusMenu.init();
-        });
+        // addTestToolbar(app, gameView, levelManager);
     });

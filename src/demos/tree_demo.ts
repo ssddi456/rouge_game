@@ -1,4 +1,4 @@
-import { AnimatedSprite, Container, Graphics, Point, Renderer } from "pixi.js";
+import { Text } from "pixi.js";
 import { Camera } from "../camara";
 import { CountDown } from "../countdown";
 import { loadSpriteSheet } from "../loadAnimation";
@@ -16,11 +16,21 @@ const context = createDemoContext(
             const animateContainer = context.animateContainer;
             const treeAnimateMap = await loadSpriteSheet(app.loader, 'Hazel Tree');
 
+            const groups = getRunnerApp().getGroups();
+
             const tree = new Tree(treeAnimateMap);
 
             animateContainer.addChild(tree.sprite);
             tree.position.set(1100, 500);
             tree.update();
+
+            const uiText = animateContainer.addChild(new Text('22222', { fontSize: 100, fill: 0xffffff }));
+            uiText.position.set(1103, 500);
+            uiText.parentGroup = groups.uiGroup;
+
+            const text = animateContainer.addChild(new Text('11111', { fontSize: 100 }));
+            text.position.set(1100, 500);
+            text.parentGroup = groups.overGroundGroup;
 
             return function () {
 

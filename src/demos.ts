@@ -15,6 +15,8 @@ import { Player } from './player';
 import { Vector } from './vector';
 import { EnemyStub } from './demos/enemy_stub';
 import { setupResource } from './loadAnimation';
+import { createGroups } from './groups';
+import { Stage } from '@pixi/layers';
 
 const app = new PIXI.Application({
     backgroundColor: 0x1099bb,
@@ -27,6 +29,9 @@ const app = new PIXI.Application({
 document.body.appendChild(app.view);
 document.body.style.margin = "0";
 document.documentElement.style.margin = "0";
+
+app.stage = new Stage();
+app.stage.sortableChildren = true;
 
 const triangle = new PIXI.Graphics();
 triangle.beginFill(0xffffff);
@@ -91,6 +96,8 @@ runnerApp.setGameView(app.stage);
         ]
     );
     runnerApp.setEnemys(enemys);
+    runnerApp.setGroups(createGroups(app.stage as Stage));
+
     app.ticker.add(() => {
         enemys.update();
     

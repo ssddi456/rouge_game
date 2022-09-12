@@ -9,11 +9,4 @@ export class DimmyLevel extends Level {
         console.log(gameView.children.length);
     }
 
-    update(): void {
-        
-    }
- 
-    dispose(): void {
-        
-    }
 }

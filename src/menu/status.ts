@@ -2,6 +2,8 @@ import { Container, Graphics, Text } from "pixi.js";
 import { BaseMenu } from "./base";
 
 export class StatusMenu extends BaseMenu {
+    update(): void {}
+
     sprite!: Container | null;
 
     paddingHorizontal = 500;
@@ -9,11 +11,8 @@ export class StatusMenu extends BaseMenu {
     containerPadding = 50;
 
     init() {
-        if (!this.sprite) {
-            this.sprite = this.container.addChild(new Container());
-        } else {
-            return;
-        }
+        console.log('status menu', this.width, this.height);
+        this.initSprite();
 
         this.addBg();
         this.addCancel();

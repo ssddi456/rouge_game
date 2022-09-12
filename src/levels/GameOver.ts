@@ -81,7 +81,6 @@ export class GameOverLevel extends Level {
     dispose(): void {
         super.dispose();
 
-        this.ui.dispose();
         this.minDisplayTimer = undefined;
     }
 }

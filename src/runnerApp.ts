@@ -208,6 +208,9 @@ const runnerApp: EntityManager = {
         return textParticles.filter(p => !p.dead);
     },
 
+    getPlayer() {
+        return player;
+    },
     setPlayer( _player: Player) {
         player = _player;
     },
