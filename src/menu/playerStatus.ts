@@ -1,7 +1,8 @@
 import { Container, Graphics, ITextStyle, Text } from "pixi.js";
-import { formatTime } from "../helper/utils";
+import { fixed2, formatTime } from "../helper/utils";
 import { getRunnerApp } from "../runnerApp";
 import { hookRender } from "../sprite_utils";
+import { Progressbar } from "../uicomponents/processbar";
 import { BaseMenu } from "./base";
 
 export class PlayerStatusMenu extends BaseMenu {
@@ -15,9 +16,15 @@ export class PlayerStatusMenu extends BaseMenu {
 
     expCurrent: Text | undefined;
     expMax: Text | undefined;
+    expProgress: Progressbar | undefined;
     level: Text | undefined;
 
     skill: Container | undefined;
+
+    ammoCurrent: Text | undefined;
+    ammoMax: Text | undefined;
+    ammoProgress: Progressbar | undefined;
+    padding = 30;
 
     init() {
         this.initSprite();
@@ -26,11 +33,12 @@ export class PlayerStatusMenu extends BaseMenu {
         this.initTime();
         this.initHealth();
         this.initExp();
+        this.initAmmos();
     }
 
     initTime() {
         const time = this.sprite!.addChild(new Container);
-        time.position.set(this.width - 300, 10);
+        time.position.set(this.width - this.padding - 12 * 0.45 * 55, this.padding);
         const timeFont: Partial<ITextStyle> = { fill: 0xffffff, fontSize: 55 };
         this.timeNow = time.addChild(new Text('00:00', timeFont));
         const spliter = time.addChild(new Text('/', timeFont));
@@ -41,7 +49,7 @@ export class PlayerStatusMenu extends BaseMenu {
 
     initHealth() {
         const healthContainer = this.sprite!.addChild(new Container);
-        healthContainer.position.set(10, this.height - 300);
+        healthContainer.position.set(this.padding, this.height - this.padding - 80 - 20 - 80);
         const timeFont: Partial<ITextStyle> = { fill: 0xffffff, fontSize: 80 };
         this.healthCurrent = healthContainer.addChild(new Text('3', timeFont));
         const spliter = healthContainer.addChild(new Text('/', timeFont));
@@ -52,7 +60,13 @@ export class PlayerStatusMenu extends BaseMenu {
 
     initExp() {
         const expContainer = this.sprite!.addChild(new Container);
-        expContainer.position.set(10, this.height - 200);
+        expContainer.position.set(this.padding, this.height - this.padding - 80);
+
+        this.expProgress =  expContainer.addChild(new Progressbar(0xbb1111));
+        this.expProgress.position.x = -3;
+        this.expProgress.height = 85;
+        this.expProgress.width = this.width - 2 * this.padding + 6;
+
         const timeFont: Partial<ITextStyle> = { fill: 0xffffff, fontSize: 80 };
         this.expCurrent = expContainer.addChild(new Text('0', timeFont));
         const spliter = expContainer.addChild(new Text('/', timeFont));
@@ -64,6 +78,22 @@ export class PlayerStatusMenu extends BaseMenu {
         this.level.position.x = 400;
     }
 
+    initAmmos() {
+        const ammoContainer = this.sprite!.addChild(new Container);
+        ammoContainer.position.set(this.padding, this.height - this.padding - 80 - 20 - 80 - 10 - 40);
+        this.ammoProgress = ammoContainer.addChild(new Progressbar(0x332299))
+        this.ammoProgress.height = 42;
+        this.ammoProgress.width = 120 + 6;
+        this.ammoProgress.position.x = -3;
+
+        const timeFont: Partial<ITextStyle> = { fill: 0xffffff, fontSize: 40 };
+        this.ammoCurrent = ammoContainer.addChild(new Text('0', timeFont));
+        const spliter = ammoContainer.addChild(new Text('/', timeFont));
+        spliter.position.x = 40 / 2 * 2.5;
+        this.ammoMax = ammoContainer.addChild(new Text('0', timeFont));
+        this.ammoMax.position.x = 40 / 2 * 3;
+    }
+
     update() {
         const app = getRunnerApp();
         const player = app.getPlayer();
@@ -73,9 +103,18 @@ export class PlayerStatusMenu extends BaseMenu {
 
         this.expCurrent!.text = String(player.exp)
         this.expMax!.text = String(player.nextLevelExp)
+        this.expProgress!.progress = player.exp / player.nextLevelExp;
 
-        this.level!.text = String(player.lv);
+        this.level!.text = 'level : ' + String(player.lv);
 
+        const shootManager = player.shootManager;
+        this.ammoCurrent!.text = fixed2(shootManager.currentAmmoCount);
+        this.ammoMax!.text = fixed2(shootManager.maxClipAmmoCount);
+        if (shootManager.reloading) {
+            this.ammoProgress!.progress = shootManager.reloadPercent();
+        } else {
+            this.ammoProgress!.progress = shootManager.currentAmmoCount / shootManager.maxClipAmmoCount;
+        }
         console.log('this.sprite', this.sprite, this.sprite?.parent);
         
     }

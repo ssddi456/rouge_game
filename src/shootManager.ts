@@ -140,6 +140,11 @@ export class ShootManager {
         this.startTimeToReload = app.now();
     }
 
+    reloadPercent() {
+        const app = getRunnerApp();
+        return (app.now() - this.startTimeToReload ) / this.timeToReload;
+    }
+
     checkReload() {
         const app = getRunnerApp();
         if (app.now() > this.startTimeToReload + this.timeToReload) {
