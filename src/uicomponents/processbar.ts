@@ -63,8 +63,7 @@ export class Progressbar extends Container{
     _width: number = 100;
     set width(v: number) {
         this._width = v;
-        this.dispose();
-        this.init();
+        this.reinit();
     }
 
     get width() {
@@ -74,8 +73,7 @@ export class Progressbar extends Container{
     _height: number = 10;
     set height(v: number) {
         this._height = v;
-        this.dispose();
-        this.init();
+        this.reinit();
     }
 
     get height() {

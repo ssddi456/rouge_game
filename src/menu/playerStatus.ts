@@ -2,6 +2,7 @@ import { Container, Graphics, ITextStyle, Text } from "pixi.js";
 import { fixed2, formatTime } from "../helper/utils";
 import { getRunnerApp } from "../runnerApp";
 import { hookRender } from "../sprite_utils";
+import { HealthProgressbar } from "../uicomponents/healthProcessbar";
 import { Progressbar } from "../uicomponents/processbar";
 import { BaseMenu } from "./base";
 
@@ -13,6 +14,7 @@ export class PlayerStatusMenu extends BaseMenu {
 
     healthCurrent: Text | undefined;
     healthMax: Text | undefined;
+    healthProgressBar: HealthProgressbar | undefined;
 
     expCurrent: Text | undefined;
     expMax: Text | undefined;
@@ -50,7 +52,12 @@ export class PlayerStatusMenu extends BaseMenu {
     initHealth() {
         const healthContainer = this.sprite!.addChild(new Container);
         healthContainer.position.set(this.padding, this.height - this.padding - 80 - 20 - 80);
-        const timeFont: Partial<ITextStyle> = { fill: 0xffffff, fontSize: 80 };
+
+        this.healthProgressBar = this.sprite!.addChild(new HealthProgressbar);
+        this.healthProgressBar.height = 80;
+        this.healthProgressBar.position.y = this.height - this.padding - 80 - 20 - 80;
+
+        const timeFont: Partial<ITextStyle> = { fill: 0xffffff, fontSize: 32 };
         this.healthCurrent = healthContainer.addChild(new Text('3', timeFont));
         const spliter = healthContainer.addChild(new Text('/', timeFont));
         spliter.position.x = 140;
@@ -107,6 +114,11 @@ export class PlayerStatusMenu extends BaseMenu {
 
         this.level!.text = 'level : ' + String(player.lv);
 
+        this.healthCurrent!.text = String(player.health);
+        this.healthMax!.text = String(player.max_health)
+        this.healthProgressBar!.current = 1;
+        this.healthProgressBar!.max = player.max_health;
+
         const shootManager = player.shootManager;
         this.ammoCurrent!.text = fixed2(shootManager.currentAmmoCount);
         this.ammoMax!.text = fixed2(shootManager.maxClipAmmoCount);
@@ -115,8 +127,6 @@ export class PlayerStatusMenu extends BaseMenu {
         } else {
             this.ammoProgress!.progress = shootManager.currentAmmoCount / shootManager.maxClipAmmoCount;
         }
-        console.log('this.sprite', this.sprite, this.sprite?.parent);
-        
     }
 
     dispose(): void {

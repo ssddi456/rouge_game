@@ -13,7 +13,8 @@ def create_formated_sprite_map(
     sprites_map = None,
     animation_map = None,
     index = 0,
-    write = True
+    write = True,
+    hit_effect_sizes = None,
 ):
     if sprites_map == None:
         sprites_map = {}
@@ -34,15 +35,20 @@ def create_formated_sprite_map(
             index += 1
 
     hit_effect_count = 0
-    hit_effect_sizes = [5, 5, 8]
+    hit_effect_sizes = hit_effect_sizes is None and [
+        5, 5, 8] or hit_effect_sizes
+
     hit_effect_start_x = 0
+    len_hit_effect_sizes = len(hit_effect_sizes)
     while True:
-        if hit_effect_start_x + hit_effect_sizes[hit_effect_count % 3] >= horizontal_count * vertical_count - 1:
+        index_hit_effect_sizes = hit_effect_count % len_hit_effect_sizes
+
+        if hit_effect_start_x + hit_effect_sizes[index_hit_effect_sizes] > horizontal_count * vertical_count - 1:
             break
 
         animation_map['hit_%s' % hit_effect_count] = [
-            x + hit_effect_start_x for x in range(hit_effect_sizes[hit_effect_count % 3])]
-        hit_effect_start_x += hit_effect_sizes[hit_effect_count % 3]
+            x + hit_effect_start_x for x in range(hit_effect_sizes[index_hit_effect_sizes])]
+        hit_effect_start_x += hit_effect_sizes[index_hit_effect_sizes]
         hit_effect_count += 1
 
     if write:
@@ -66,4 +72,6 @@ create_formated_sprite_map('20m2d_FreezeFXSmall',
                            0, 0, 2, 1, 32, 32, write=False)
 create_formated_sprite_map('20m2d_PowerupPanel',
                            0, 48, 2, 1, 48, 48, powerup_sprites_map, powerup_sprites_map, powerup_index)
-print(powerup_sprites_map)
+
+create_formated_sprite_map('20m2d_HeartAnimation',
+                           0, 0, 4, 1, 32, 32, hit_effect_sizes=[3])

@@ -180,9 +180,11 @@ export class Player extends UpdatableObject
     assets: PIXI.DisplayObject[] = [];
     ground_assets: PIXI.DisplayObject[] = [];
 
-    health: number = 100;
-    prev_health: number = 100;
+    health: number = 3;
+    prev_health: number = 3;
 
+    max_health: number = 3;
+ 
     recieveHealth(amount: number): void {
         throw new Error("Method not implemented.");
     }

@@ -181,11 +181,14 @@ export async function setupResource(app: Application,) {
     const bowAnimateMap = await loadSpriteSheet(loader, 'Nintendo Switch - Disgaea 5 Complete - Weapons Bow');
     const gunAnimateMap = await loadSpriteSheet(loader, 'Nintendo Switch - Disgaea 5 Complete - Weapons Gun');
     const enemyAnimateMap = await loadSpriteSheet(loader, 'Nintendo Switch - Disgaea 5 Complete - Miscellaneous Monsters');
+    const heartAnimationAnimateMap = await loadSpriteSheet(loader, '20m2d_HeartAnimation');
+
     const hitEffect = await loadSpriteSheet(loader, 'crosscode_hiteffect');
     const treeAnimateMap = await loadSpriteSheet(loader, 'Hazel Tree');
     const upgradeSpriteMap = await loadSprites(loader, '20m2d_powerups');
     const freezeFXSmallSpriteMap = await loadSprites(loader, '20m2d_FreezeFXSmall');
     const powerupPanelSpriteMap = await loadSprites(loader, '20m2d_PowerupPanel');
+    const heartAnimationSpriteMap = await loadSprites(loader, '20m2d_HeartAnimation');
 
     await new Promise<void>(r => {
         const name1 = 'magicCircle1';
@@ -223,11 +226,13 @@ export async function setupResource(app: Application,) {
         bowAnimateMap: cloneAnimationSprites(bowAnimateMap),
         gunAnimateMap: cloneAnimationSprites(gunAnimateMap),
         enemyAnimateMap: cloneAnimationSprites(enemyAnimateMap),
+        heartAnimationAnimateMap: cloneAnimationSprites(heartAnimationAnimateMap),
         hitEffect,
         treeAnimateMap,
         upgradeSpriteMap,
         freezeFXSmallSpriteMap,
         powerupPanelSpriteMap,
+        heartAnimationSpriteMap,
     });
 
 
