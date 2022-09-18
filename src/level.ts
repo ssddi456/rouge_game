@@ -1,10 +1,12 @@
 import { Stage } from "@pixi/layers";
+import { Viewport } from "pixi-viewport";
 import { Application, Container, State, TilingSprite } from "pixi.js";
 import { Camera } from "./camara";
 import { DropletPool } from "./droplet";
 import { EnemyPool } from "./enemy";
 import { GameSession } from "./game_session";
 import { createGroups } from "./groups";
+import { Fade } from "./helper/animated_utils";
 import { BaseMenu } from "./menu/base";
 import { Player } from "./player";
 import { getRunnerApp } from "./runnerApp";
@@ -164,11 +166,13 @@ export class LevelManager {
     levelClassMap: Record<string, new (...args: any[]) => Level> = {};
     levelPaused = false;
 
+    fadeEffect: Fade = new Fade(this.gameView, (this.gameView as Viewport).worldWidth, (this.gameView as Viewport).worldHeight);
     constructor(
         public app: Application,
         public gameView: Container,
         public getResources: () => Record<string, Record<string, any>>
     ) {
+        
     }
 
     levelPause() {
@@ -185,14 +189,15 @@ export class LevelManager {
                 this.currentLevel.update();
             }
         }
+        this.fadeEffect.update();
     }
 
     enterLevel(levelId: string) {
-        this.app.ticker.stop();
+        this.levelPause();
         return new Promise<void>(resolve => {
-            requestAnimationFrame(() => {
-                this.dispose();
-        
+            requestAnimationFrame(async () => {
+                await this.fadeEffect.doFade(0, 1, 500);
+                
                 if (!this.levelClassMap[levelId]) {
                     throw new Error(`cannot found level ${levelId}`);
                 }
@@ -204,7 +209,8 @@ export class LevelManager {
 
                 currentLevel.init(this.gameView);
                 this.currentLevel = currentLevel;
-                this.app.ticker.start();
+                await this.fadeEffect.doFade(1, 0, 500);
+                this.levelResume();
                 resolve();
             });
         });
@@ -220,5 +226,6 @@ export class LevelManager {
             this.currentLevel = undefined;
             getRunnerApp().disposeGameView();
         }
+        this.fadeEffect.dispose();
     }
 }

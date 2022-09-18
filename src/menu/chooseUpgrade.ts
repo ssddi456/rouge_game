@@ -174,6 +174,17 @@ export function withChooseUpgradeMenuBtn(container: Container) {
     return switchButton;
 }
 
+export function showChooseUpgradeMenu (container?: Container) {
+    const app = getRunnerApp();
+    container = container ?? app.getGameView()
+    const chooseUpgradeMenu = new ChooseUpgradeMenu(container, (container as any).worldWidth, (container as any).worldHeight);
+    const levelManager = app.getLevelManager();
+    levelManager.levelPause();
+    chooseUpgradeMenu.init(() => {
+        levelManager.levelResume();
+    });
+}
+
 export function upgradeIcon(baseIcon: Sprite, options: Partial<{ size: number, selected: boolean, hoverable: boolean }> = {}) {
     const resources = getRunnerApp().getGetResourceMap()();
     const ret: Container & { selected?: boolean} = new Container();

@@ -164,6 +164,9 @@ const runnerApp: EntityManager = {
     now() {
         return session ? session.now() : timeElipsed;
     },
+    realWorldNow() {
+        return timeElipsed;
+    },
     setApp(a: Application) {
         app = a;
         app.ticker.add(() => {

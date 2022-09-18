@@ -118,7 +118,8 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
             app.emitDroplets(
                 this.position,
                 function (this: Droplet) {
-                    this.player!.receiveExp(1);
+                    const session = getRunnerApp().getSession();
+                    session.receiveExp(1);
                 },
                 Infinity
             );

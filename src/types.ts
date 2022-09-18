@@ -137,6 +137,7 @@ export interface EntityManager {
     pause(): void;
     resume(): void;
     now(): number;
+    realWorldNow(): number;
 
     setApp(a: Application): void;
     getApp(): Application;

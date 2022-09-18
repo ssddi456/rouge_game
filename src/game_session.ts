@@ -1,16 +1,33 @@
 import { HotClass } from "./helper/class_reloader";
+import { showChooseUpgradeMenu } from "./menu/chooseUpgrade";
 import { Player } from "./player";
 import { getRunnerApp } from "./runnerApp";
+import { LeveledObject } from "./types";
 import { Upgrade } from "./upgrades/base";
 
 @HotClass({ module })
-export class GameSession {
+export class GameSession implements LeveledObject {
     player!: Player;
     metric:Record<string, number> = {};
     
     upgrades: Upgrade[] = [];
     sessionStart: number = 0;
     timeElipsed: number = 0;
+
+    exp: number = 0;
+    lv: number = 1;
+    nextLevelExp: number = 10;
+    receiveExp(exp: number) {
+        this.exp += exp;
+        if (this.exp >= this.nextLevelExp) {
+            this.lv += 1;
+            // 升级动画
+            // 选技能
+            this.nextLevelExp *= 2;
+            console.log('lvup', this.lv);
+            showChooseUpgradeMenu();
+        }
+    }
 
     constructor() {
         

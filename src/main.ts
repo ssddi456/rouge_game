@@ -86,6 +86,9 @@ app.loader
         const curser = new Curser(curserA, gameView);
 
         app.stage.addChild(curser.sprite);
+        const levelManager = new LevelManager(app, gameView, cloneResourceMap);
+        runnerApp.setLevelManager(levelManager);
+
         app.ticker.add(() => {
             curser.update();
             levelManager.update();
@@ -101,8 +104,6 @@ app.loader
             }
         });
 
-        const levelManager = new LevelManager(app, gameView, cloneResourceMap);
-        runnerApp.setLevelManager(levelManager);
 
         // may lazyload but not now
         levelManager.registerLevel('welcome', WelcomeLevel);

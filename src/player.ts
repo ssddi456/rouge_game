@@ -23,7 +23,6 @@ export class Player extends UpdatableObject
     Shootable,
     ICollisionable,
     LivingObject,
-    LeveledObject,
     Buffable {
     sprite: Container = new Container();
     bodyContainer: Container = this.sprite.addChild(new Container());
@@ -64,11 +63,7 @@ export class Player extends UpdatableObject
 
     
     bufferList: Buffer[] = [];
-    
-    exp: number = 0;
-    lv: number = 1;
-    nextLevelExp: number = 10;
-    
+
     baseScale = 0.5;
     centerHeight = overGroundCenterHeight;
     showBuff = false;
@@ -77,17 +72,6 @@ export class Player extends UpdatableObject
     ammoPools: AmmoPool;
     bow!: Bow1;
     shootManager!: ShootManager;
-
-    receiveExp(exp: number) {
-        this.exp += exp;
-        if (this.exp >= this.nextLevelExp) {
-            this.lv += 1;
-            // 升级动画
-            // 选技能
-            this.nextLevelExp *= 2;
-            console.log('lvup', this.lv);
-        }
-    }
 
     constructor(
         public playerSpirtes: Record<string, AnimatedSprite>,

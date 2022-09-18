@@ -108,11 +108,11 @@ export class PlayerStatusMenu extends BaseMenu {
 
         this.timeNow!.text = formatTime(session.now());
 
-        this.expCurrent!.text = String(player.exp)
-        this.expMax!.text = String(player.nextLevelExp)
-        this.expProgress!.progress = player.exp / player.nextLevelExp;
+        this.expCurrent!.text = String(session.exp)
+        this.expMax!.text = String(session.nextLevelExp)
+        this.expProgress!.progress = session.exp / session.nextLevelExp;
 
-        this.level!.text = 'level : ' + String(player.lv);
+        this.level!.text = 'level : ' + String(session.lv);
 
         this.healthCurrent!.text = String(player.health);
         this.healthMax!.text = String(player.max_health)

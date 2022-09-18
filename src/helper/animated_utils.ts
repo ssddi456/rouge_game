@@ -1,5 +1,7 @@
-import { DisplayObject, Ticker } from "pixi.js";
-import { Disposible, } from "../types";
+import clamp from "lodash/clamp";
+import { Container, DisplayObject, Graphics, Ticker } from "pixi.js";
+import { getRunnerApp } from "../runnerApp";
+import { Disposible, Updatable, UpdatableObject, } from "../types";
 
 export class IdleJump implements Disposible {
 
@@ -30,5 +32,79 @@ export class IdleJump implements Disposible {
 
     dispose(): void {
         Ticker.shared.remove(this.handler);
+    }
+}
+
+
+export class Fade extends UpdatableObject implements Disposible {
+
+    sprite: Graphics;
+    startTime: number;
+    stopped: boolean = true;
+
+    from: number = 0;
+    to: number = 1;
+    time: number = 300;
+
+    complete: (() => void) | undefined;
+
+    constructor(
+        public container: Container,
+        public width: number,
+        public height: number,
+        public fill = 0x000000
+    ) {
+        super();
+
+        this.sprite = new Graphics()
+            .beginFill(this.fill)
+            .drawRect(0, 0, this.width, this.height)
+            .endFill()
+        this.sprite.visible = true;
+
+        this.container.addChild(this.sprite);
+        this.startTime = getRunnerApp().realWorldNow();
+    }
+
+    async doFade(
+        from: number,
+        to: number,
+        time: number,
+    ) {
+        this.startTime = getRunnerApp().realWorldNow();
+        this.stopped = false;
+        this.from = clamp(from, 0, 1);
+        this.to = clamp(to, 0, 1);
+        this.time = time;
+        return new Promise<void>((resolve) => {
+            this.complete = resolve;
+        });
+    }
+    
+    update(): void {
+        if (this.stopped) {
+            return;
+        }
+        const ct = getRunnerApp().realWorldNow();
+        this.sprite.parentGroup = getRunnerApp().getGroups()?.uiGroup;
+
+        const percent = clamp ((ct - this.startTime) / this.time, 0, 1);
+        const realV = this.from + (this.to - this.from) * percent;
+        if (realV == 0) {
+            this.sprite.visible = false;
+        } else {
+            this.sprite.visible = true;
+        }
+        
+        this.sprite.alpha = realV;
+        if (ct > this.startTime + this.time) {
+            this.stopped = true;
+            this.complete?.();
+            this.complete = undefined;
+        }
+    }
+
+    dispose(): void {
+        this.sprite.destroy();
     }
 }
