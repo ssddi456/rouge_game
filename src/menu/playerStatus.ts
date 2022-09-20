@@ -116,7 +116,7 @@ export class PlayerStatusMenu extends BaseMenu {
 
         this.healthCurrent!.text = String(player.health);
         this.healthMax!.text = String(player.max_health)
-        this.healthProgressBar!.current = 1;
+        this.healthProgressBar!.current = player.health;
         this.healthProgressBar!.max = player.max_health;
 
         const shootManager = player.shootManager;

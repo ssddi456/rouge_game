@@ -1,9 +1,10 @@
 import { Enemy } from './enemy';
 import { getRunnerApp } from './runnerApp';
-import { Buffer, EntityManager, IMovable, TimerBuffer } from './types';
+import { Buffer, EntityManager, EventBuffer, IMovable, TimerBuffer } from './types';
 import { Vector } from './vector';
 import { ColorOverlayFilter } from 'pixi-filters';
 import { AnimatedSprite, DisplayObject, Sprite, Texture } from 'pixi.js';
+import { assign } from 'lodash';
 
 export interface Buffable {
     bufferList: Buffer[];
@@ -172,6 +173,21 @@ export function applyEventBuffer(target: Buffable, eventName: string){
             execBuffer(buffer, target, app);
         }
     }
+}
+
+export function addEventBuffer(target: Buffable, eventName: string, handler: EventBuffer['takeEffect'] | Pick<EventBuffer, 'id' | 'takeEffect' | 'canEffect' |'afterEffect'> ){
+    const buffer: EventBuffer =  {
+        type: 'event',
+        eventName,
+        id: '',
+        properties: {}
+    };
+    if (typeof handler == 'function' ) {
+        buffer.takeEffect = handler;
+    } else {
+        assign(buffer, handler);
+    }
+    target.bufferList.push(buffer);
 }
 // when enemy dead
 export const BUFFER_EVENTNAME_DEAD = 'dead';

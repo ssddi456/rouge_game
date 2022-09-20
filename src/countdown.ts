@@ -22,4 +22,8 @@ export class CountDown implements Updatable {
         this.exec();
         this.exec_times++;
     }
+
+    start() {
+        this.last_update_time = getRunnerApp().now() || 0;
+    }
 }

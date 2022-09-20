@@ -7,7 +7,7 @@ import { ECollisionType, EFacing, ICollisionable, IMovable, Shootable, Buffer, L
 import { checkCollision } from "./collision_helper";
 import { Enemy } from "./enemy";
 import { getRunnerApp } from "./runnerApp";
-import { applyBuffer, applyFireAura, applyKnockback, Buffable, checkBufferAlive, createTimerBuffer } from "./buffer";
+import { applyBuffer, applyDamageFlash, applyEventBuffer, applyFireAura, applyKnockback, Buffable, BUFFER_EVENTNAME_HEALTH_CHANGE, checkBufferAlive, createTimerBuffer } from "./buffer";
 import { GlowFilter } from '@pixi/filter-glow';
 
 import easingsFunctions, { twean } from "./easingFunctions";
@@ -16,6 +16,7 @@ import { Bow1 } from "./bow";
 import { overGroundCenterHeight } from "./groups";
 import { HotClass } from "./helper/class_reloader";
 import { ShootManager } from "./shootManager";
+import { CountDown } from "./countdown";
 @HotClass({ module })
 export class Player extends UpdatableObject
     implements
@@ -173,11 +174,32 @@ export class Player extends UpdatableObject
         throw new Error("Method not implemented.");
     }
 
-    recieveDamage(damage: number): void {
+    immutating = false;
+    // recover immutating
+    immutationTimer = new CountDown(3000, () => {
+        this.collisison_type = ECollisionType.player;
+        this.immutating = false;
+    });
+
+    enterImutating() {
+        this.immutating = true;
+        this.collisison_type = ECollisionType.none;
+        this.immutationTimer.start();
+    }
+
+    recieveDamage(damage: number, hitPos: Vector): void {
         this.health -= damage;
         if (this.health <= 0) {
             this.dead = true;
         }
+
+        applyEventBuffer(this, BUFFER_EVENTNAME_HEALTH_CHANGE);
+
+        const app = getRunnerApp();
+        app.emitDamageParticles(hitPos, damage);
+        applyDamageFlash(this);
+
+        this.enterImutating();
     }
 
     cacheProperty() {
@@ -388,6 +410,10 @@ export class Player extends UpdatableObject
 
     update() {
         super.update();
+        if (this.immutating) {
+            this.immutationTimer.update();
+        }
+
         this.updateBuffer();
 
         this.getInput();
