@@ -211,11 +211,15 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
         });
 
         for (let index = 0; index < nodes.length; index++) {
-            const enemy = nodes[index];
-            if (enemy !== this) {
-                const checkRes = checkCollision(this, enemy);
+            const node = nodes[index];
+            if (node !== this) {
+                const checkRes = checkCollision(this, node);
                 if (checkRes) {
                     this.position.setV(checkRes.collisionPos);
+                    if (node.collisison_type === ECollisionType.player) {
+                        applyEventBuffer(node as Player, BUFFER_EVENTNAME_HITTED);
+                        (node as Player).recieveDamage(1, checkRes.collisionHitPos);
+                    }
                 }
             }
         }
