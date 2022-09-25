@@ -116,8 +116,14 @@ const runnerApp: EntityManager = {
         position: Vector,
         aoe
     ) => {
-        aoes.push(aoe);
-        aoe.position.setV(position);
+        const realAoe = {
+            enabled: true,
+            dead: false,
+            position,
+            ...aoe
+        };
+
+        aoes.push(realAoe);
         gameView.addChild(aoe.sprite);
     },
 
