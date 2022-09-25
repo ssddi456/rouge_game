@@ -12,7 +12,7 @@ export interface Buffable {
     ground_assets: DisplayObject[];
 }
 
-export function execBuffer(buffer: Buffer, target: Buffable, app = getRunnerApp()) {
+export function execBuffer(buffer: Buffer, target: Buffable, app = getRunnerApp(), ...rest: any[]) {
     if (buffer.takeEffect) {
 
         const percent = buffer.type == 'timer'
@@ -21,7 +21,7 @@ export function execBuffer(buffer: Buffer, target: Buffable, app = getRunnerApp(
                 ? buffer.currentCount / buffer.maxCount
                 : 1);
 
-        buffer.takeEffect(target, percent);
+        buffer.takeEffect(target, percent, ...rest);
     } else {
         if (buffer.properties.direct) {
             const movable = (target as unknown) as IMovable;
@@ -160,7 +160,7 @@ export function applyFireAura(target: Buffable){
     target.ground_assets.push(maskInner);
 }
 
-export function applyEventBuffer(target: Buffable, eventName: string){
+export function applyEventBuffer(target: Buffable, eventName: string, ...rest: any[]){
     const app = getRunnerApp();
     const bufferList = target.bufferList;
     for (let index = 0; index < bufferList.length; index++) {
@@ -170,7 +170,7 @@ export function applyEventBuffer(target: Buffable, eventName: string){
             && buffer.eventName === eventName
             && (buffer.canEffect ? buffer.canEffect(target) : true)
         ) {
-            execBuffer(buffer, target, app);
+            execBuffer(buffer, target, app, ...rest);
         }
     }
 }
@@ -197,3 +197,5 @@ export const BUFFER_EVENTNAME_HIT = 'hit';
 export const BUFFER_EVENTNAME_HITTED = 'hitted';
 // when enemy or player health change
 export const BUFFER_EVENTNAME_HEALTH_CHANGE = 'health_change';
+// when unit move
+export const BUFFER_EVENTNAME_MOVE = 'move';

@@ -1,5 +1,5 @@
 import { AnimatedSprite, Container, DisplayObject, Point, SimpleRope, Texture } from "pixi.js";
-import { applyEventBuffer, applyKnockback, Buffable, BUFFER_EVENTNAME_HIT, BUFFER_EVENTNAME_HITTED } from "./buffer";
+import { applyEventBuffer, applyKnockback, Buffable, BUFFER_EVENTNAME_DEAD, BUFFER_EVENTNAME_HIT, BUFFER_EVENTNAME_HITTED } from "./buffer";
 import { checkCollision } from "./collision_helper";
 import { Enemy } from "./enemy";
 import { overGroundCenterHeight } from "./groups";
@@ -27,6 +27,8 @@ export class Ammo implements IMovable, ICollisionable, Buffable {
     trailLenght = 10;
     points: Point[] = []
     history: Vector[] = [];
+    shootedTime = 0;
+    damage = 1;
 
     constructor(
         public textures: Texture[],
@@ -67,8 +69,10 @@ export class Ammo implements IMovable, ICollisionable, Buffable {
     init(
         direct: Vector,
         position: Vector,
-        range: number
+        range: number,
+        damage: number,
     ) {
+        this.shootedTime = getRunnerApp().getSession().now();
         this.direct.setV(direct);
         for (let index = 0; index < this.points.length; index++) {
             const p = this.points[index];
@@ -101,6 +105,7 @@ export class Ammo implements IMovable, ICollisionable, Buffable {
         this.bufferList = [];
         this.assets = [];
         this.ground_assets = [];
+        this.damage = damage;
     }
 
     cacheProperty() {
@@ -119,13 +124,10 @@ export class Ammo implements IMovable, ICollisionable, Buffable {
             p.x = h.x - this.position.x;
             p.y = h.y - this.position.y;
         }
-
-        if (this.start_position.distanceTo(this.position) >= this.range) {
-            this.die();
-        }
     }
     
     die() {
+        applyEventBuffer(this, BUFFER_EVENTNAME_DEAD);
         this.dead = true;
         this.container.removeChild(this.sprite);
     }
@@ -148,6 +150,12 @@ export class Ammo implements IMovable, ICollisionable, Buffable {
         // console.log('history', JSON.stringify(this.history));
     }
 
+    updateRange() {
+        if (this.range + this.shootedTime < getRunnerApp().getSession().now()) {
+            this.die();
+        }
+    }
+
     update() {
         if (this.dead) {
             return;
@@ -155,8 +163,10 @@ export class Ammo implements IMovable, ICollisionable, Buffable {
         this.cacheProperty();
         this.updatePosition();
         this.updateSprite();
+        this.updateRange();
     }
 }
+
 @HotClass({ module })
 export class AmmoPool implements IObjectPools {
     spirte: AnimatedSprite;
@@ -173,7 +183,8 @@ export class AmmoPool implements IObjectPools {
     emit(
         direct: Vector,
         position: Vector,
-        range: number
+        range: number,
+        damage: number,
     ) {
         if (this.pool.length < 100) {
             const ammo = new Ammo(this.spirte.textures as Texture[],
@@ -183,7 +194,8 @@ export class AmmoPool implements IObjectPools {
             ammo.init(
                 direct,
                 position,
-                range
+                range,
+                damage,
             );
             return ammo;
         } else {
@@ -192,7 +204,8 @@ export class AmmoPool implements IObjectPools {
                     ammo.init(
                         direct,
                         position,
-                        range
+                        range,
+                        damage,
                     );
                     return true;
                 }
@@ -214,11 +227,11 @@ export class AmmoPool implements IObjectPools {
                         _temp_hitting_items.push(enemy);
 
                         if (!ammo.current_hitting_items.includes(enemy)) {
-                            applyEventBuffer(ammo, BUFFER_EVENTNAME_HIT);
+                            applyEventBuffer(ammo, BUFFER_EVENTNAME_HIT, enemy);
 
-                            applyEventBuffer(enemy, BUFFER_EVENTNAME_HITTED);
+                            applyEventBuffer(enemy, BUFFER_EVENTNAME_HITTED, ammo);
 
-                            enemy.recieveDamage(1, ifCollision.collisionHitPos);
+                            enemy.recieveDamage(ammo.damage, ifCollision.collisionHitPos);
                             const app = getRunnerApp();
                             app.emitParticles(ifCollision.collisionHitPos,
                                 this.hitAnimate,

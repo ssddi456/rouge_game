@@ -11,11 +11,12 @@ import { Vector } from "./vector";
 
 export function createExplosion(
     options: Partial<{
-        radius: number
+        radius: number,
+        damage: number
     }> = {}
 ): AreaOfEffect<Enemy> {
 
-    const { radius = 30 } = options;
+    const { radius = 30, damage = 20 } = options;
     const resources: CurrentResourceMapFunc = getRunnerApp().getGetResourceMap()() as any;
     let _dead: boolean = false;
     let frameCount = 0;
@@ -36,6 +37,7 @@ export function createExplosion(
     sprite.addChild(preEffect);
     let animateEffect = cloneAnimationSprite(resources.hitEffect.hit_2);
     sprite.addChild(animateEffect);
+    animateEffect.parentGroup = getRunnerApp().getGroups()?.skyGroup;
     animateEffect.visible = false;
     animateEffect.scale.set(scale, scale);
 
@@ -82,7 +84,7 @@ export function createExplosion(
         apply(target): void {
             console.log('applied', target);
             applyDamageFlash(target);
-            target.recieveDamage(1, target.position);
+            target.recieveDamage(damage, target.position);
         },
         // how to debug this?
         size,

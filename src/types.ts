@@ -131,7 +131,7 @@ export interface EntityManager {
     updateParticles(): void;
 
     emitDroplets(position: Vector, pickUp: () => void, duration: number): void;
-    emitAOE(position: Vector, aoe: AreaOfEffect<any>): void;
+    emitAOE(position: Vector, aoe: Partial<AreaOfEffect<any>> & Omit<AreaOfEffect<any>, 'dead' | 'enabled' | 'position'>): void;
     updateAOE(): void;
 
     pause(): void;
@@ -190,7 +190,7 @@ export interface BaseBuffer {
     properties: Record<string, any>;
     dead?: boolean;
     canEffect?: (target: any) => boolean;
-    takeEffect?: (target: any, percent: number) => void;
+    takeEffect?: (target: any, percent: number, ...rest: any[]) => void;
     afterEffect?: (target: any) => void;
 }
 

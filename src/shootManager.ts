@@ -11,6 +11,7 @@
 import { AmmoPool } from "./ammo";
 import { HotClass } from "./helper/class_reloader";
 import { getRunnerApp } from "./runnerApp";
+import { EventBuffer } from "./types";
 import { keypressed, mouse } from "./user_input";
 import { Vector } from "./vector";
 
@@ -41,13 +42,16 @@ export class ShootManager {
 
     shooting = false;
 
+    damage = 10;
+
+    hiteffects: EventBuffer[] = [];
+    ammoDieEffects: EventBuffer[] = [];
+
     constructor(
         public center: Vector,
         public ammoPool: AmmoPool,
 
-    ) {
-
-    }
+    ) {}
 
 
     isShooting() {
@@ -107,22 +111,29 @@ export class ShootManager {
         }
 
         this.currentAmmoCount -= 1;
-        if (shootInfo.dir) {
-            shootInfo.shooted = true;
-            this.ammoPool!.emit(
-                shootInfo.dir,
-                this.position,
-                600
-            );
-        } else {
-            shootInfo.shooted = true;
-            const dir = this.position.clone().sub(shootInfo.target!).normalize();
-            this.ammoPool!.emit(
-                dir,
-                this.position,
-                600
-            );
-        }
+        const ammo = (() => {
+            if (shootInfo.dir) {
+                shootInfo.shooted = true;
+                return this.ammoPool!.emit(
+                    shootInfo.dir,
+                    this.position,
+                    600,
+                    this.damage,
+                );
+            } else {
+                shootInfo.shooted = true;
+                const dir = this.position.clone().sub(shootInfo.target!).normalize();
+                return this.ammoPool!.emit(
+                    dir,
+                    this.position,
+                    600,
+                    this.damage,
+                );
+            }
+        })();
+
+        ammo?.bufferList.push(...this.hiteffects, ...this.ammoDieEffects);
+
 
         if (this.lastShootTime < app.now() - this.shootInterval) {
             this.shooting = true;

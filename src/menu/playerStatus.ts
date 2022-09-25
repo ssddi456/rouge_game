@@ -11,9 +11,6 @@ export class PlayerStatusMenu extends BaseMenu {
 
     timeNow: Text | undefined;
     timeEnd: Text | undefined;
-
-    healthCurrent: Text | undefined;
-    healthMax: Text | undefined;
     healthProgressBar: HealthProgressbar | undefined;
 
     expCurrent: Text | undefined;
@@ -57,12 +54,6 @@ export class PlayerStatusMenu extends BaseMenu {
         this.healthProgressBar.height = 80;
         this.healthProgressBar.position.y = this.height - this.padding - 80 - 20 - 80;
 
-        const timeFont: Partial<ITextStyle> = { fill: 0xffffff, fontSize: 32 };
-        this.healthCurrent = healthContainer.addChild(new Text('3', timeFont));
-        const spliter = healthContainer.addChild(new Text('/', timeFont));
-        spliter.position.x = 140;
-        this.healthMax = healthContainer.addChild(new Text('3', timeFont));
-        this.healthMax.position.x = 160;
     }
 
     initExp() {
@@ -114,8 +105,6 @@ export class PlayerStatusMenu extends BaseMenu {
 
         this.level!.text = 'level : ' + String(session.lv);
 
-        this.healthCurrent!.text = String(player.health);
-        this.healthMax!.text = String(player.max_health)
         this.healthProgressBar!.current = player.health;
         this.healthProgressBar!.max = player.max_health;
 

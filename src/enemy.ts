@@ -7,7 +7,7 @@ import { IMovable, ICollisionable, EFacing, IObjectPools, ECollisionType, Living
 import { checkCollision } from "./collision_helper";
 import { Droplets as Droplet } from "./droplet";
 import { getRunnerApp } from "./runnerApp";
-import { applyBuffer, applyDamageFlash, applyEventBuffer, Buffable, BUFFER_EVENTNAME_DEAD, BUFFER_EVENTNAME_HEALTH_CHANGE, BUFFER_EVENTNAME_HITTED, checkBufferAlive } from "./buffer";
+import { applyBuffer, applyDamageFlash, applyEventBuffer, Buffable, BUFFER_EVENTNAME_DEAD, BUFFER_EVENTNAME_HEALTH_CHANGE, BUFFER_EVENTNAME_HITTED, BUFFER_EVENTNAME_MOVE, checkBufferAlive } from "./buffer";
 import { cloneAnimationSprites } from "./sprite_utils";
 import { overGroundCenterHeight } from "./groups";
 import { debugInfo } from "./debug_info";
@@ -15,7 +15,7 @@ import { IdleJump } from "./helper/animated_utils";
 import { HotClass } from "./helper/class_reloader";
 
 
-type ReinitableProps = Pick<Enemy, 
+type ReinitableProps = Pick<Enemy,
     'speed' | 'size' | 'health' | 'sprite_names'
 >;
 
@@ -88,6 +88,7 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
     ground_assets: PIXI.DisplayObject[] = [];
 
     health: number = 1;
+    max_health: number = 1;
     prev_health: number = 1;
     recieveHealth(amount: number): void {
         throw new Error("Method not implemented.");
@@ -109,7 +110,7 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
         if (this.dead) {
             // 插入一个死亡动画
             app.emitParticles(
-                this.position.clone().sub({x: 0, y: overGroundCenterHeight}),
+                this.position.clone().sub({ x: 0, y: overGroundCenterHeight }),
                 this.facing == EFacing.top ? this.spirtes[this.sprite_names.die_back] : this.spirtes[this.sprite_names.die],
                 undefined,
                 600,
@@ -123,7 +124,7 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
                 },
                 Infinity
             );
-            
+
 
             this.sprite.parent.removeChild(this.sprite);
             this.sprite.parentGroup = undefined;
@@ -152,13 +153,12 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
             }
             if (props.health) {
                 this.health = props.health;
+                this.max_health = props.health;
             }
             if (props.sprite_names) {
                 this.sprite_names = props.sprite_names;
             }
         }
-        this.health = 30;
-
 
         this.bodySprite.removeChildAt(this.mainSpirtIndex);
         if (this.facing == EFacing.top) {
@@ -185,6 +185,7 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
     }
 
     updatePosition() {
+        
         const app = getRunnerApp();
         const player = app.getEntities({
             collisionTypes: [ECollisionType.player]
@@ -200,7 +201,8 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
                 .setY(0);
         }
 
-        applyBuffer(this);
+        applyBuffer(this, );
+        applyEventBuffer(this, BUFFER_EVENTNAME_MOVE);
 
 
         this.position.x += this.direct.x;
@@ -300,8 +302,8 @@ export class EnemyPool extends UpdatableObject implements IObjectPools {
                 die: 'bunny_die',
                 die_back: 'bunny_die_back'
             },
-            speed: 2,
-            health: 10,
+            speed: 1.5,
+            health: 20,
         },
     ];
 
@@ -353,7 +355,7 @@ export class EnemyPool extends UpdatableObject implements IObjectPools {
     }
 
     spawn = () => {
-        if (this.livenodes > 100) {
+        if (this.livenodes > 300) {
             return;
         }
         const app = getRunnerApp();
@@ -361,17 +363,16 @@ export class EnemyPool extends UpdatableObject implements IObjectPools {
             collisionTypes: [ECollisionType.player],
         })[0];
         const radius = 800;
-        const n = Math.min(Math.floor(Math.log2(app.now() / 20e3)) + 1, 5);
+        const n = Math.min(Math.floor(app.getSession().now() / 20e3) + 1, 5);
         const minR = 10;
         let r = Math.random() * 360;
         for (let index = 0; index < n; index++) {
             r += Math.floor(Math.random() * index) * minR / 180 * Math.PI;
-            this.emit(
-                new Vector(
-                    player!.position.x + Math.sin(r) * radius,
-                    player!.position.y + Math.cos(r) * radius,
-                )
-            );
+
+            const pos = [player!.position.x + Math.sin(r) * radius, player!.position.y + Math.cos(r) * radius,];
+            for (let jndex = 0; jndex < 5; jndex++) {
+                this.emit(new Vector(pos[0], pos[1]));
+            }
         }
     }
 
