@@ -17,6 +17,7 @@ import { overGroundCenterHeight } from "./groups";
 import { HotClass } from "./helper/class_reloader";
 import { ShootManager } from "./shootManager";
 import { CountDown } from "./countdown";
+import { getBlobShadow } from './uicomponents/blobShadow';
 @HotClass({ module })
 export class Player extends UpdatableObject
     implements
@@ -89,15 +90,9 @@ export class Player extends UpdatableObject
         this.position.setV(startPosition);
 
         // soft shadow
-        const shadow = new PIXI.Graphics();
         this.bodyContainer.position.y = - this.centerHeight;
         this.bodyContainer.scale.set(this.baseScale, this.baseScale);
-        this.effects.shadow = shadow;
-
-        shadow.beginFill(0x000000);
-        shadow.drawEllipse(-10, 80, 30, 10);
-        shadow.endFill();
-        shadow.filters = [new PIXI.filters.BlurFilter(5, 5)];
+        this.effects.shadow = getBlobShadow(getRunnerApp().getApp().renderer as PIXI.Renderer);
 
         // main character
 

@@ -13,6 +13,7 @@ import { overGroundCenterHeight } from "./groups";
 import { debugInfo } from "./debug_info";
 import { IdleJump } from "./helper/animated_utils";
 import { HotClass } from "./helper/class_reloader";
+import { getBlobShadow } from './uicomponents/blobShadow';
 
 
 type ReinitableProps = Pick<Enemy,
@@ -41,7 +42,7 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
     bodySprite = this.sprite.addChild(new Container);
     bufferList: Buffer[] = [];
 
-    shadow: Graphics;
+    shadow: Sprite;
 
     debugInfo = debugInfo();
 
@@ -58,15 +59,9 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
         super();
 
         // soft shadow
-        const shadow = new PIXI.Graphics();
+        const shadow = getBlobShadow(getRunnerApp().getApp().renderer as PIXI.Renderer);
         this.sprite.addChild(shadow);
-        shadow.position.y = - overGroundCenterHeight;
-
         this.shadow = shadow;
-        shadow.beginFill(0x000000);
-        shadow.drawEllipse(0, 60, 30, 10);
-        shadow.endFill();
-        shadow.filters = [new PIXI.filters.BlurFilter(5, 5)];
 
         this.bodySprite.position.y = - overGroundCenterHeight;
         this.bodySprite.addChild(this.spirtes[this.sprite_names.idle]);

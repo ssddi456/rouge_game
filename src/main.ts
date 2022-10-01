@@ -17,6 +17,7 @@ import { WelcomeLevel } from './levels/welcome';
 import { GameOverLevel } from './levels/GameOver';
 import { GameSuccessLevel } from './levels/GameSuccess';
 import { addTestToolbar } from './menu/test_ui';
+import { dead_explosion } from './upgrades/icon_arrow';
 
 document.body.style.padding = "0";
 document.body.style.margin = "0";
@@ -114,12 +115,10 @@ app.loader
         levelManager.registerLevel('gamesuccess', GameSuccessLevel);
 
         // levelManager.enterLevel('welcome');
-        levelManager.enterLevel('forest');
+        await levelManager.enterLevel('forest');
         // levelManager.enterLevel('gameover');
 
-        (window as any).switchLevel = function (level: string) {
-            levelManager.enterLevel(level);
-        };
-
+        const session = getRunnerApp().getSession();
+        session.pickUpgrade(dead_explosion);
         // addTestToolbar(app, gameView, levelManager);
     });

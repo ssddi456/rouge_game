@@ -37,14 +37,18 @@ const runnerApp: EntityManager = {
         return collisionTypes.reduce((acc, type) => {
             switch (type) {
                 case ECollisionType.player:
-                    return [...acc, player];
+                    acc.push(player);
+                    break
                 case ECollisionType.enemy:
-                    return [...acc, ...(enemys?.pool || []).filter(e => !e.dead)];
+                    acc.push(...(enemys?.pool || []).filter(e => !e.dead));
+                    break
                 case ECollisionType.none:
-                    return [...acc, ...(player.ammoPools.pool || [])];
+                    acc.push(...(player.ammoPools.pool || []).filter(e => !e.dead));
+                    break
                 default:
-                    return acc;
+                    break
             }
+            return acc;
         }, [] as ICollisionable[]).filter(Boolean);
     },
     emitParticles: (
@@ -116,14 +120,13 @@ const runnerApp: EntityManager = {
         position: Vector,
         aoe
     ) => {
-        const realAoe = {
-            enabled: true,
-            dead: false,
-            position,
-            ...aoe
-        };
+        if (aoe.position) {
+            aoe.position?.setV(position);
+        } else {
+            aoe.position = position;
+        }
 
-        aoes.push(realAoe);
+        aoes.push(aoe as AreaOfEffect<any>);
         gameView.addChild(aoe.sprite);
     },
 
@@ -134,7 +137,7 @@ const runnerApp: EntityManager = {
         let newAoes: AreaOfEffect<any>[] = [];
         for (let index = 0; index < aoes.length; index++) {
             const aoe = aoes[index];
-            console.log('aoe.id', aoe.id, aoe.dead);
+            // console.log('aoe.id', aoe.id, aoe.dead);
             aoe.update();
             if (!aoe.dead) {
                 if (aoe.enabled) {

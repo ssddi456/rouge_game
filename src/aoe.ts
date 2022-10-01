@@ -61,7 +61,11 @@ export function createExplosion(
         update(): void {
             frameCount += 1;
 
-            if (frameCount > preFrames) {
+            if (ret.dead) {
+                return;
+            }
+
+            if (frameCount == preFrames) {
                 preEffect.visible = false;
                 animateEffect.visible = true;
                 animateEffect.play();
