@@ -199,3 +199,39 @@ export const BUFFER_EVENTNAME_HITTED = 'hitted';
 export const BUFFER_EVENTNAME_HEALTH_CHANGE = 'health_change';
 // when unit move
 export const BUFFER_EVENTNAME_MOVE = 'move';
+
+
+
+export const ICE_MARK_ID = 'ice_mark';
+const iceMarkFilter = new ColorOverlayFilter(
+    [0.5, 0.5, 1],
+    0.8
+);
+export function createIceMark(duration: number) {
+    return createTimerBuffer({
+        duration,
+        id: ICE_MARK_ID,
+        properties: {},
+        takeEffect(target: Enemy) {
+            if (!target.sprite.filters || !target.sprite.filters.some(x => x == iceMarkFilter)) {
+                target.sprite.filters = target.sprite.filters || [];
+                target.sprite.filters.push(iceMarkFilter);
+            }
+        },
+        afterEffect(target: Enemy) {
+            target.sprite.filters = target.sprite.filters ? target.sprite.filters.filter(x => x !== iceMarkFilter) : [];
+        },
+    })
+}
+export function applyIceMark(target: Buffable, duration = Infinity) {
+    if (hasIceMark(target)) {
+        return;
+    }
+
+    target.bufferList.push(createIceMark(duration))
+}
+
+export function hasIceMark(target: Buffable,) {
+    const buffer = target.bufferList.find(x => x.id == ICE_MARK_ID);
+    return !!buffer;
+}

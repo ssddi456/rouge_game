@@ -2,14 +2,16 @@ import { Viewport } from "pixi-viewport";
 import { AnimatedSprite, Application, Container, DisplayObject, Sprite } from "pixi.js";
 import { AmmoPool } from "./ammo";
 import { Camera } from "./camara";
-import { DropletPool } from "./droplet";
+import { Droplet, DropletPool } from "./droplet";
 import { EnemyPool } from "./enemy";
 import { GameSession } from "./game_session";
 import { createGroups } from "./groups";
 import { LevelManager } from "./level";
 import { Particle } from "./particle";
 import { Player } from "./player";
-import { Vector } from "./vector"
+import { Vector } from "./vector";
+
+
 
 export interface Updatable {
     update(...args: any[]): void;
@@ -121,17 +123,17 @@ export interface GetResourceFunc {
 }
 export interface EntityManager {
     getEntities(options: { collisionTypes: ECollisionType[]}): ICollisionable[];
-
-    emitParticles(position: Vector, animation: AnimatedSprite | Sprite, updateFunc: ((percent:number) => void) | undefined, duration: number): void;
-    emitTextParticles(position: Vector, sprite: Sprite, updateFunc: ((percent: number) => void) | undefined, duration: number, id?: string): void;
-    emitDamageParticles(position: Vector, amount: number): void;
+    getNearbyEntity(options: { collisionTypes: ECollisionType[], position: Vector}): ICollisionable[];
+    emitParticles(position: Vector, animation: AnimatedSprite | Sprite, updateFunc: ((percent:number) => void) | undefined, duration: number): Particle;
+    emitTextParticles(position: Vector, sprite: Sprite, updateFunc: ((percent: number) => void) | undefined, duration: number, id?: string): Particle;
+    emitDamageParticles(position: Vector, amount: number): Particle;
 
     getPariticles(): Particle[];
     getTextParticles(): Particle[];
     updateParticles(): void;
 
-    emitDroplets(position: Vector, pickUp: () => void, duration: number): void;
-    emitAOE(position: Vector, aoe: Partial<AreaOfEffect<any>> & Omit<AreaOfEffect<any>, 'dead' | 'enabled' | 'position'>): void;
+    emitDroplets(position: Vector, pickUp: () => void, duration: number): Droplet;
+    emitAOE(position: Vector, aoe: Partial<AreaOfEffect<any>> & Omit<AreaOfEffect<any>, 'position'>): AreaOfEffect<any>;
     updateAOE(): void;
 
     pause(): void;

@@ -22,7 +22,7 @@ export function createExplosion(
     let frameCount = 0;
     
     let sprite = new Container();
-    let size = 20;
+    let size = 28;
     let scale = radius / size;
     let preFrames = 30;
 
@@ -65,6 +65,7 @@ export function createExplosion(
                 return;
             }
 
+            // setup animate start and clearup
             if (frameCount == preFrames) {
                 preEffect.visible = false;
                 animateEffect.visible = true;
@@ -75,13 +76,15 @@ export function createExplosion(
                     ret.dead = true;
                     animateEffect.stop();
                 };
+            }
 
-                const frame = animateEffect.currentFrame;
-                if (frame == 1) {
-                    ret.enabled = true;
-                } else {
-                    ret.enabled = false;
-                }
+            // setup damage effect
+            const frame = animateEffect.currentFrame;
+            if (frame == 1) {
+                ret.enabled = true;
+                console.log('this.id', ret.id, 'should be enabled', ret.enabled);
+            } else {
+                ret.enabled = false;
             }
 
         },

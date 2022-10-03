@@ -17,7 +17,7 @@ import { WelcomeLevel } from './levels/welcome';
 import { GameOverLevel } from './levels/GameOver';
 import { GameSuccessLevel } from './levels/GameSuccess';
 import { addTestToolbar } from './menu/test_ui';
-import { dead_explosion } from './upgrades/icon_arrow';
+import { dead_explosion, ice_mark, ice_hurts } from './upgrades/icon_arrow';
 
 document.body.style.padding = "0";
 document.body.style.margin = "0";
@@ -119,6 +119,7 @@ app.loader
         // levelManager.enterLevel('gameover');
 
         const session = getRunnerApp().getSession();
-        session.pickUpgrade(dead_explosion);
+        session.pickUpgrade(ice_mark);
+        session.pickUpgrade(ice_hurts);
         // addTestToolbar(app, gameView, levelManager);
     });

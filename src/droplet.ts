@@ -6,7 +6,7 @@ import { ECollisionType, GameObject, ICollisionable, IObjectPools, UpdatableObje
 import { Vector } from "./vector";
 
 
-export class Droplets extends UpdatableObject implements GameObject, ICollisionable {
+export class Droplet extends UpdatableObject implements GameObject, ICollisionable {
     prev_position: Vector = new Vector(0, 0);
     position: Vector = new Vector(0, 0);
     sprite = new Container();
@@ -45,6 +45,7 @@ export class Droplets extends UpdatableObject implements GameObject, ICollisiona
         this.sprite.x = position.x;
         this.sprite.y = position.y;
         this.sprite.visible = true;
+        this.sprite.filters = null;
         this.pickUp = pickUp;
     }
 
@@ -68,7 +69,7 @@ export class Droplets extends UpdatableObject implements GameObject, ICollisiona
 }
 
 export class DropletPool implements IObjectPools {
-    pool: Droplets[] = [];
+    pool: Droplet[] = [];
     constructor(
         public container: Container,
         public sprite: Sprite,
@@ -84,10 +85,12 @@ export class DropletPool implements IObjectPools {
         const player = getRunnerApp().getEntities({ collisionTypes: [ECollisionType.player] })[0] as Player;
         if (_droplet) {
             _droplet.init(position, pickUp, duration, player);
+            return _droplet;
         } else {
-            const droplet = new Droplets(new Sprite(this.sprite.texture), this.container);
+            const droplet = new Droplet(new Sprite(this.sprite.texture), this.container);
             droplet.init(position, pickUp, duration, player);
             this.pool.push(droplet);
+            return droplet;
         }
     }
 

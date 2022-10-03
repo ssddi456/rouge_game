@@ -1,38 +1,28 @@
-import { Ammo } from "../ammo";
+import { Ammo, DamageInfo } from "../ammo";
 import { createExplosion } from "../aoe";
-import { BUFFER_EVENTNAME_DEAD, BUFFER_EVENTNAME_HIT, BUFFER_EVENTNAME_MOVE } from "../buffer";
+import { applyIceMark, BUFFER_EVENTNAME_DEAD, BUFFER_EVENTNAME_HIT, BUFFER_EVENTNAME_MOVE, hasIceMark } from "../buffer";
 import { Enemy } from "../enemy";
 import { GameSession } from "../game_session";
 import { Player } from "../player";
 import { getRunnerApp } from "../runnerApp";
-import { AreaOfEffectType } from "../types";
 import { Upgrade } from "./base"
 
+const ID_APPLY_ICE_SLOW = "apply_ice_slow";
 export const ice_mark: Upgrade = {
     title: "ice mark",
     id: "ice_mark",
-    description: "apply ice mark stack, the slower the more stack applied",
+    description: "apply ice mark, hitted enemy will be slowed",
     iconIdentifier: "100",
     requirements: [],
     apply: function (player: Player, session: GameSession): void {
-        // throw new Error("Function not implemented.");
-        player.shootManager.damage *= 1.2;
-
         player.shootManager.hiteffects.push({
             type: 'event',
             eventName: BUFFER_EVENTNAME_HIT,
             takeEffect(ammo, percent, target: Enemy) {
-                target.bufferList.push({
-                    type: 'event',
-                    eventName: BUFFER_EVENTNAME_MOVE,
-                    takeEffect(target: Enemy) {
-                        target.direct.multiplyScalar(0.9);
-                    },
-                    id: 'ice_slow',
-                    properties: {}
-                })
+                applyIceMark(target);
+                target.speed *= 0.8;
             },
-            id: "apply_ice_slow",
+            id: ID_APPLY_ICE_SLOW,
             properties: {}
         });
     },
@@ -49,13 +39,13 @@ export const ice_hurts: Upgrade = {
     apply: function (player: Player, session: GameSession): void {
         // throw new Error("Function not implemented.");
         player.shootManager.damage *= 1.5;
-
-        player.shootManager.hiteffects.push({
+        const index_id_apply_ice_slow = player.shootManager.hiteffects.findIndex(x => x.id == ID_APPLY_ICE_SLOW);
+        player.shootManager.hiteffects.splice(index_id_apply_ice_slow, 0,{
             type: 'event',
             eventName: BUFFER_EVENTNAME_HIT,
-            takeEffect(ammo: Ammo, percet, target: Enemy) {
-                if (target.bufferList.find(x => x.id == 'ice_slow')) {
-                    ammo.damage *= 1.5
+            takeEffect(ammo: Ammo, percet, target: Enemy, damageInfo: DamageInfo) {
+                if (hasIceMark(target)) {
+                    damageInfo.damage *= 1.5;
                 }
             },
             id: "ice_slow_hurts",

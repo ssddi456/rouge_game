@@ -5,7 +5,7 @@ import { Vector } from "./vector";
 import * as PIXI from 'pixi.js';
 import { IMovable, ICollisionable, EFacing, IObjectPools, ECollisionType, LivingObject, Buffer, Updatable, UpdatableObject } from "./types";
 import { checkCollision } from "./collision_helper";
-import { Droplets as Droplet } from "./droplet";
+import { Droplet as Droplet } from "./droplet";
 import { getRunnerApp } from "./runnerApp";
 import { applyBuffer, applyDamageFlash, applyEventBuffer, Buffable, BUFFER_EVENTNAME_DEAD, BUFFER_EVENTNAME_HEALTH_CHANGE, BUFFER_EVENTNAME_HITTED, BUFFER_EVENTNAME_MOVE, checkBufferAlive } from "./buffer";
 import { cloneAnimationSprites } from "./sprite_utils";
@@ -14,6 +14,7 @@ import { debugInfo } from "./debug_info";
 import { IdleJump } from "./helper/animated_utils";
 import { HotClass } from "./helper/class_reloader";
 import { getBlobShadow } from './uicomponents/blobShadow';
+import { Viewport } from 'pixi-viewport';
 
 
 type ReinitableProps = Pick<Enemy,
@@ -77,6 +78,7 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
         );
 
         this.sprite.addChild(this.debugInfo.pointer);
+        this.sprite.addChild(this.debugInfo.text);
     }
 
     assets: PIXI.DisplayObject[] = [];
@@ -91,6 +93,7 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
 
     recieveDamage(damage: number, hitPos: Vector): void {
         this.health -= damage;
+        this.debugInfo.text.text = `${this.health}/${this.max_health}`;
         applyEventBuffer(this, BUFFER_EVENTNAME_HEALTH_CHANGE);
 
         const app = getRunnerApp();
@@ -203,8 +206,9 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
         this.position.x += this.direct.x;
         this.position.y += this.direct.y;
 
-        const nodes = getRunnerApp().getEntities({
+        const nodes = getRunnerApp().getNearbyEntity({
             collisionTypes: [ECollisionType.enemy, ECollisionType.player],
+            position: this.position,
         });
 
         for (let index = 0; index < nodes.length; index++) {
@@ -225,10 +229,10 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
     }
 
     updateSprite() {
-        if (this.direct.x > 0 && this.sprite.scale.x > 0) {
-            this.sprite.scale.x = -1;
-        } else if (this.direct.x < 0 && this.sprite.scale.x < 0) {
-            this.sprite.scale.x = 1;
+        if (this.direct.x > 0 && this.bodySprite.scale.x > 0) {
+            this.bodySprite.scale.x = -1;
+        } else if (this.direct.x < 0 && this.bodySprite.scale.x < 0) {
+            this.bodySprite.scale.x = 1;
         }
 
         if ((this.direct.y > 0 && this.prev_direct.y <= 0)
@@ -274,8 +278,7 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
 export class EnemyPool extends UpdatableObject implements IObjectPools {
     pool: Enemy[] = [];
     spawnTimer: Updatable;
-    livenodes = 0;
-
+    livenodes: Enemy[] = [];
 
     simpleEnemyTypes: Partial<ReinitableProps>[] = [
         // bottle
@@ -343,22 +346,46 @@ export class EnemyPool extends UpdatableObject implements IObjectPools {
         }
     }
 
+    relocate() {
+        const livenodes = this.livenodes;
+        const app = getRunnerApp();
+        const player = app.getPlayer();
+        const screen = app.getGameView() as Viewport;
+        // 2 screen cross
+        const cross = 4 * screen.worldHeight * screen.worldHeight + screen.worldWidth * screen.worldWidth;
+        let pos = {x: 0, y:0};
+        for (let index = 0; index < livenodes.length; index++) {
+            const element = livenodes[index];
+            const dist = element.position.distanceToSq(player.position);
+
+            
+            if (dist > cross) {
+                const r = Math.floor(Math.random() * index) / 180 * Math.PI;
+                const radius = 800;
+                pos.x = player!.position.x + Math.sin(r) * radius;
+                pos.y = player!.position.y + Math.cos(r) * radius;
+                element.position.setV(pos);
+                // console.log('relocate at ', pos.x, pos.y);
+            }
+        }
+    }
+
     update() {
         this.spawnTimer.update();
         super.update();
-        this.livenodes = this.pool.filter(x => !x.dead).length;
+        this.livenodes = this.pool.filter(x => !x.dead);
+        this.relocate();
     }
 
     spawn = () => {
-        if (this.livenodes > 300) {
+        if (this.livenodes.length > 500) {
             return;
         }
         const app = getRunnerApp();
-        const player = app.getEntities({
-            collisionTypes: [ECollisionType.player],
-        })[0];
+        const player = app.getPlayer();
         const radius = 800;
-        const n = Math.min(Math.floor(app.getSession().now() / 20e3) + 1, 5);
+        // const n = Math.min(Math.floor(app.getSession().now() / 20e3) + 1, 5);
+        const n = 30;
         const minR = 10;
         let r = Math.random() * 360;
         for (let index = 0; index < n; index++) {

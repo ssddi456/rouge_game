@@ -8,7 +8,7 @@ import { Player } from "./player";
 import { cloneAnimationSprite } from "./sprite_utils";
 import { AreaOfEffect, ECollisionType, EntityManager, GetResourceFunc, ICollisionable } from "./types";
 import { Vector } from "./vector";
-import {mouse} from './user_input';
+import { mouse } from './user_input';
 import { LevelManager } from "./level";
 import { createGroups } from "./groups";
 import { GameSession } from "./game_session";
@@ -30,11 +30,79 @@ let groups: ReturnType<typeof createGroups>;
 let session: GameSession;
 let aoes: AreaOfEffect<any>[] = [];
 
+
+let entityTypeCache: Record<string, ICollisionable[]> = {};
+let entityGrid: Record<string, ICollisionable[]> | null = null;
+function clearEntityTypeCache() {
+    entityTypeCache = {};
+    entityGrid = null;
+}
+const collisionCellSize = 40;
+const getPositionKey = (position: Vector) => {
+    return Math.floor(position.x / collisionCellSize) + '_' + Math.floor(position.y / collisionCellSize);
+}
+const getNearbyPositionKey = (position: Vector) => {
+    const x = Math.floor(position.x / collisionCellSize);
+    const y = Math.floor(position.y / collisionCellSize);
+    return [
+        String(x - 1) + '_' + String(y - 1),
+        String(x) + '_' + String(y - 1),
+        String(x + 1) + '_' + String(y - 1),
+        String(x - 1) + '_' + String(y - 0),
+        String(x) + '_' + String(y - 0),
+        String(x + 1) + '_' + String(y - 0),
+        String(x - 1) + '_' + String(y + 1),
+        String(x) + '_' + String(y + 1),
+        String(x + 1) + '_' + String(y + 1),
+    ];
+}
+
+
+function getEntitiesNearby(position: Vector): ICollisionable[] {
+    if (!entityGrid) {
+        entityGrid = {};
+        // 每帧初始化
+        const allItem = (enemys?.pool || []).filter(e => !e.dead);
+        for (let index = 0; index < allItem.length; index++) {
+            const element = allItem[index];
+            const key = getPositionKey(element.position);
+            entityGrid[key] = entityGrid[key] || [];
+            entityGrid[key].push(element);
+        }
+    }
+    // 
+
+    const keys = getNearbyPositionKey(position);
+    const ret: ICollisionable[] = [];
+    // consts in loop are much slower than declare in upper scope
+    // maybe native const are better
+    let k;
+    let pack;
+    let index;
+
+    for (let jndex = 0; jndex < keys.length; jndex++) {
+        k = keys[jndex];
+        if (entityGrid.hasOwnProperty(k)) {
+            pack = entityGrid[k];
+            for (index = 0; index < pack.length; index++) {
+                ret.push(pack[index]);
+            }
+        }
+    }
+    
+    return ret;
+}
+
 const runnerApp: EntityManager = {
     getEntities: ({
         collisionTypes
     }) => {
-        return collisionTypes.reduce((acc, type) => {
+        const typeKey = collisionTypes.join('_');
+        if (entityTypeCache[typeKey]) {
+            return entityTypeCache[typeKey];
+        }
+
+        const ret = collisionTypes.reduce((acc, type) => {
             switch (type) {
                 case ECollisionType.player:
                     acc.push(player);
@@ -42,32 +110,57 @@ const runnerApp: EntityManager = {
                 case ECollisionType.enemy:
                     acc.push(...(enemys?.pool || []).filter(e => !e.dead));
                     break
-                case ECollisionType.none:
-                    acc.push(...(player.ammoPools.pool || []).filter(e => !e.dead));
+                default:
+                    break
+            }
+            return acc;
+        }, [] as ICollisionable[]).filter(Boolean);
+
+        entityTypeCache[typeKey] = ret;
+        return ret;
+    },
+
+    getNearbyEntity: ({
+        collisionTypes,
+        position
+    }) => {
+        const entities = getEntitiesNearby(position);
+
+
+        const ret = collisionTypes.reduce((acc, type) => {
+            switch (type) {
+                case ECollisionType.player:
+                    acc.push(player);
+                    break
+                case ECollisionType.enemy:
+                    acc.push(...entities);
                     break
                 default:
                     break
             }
             return acc;
         }, [] as ICollisionable[]).filter(Boolean);
+
+        return ret;
     },
+
     emitParticles: (
         position,
         animation,
         updateFunc,
         duration,
     ) => {
-        particles.push(
-            new Particle(
-                position.clone(),
-                animation instanceof AnimatedSprite
-                    ? cloneAnimationSprite(animation)
-                    : new Sprite(animation.texture),
-                gameView,
-                updateFunc,
-                duration,
-            )
-        );
+        const particle = new Particle(
+            position.clone(),
+            animation instanceof AnimatedSprite
+                ? cloneAnimationSprite(animation)
+                : new Sprite(animation.texture),
+            gameView,
+            updateFunc,
+            duration,
+        )
+        particles.push(particle);
+        return particle;
     },
 
     emitTextParticles: (
@@ -77,24 +170,24 @@ const runnerApp: EntityManager = {
         duration,
         id?: string,
     ) => {
-        textParticles.push(
-            new Particle(
-                position.clone(),
-                sprite,
-                gameView,
-                updateFunc,
-                duration,
-                id
-            )
-        );
+        const particle = new Particle(
+            position.clone(),
+            sprite,
+            gameView,
+            updateFunc,
+            duration,
+            id
+        )
+        textParticles.push(particle);
+        return particle;
     },
 
     emitDamageParticles: function (
         this: EntityManager,
         position,
         damage,
-    )  {
-        this.emitTextParticles(
+    ) {
+        return this.emitTextParticles(
             position,
             new Text(`- ${damage}`, {
                 fill: 0xffffff,
@@ -113,7 +206,7 @@ const runnerApp: EntityManager = {
         pickUp: () => void,
         duration: number,
     ) => {
-        droplets.emit(position, pickUp, duration);
+        return droplets.emit(position, pickUp, duration);
     },
 
     emitAOE: (
@@ -128,6 +221,7 @@ const runnerApp: EntityManager = {
 
         aoes.push(aoe as AreaOfEffect<any>);
         gameView.addChild(aoe.sprite);
+        return aoe as AreaOfEffect<any>;
     },
 
     updateAOE: () => {
@@ -148,7 +242,7 @@ const runnerApp: EntityManager = {
                             if (ifCollision) {
                                 aoe.apply(enemy);
                             }
-                        } 
+                        }
                     }
                 }
                 newAoes.push(aoe);
@@ -181,6 +275,8 @@ const runnerApp: EntityManager = {
         app.ticker.add(() => {
             mouseWorldPos = undefined;
             timeElipsed += app.ticker.elapsedMS;
+
+            clearEntityTypeCache();
         });
     },
     getApp() {
@@ -215,7 +311,7 @@ const runnerApp: EntityManager = {
     getPariticles() {
         return particles.filter(p => !p.dead);
     },
-    
+
     getTextParticles() {
         return textParticles.filter(p => !p.dead);
     },
@@ -223,16 +319,16 @@ const runnerApp: EntityManager = {
     getPlayer() {
         return player;
     },
-    setPlayer( _player: Player) {
+    setPlayer(_player: Player) {
         player = _player;
     },
-    setEnemys( _enemys: EnemyPool) {
+    setEnemys(_enemys: EnemyPool) {
         enemys = _enemys;
     },
-    setDroplets( _droplets: DropletPool) {
+    setDroplets(_droplets: DropletPool) {
         droplets = _droplets;
     },
-    setCamera( _camera: Camera) {
+    setCamera(_camera: Camera) {
         camera = _camera;
     },
     getCamera() {
@@ -241,7 +337,7 @@ const runnerApp: EntityManager = {
     getGameView() {
         return gameView;
     },
-    setGameView( _gameView: Viewport) {
+    setGameView(_gameView: Viewport) {
         gameView = _gameView;
     },
 
@@ -299,6 +395,6 @@ const runnerApp: EntityManager = {
 
 };
 
-export function getRunnerApp (){
+export function getRunnerApp() {
     return runnerApp;
 }
