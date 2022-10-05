@@ -36,11 +36,7 @@ const EnemyControllerMap: Record<string, (enemy: Enemy, player?: Player) => void
             enemy.direct.set(0, 0);
         }
     },
-    charger(enemy: Enemy, player: Player = getRunnerApp().getPlayer()){
-        if (hasCharge(enemy)) {
-            enemy.direct.set(0, 0);
-            return;
-        }
+    charger(enemy: Enemy, player: Player = getRunnerApp().getPlayer()) {
         if (enemy.distSqToPlayer < 300 * 300) {
             applyCharge(enemy, 1200, {
                 start_pos: enemy.position.clone(),
@@ -85,7 +81,7 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
         die: 'die',
         die_back: 'die_back'
     };
-    
+
     distSqToPlayer: number = 0;
     controller: keyof (typeof EnemyControllerMap) = 'charger';
 
@@ -240,7 +236,7 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
                         if (!hasCharge((node as any) as Buffable)) {
                             applyKnockback((node as any) as Buffable,
                                 node.position.clone().sub(this.position)
-                                    .normalize().rotate( Math.PI / 3)
+                                    .normalize().rotate(Math.PI / 3)
                                     .multiplyScalar(this.speed * 20),
                                 200
                             );
@@ -301,8 +297,13 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
         }
         super.update();
         this.updateBuffer();
-        if (!hasKnockback(this)){
+        if (
+            !hasKnockback(this)
+            && !hasCharge(this)
+        ) {
             EnemyControllerMap[this.controller](this,);
+        } else {
+            this.direct.setV({ x: 0, y: 0 });
         }
         this.updatePosition();
         this.updateSprite();
