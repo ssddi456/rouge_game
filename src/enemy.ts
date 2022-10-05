@@ -7,7 +7,7 @@ import { IMovable, ICollisionable, EFacing, IObjectPools, ECollisionType, Living
 import { checkCollision } from "./collision_helper";
 import { Droplet as Droplet } from "./droplet";
 import { getRunnerApp } from "./runnerApp";
-import { applyBuffer, applyCharge, applyDamageFlash, applyEventBuffer, applyKnockback, Buffable, BUFFER_EVENTNAME_DEAD, BUFFER_EVENTNAME_HEALTH_CHANGE, BUFFER_EVENTNAME_HITTED, checkBufferAlive, hasCharge } from "./buffer";
+import { applyBuffer, applyCharge, applyDamageFlash, applyEventBuffer, applyKnockback, Buffable, BUFFER_EVENTNAME_DEAD, BUFFER_EVENTNAME_HEALTH_CHANGE, BUFFER_EVENTNAME_HITTED, checkBufferAlive, hasCharge, hasKnockback } from "./buffer";
 import { cloneAnimationSprites } from "./sprite_utils";
 import { overGroundCenterHeight } from "./groups";
 import { debugInfo } from "./debug_info";
@@ -237,12 +237,14 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
                 checkRes = checkCollision(this, node);
                 if (checkRes) {
                     if (charging) {
-                        applyKnockback((node as any) as Buffable,
-                            node.position.clone().sub(this.position)
-                                .normalize().rotate( Math.PI / 3)
-                                .multiplyScalar(this.speed * 20),
-                            200
-                        );
+                        if (!hasCharge((node as any) as Buffable)) {
+                            applyKnockback((node as any) as Buffable,
+                                node.position.clone().sub(this.position)
+                                    .normalize().rotate( Math.PI / 3)
+                                    .multiplyScalar(this.speed * 20),
+                                200
+                            );
+                        }
                     } else {
                         this.position.setV(checkRes.collisionPos);
                     }
@@ -299,7 +301,9 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
         }
         super.update();
         this.updateBuffer();
-        EnemyControllerMap[this.controller](this,);
+        if (!hasKnockback(this)){
+            EnemyControllerMap[this.controller](this,);
+        }
         this.updatePosition();
         this.updateSprite();
     }

@@ -272,9 +272,11 @@ export class Player extends UpdatableObject
                 const enemy = enemies[index];
                 const checkRes = checkCollision(this, enemy);
                 if (checkRes) {
-                    applyKnockback(enemy,
-                        enemy.position.clone().sub(this.position).normalize().multiplyScalar(this.speed * 3.1)
-                    );
+                    if (!hasCharge(enemy)) {
+                        applyKnockback(enemy,
+                            enemy.position.clone().sub(this.position).normalize().multiplyScalar(this.speed * 3.1)
+                        );
+                    }
                 }
             }
         } else {
