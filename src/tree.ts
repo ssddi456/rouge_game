@@ -58,6 +58,10 @@ export class Tree implements GameObject {
         this.updateSprite();
         // this.text.text = String(this.sprite.parent.children.indexOf(this.sprite));
     }
+
+    dispose() {
+        this.sprite.destroy();
+    }
 }
 
 export class Forest {
@@ -119,5 +123,14 @@ export class Forest {
             this.container.addChild(tree.sprite);
         }
         return trees;
+    }
+
+    dispose() {
+        const trees = this.trees;
+        this.trees = [];
+        for (let index = 0; index < trees.length; index++) {
+            const tree = trees[index];
+            tree.dispose();
+        }
     }
 }

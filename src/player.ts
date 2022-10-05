@@ -416,5 +416,6 @@ export class Player extends UpdatableObject
         super.dispose();
         this.ammoPools.pool = [];
         this.bufferList = [];
+        this.sprite.destroy();
     }
 }

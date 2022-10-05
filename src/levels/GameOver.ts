@@ -35,9 +35,7 @@ export class GameOverLevel extends Level {
     init(
         gameView: Container,
     ): void {
-
-        this.session = new GameSession();
-        getRunnerApp().setSession(this.session);
+        getRunnerApp().setSession(null as any);
 
         this.ui.container = gameView;
         this.ui.width = (gameView as any).worldWidth;
@@ -66,7 +64,6 @@ export class GameOverLevel extends Level {
     }
 
     update(): void {
-        // make a keyup events
         super.update();
 
         if (this.listeningKey) {

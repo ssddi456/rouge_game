@@ -62,6 +62,9 @@ export class GameSession implements LeveledObject {
         if (this.now() > 30*60e3) {
             return true;
         }
+        if (getRunnerApp().getPlayer().health <= 0){
+            return true;
+        }
         return false;
     }
 

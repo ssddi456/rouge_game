@@ -247,6 +247,12 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
                     if (node.collisison_type === ECollisionType.player) {
                         applyEventBuffer(node as Player, BUFFER_EVENTNAME_HITTED);
                         (node as Player).recieveDamage(1, checkRes.collisionHitPos);
+                        applyKnockback((node as any) as Buffable,
+                            node.position.clone().sub(this.position)
+                                .normalize().rotate(Math.PI / 3)
+                                .multiplyScalar(this.speed * 20),
+                            200
+                        );
                     }
                 }
             }
@@ -307,6 +313,10 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
         }
         this.updatePosition();
         this.updateSprite();
+    }
+
+    dispose(): void {
+        this.sprite.destroy();
     }
 }
 

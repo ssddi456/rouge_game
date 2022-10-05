@@ -1,5 +1,7 @@
 import clamp from "lodash/clamp";
 import { Container, DisplayObject, Graphics, Ticker } from "pixi.js";
+import easingsFunctions, { twean } from '../easingFunctions';
+import { maskZIndex } from '../groups';
 import { getRunnerApp } from "../runnerApp";
 import { Disposible, Updatable, UpdatableObject, } from "../types";
 
@@ -61,6 +63,7 @@ export class Fade extends UpdatableObject implements Disposible {
             .drawRect(0, 0, this.width, this.height)
             .endFill()
         this.sprite.visible = true;
+        this.sprite.zIndex = maskZIndex;    
 
         this.container.addChild(this.sprite);
         this.startTime = getRunnerApp().realWorldNow();
@@ -86,16 +89,11 @@ export class Fade extends UpdatableObject implements Disposible {
             return;
         }
         const ct = getRunnerApp().realWorldNow();
-        this.sprite.parentGroup = getRunnerApp().getGroups()?.uiGroup;
 
         const percent = clamp ((ct - this.startTime) / this.time, 0, 1);
-        const realV = this.from + (this.to - this.from) * percent;
-        if (realV == 0) {
-            this.sprite.visible = false;
-        } else {
-            this.sprite.visible = true;
-        }
-        
+        const realV = twean(this.from, this.to, easingsFunctions.easeOutCubic, percent);
+
+
         this.sprite.alpha = realV;
         if (ct > this.startTime + this.time) {
             this.stopped = true;

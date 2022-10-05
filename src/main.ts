@@ -114,12 +114,12 @@ app.loader
         levelManager.registerLevel('gameover', GameOverLevel);
         levelManager.registerLevel('gamesuccess', GameSuccessLevel);
 
-        // levelManager.enterLevel('welcome');
-        await levelManager.enterLevel('forest');
+        levelManager.enterLevel('welcome');
+        // await levelManager.enterLevel('forest');
         // levelManager.enterLevel('gameover');
 
-        const session = getRunnerApp().getSession();
-        session.pickUpgrade(ice_mark);
-        session.pickUpgrade(ice_hurts);
+        // const session = getRunnerApp().getSession();
+        // session.pickUpgrade(ice_mark);
+        // session.pickUpgrade(ice_hurts);
         // addTestToolbar(app, gameView, levelManager);
     });

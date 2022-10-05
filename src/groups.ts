@@ -1,6 +1,7 @@
 import { Container, Sprite } from "pixi.js";
 import { Group, Layer, Stage } from '@pixi/layers';
 
+export const maskZIndex = 400;
 export const uiZIndex = 300;
 export const skyZIndex = 200;
 export const textParticleZIndex = 130;
