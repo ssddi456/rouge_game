@@ -66,7 +66,8 @@ const context = createDemoContext(
                     const ammo = ammoPool.emit(
                         new Vector(0, 0.3),
                         new Vector(60 + 20 * index, 10),
-                        1000
+                        1000,
+                        1
                     )!;
                     for (let jndex = 0; jndex < index * 10; jndex++) {
                         ammo.update();

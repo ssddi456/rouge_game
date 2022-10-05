@@ -1,6 +1,6 @@
 import { Ammo, DamageInfo } from "../ammo";
 import { createExplosion } from "../aoe";
-import { applyIceMark, BUFFER_EVENTNAME_DEAD, BUFFER_EVENTNAME_HIT, BUFFER_EVENTNAME_MOVE, hasIceMark } from "../buffer";
+import { applyIceMark, BUFFER_EVENTNAME_DEAD, BUFFER_EVENTNAME_HIT, hasIceMark } from "../buffer";
 import { Enemy } from "../enemy";
 import { GameSession } from "../game_session";
 import { Player } from "../player";

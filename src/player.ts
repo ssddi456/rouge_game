@@ -7,7 +7,7 @@ import { ECollisionType, EFacing, ICollisionable, IMovable, Shootable, Buffer, L
 import { checkCollision } from "./collision_helper";
 import { Enemy } from "./enemy";
 import { getRunnerApp } from "./runnerApp";
-import { applyBuffer, applyDamageFlash, applyEventBuffer, applyFireAura, applyKnockback, Buffable, BUFFER_EVENTNAME_HEALTH_CHANGE, checkBufferAlive, createTimerBuffer } from "./buffer";
+import { applyBuffer, applyCharge, applyDamageFlash, applyEventBuffer, applyFireAura, applyKnockback, Buffable, BUFFER_EVENTNAME_HEALTH_CHANGE, checkBufferAlive, createTimerBuffer, hasCharge } from "./buffer";
 import { GlowFilter } from '@pixi/filter-glow';
 
 import easingsFunctions, { twean } from "./easingFunctions";
@@ -237,18 +237,10 @@ export class Player extends UpdatableObject
                 this.costing = true;
                 if (keypressed.heavy_attack) {
                     const direct = this.direct.clone().normalize().multiplyScalar(400);
-                    this.bufferList.push(createTimerBuffer({
-                        duration: 200,
-                        id: 'heavy_attack',
-                        takeEffect(target: IMovable, percent: number) {
-                            target.position.x = this.properties.start_pos.x + twean(0, this.properties.direct.x, easingsFunctions.easeOutCubic, percent);
-                            target.position.y = this.properties.start_pos.y + twean(0, this.properties.direct.y, easingsFunctions.easeOutCubic, percent);
-                        },
-                        properties: {
-                            start_pos: this.position.clone(),
-                            direct,
-                        }
-                    }))
+                    applyCharge(this, 200, {
+                        start_pos: this.position.clone(),
+                        direct,
+                    });
                 }
             }
         }
@@ -275,8 +267,7 @@ export class Player extends UpdatableObject
             collisionTypes: [ECollisionType.enemy],
         }) as Enemy[];
 
-        const is_rush = this.bufferList.find(buffer => buffer.id === 'heavy_attack');
-        if (is_rush) {
+        if (hasCharge(this)) {
             for (let index = 0; index < enemies.length; index++) {
                 const enemy = enemies[index];
                 const checkRes = checkCollision(this, enemy);
