@@ -36,8 +36,14 @@ const EnemyControllerMap: Record<string, (enemy: Enemy, player?: Player) => void
             enemy.direct.set(0, 0);
         }
     },
-    charger(enemy: Enemy, player: Player = getRunnerApp().getPlayer()) {
-        if (enemy.distSqToPlayer < 300 * 300) {
+    charger(enemy, player: Player = getRunnerApp().getPlayer()) {
+        let charger = enemy as ChargerEnemy;
+        if (!charger.chargerTimer) {
+            EnemyControllerInitMap.charger(enemy);
+        }
+        if (charger.canCharge && enemy.distSqToPlayer < 300 * 300) {
+            charger.canCharge = false;
+            charger.chargerTimer.start();
             applyCharge(enemy, 1200, {
                 start_pos: enemy.position.clone(),
                 direct: player.position.clone().sub(enemy.position).normalize().multiplyScalar(300 + 100),
@@ -45,6 +51,24 @@ const EnemyControllerMap: Record<string, (enemy: Enemy, player?: Player) => void
             });
         } else {
             this.tracer(enemy, player);
+        }
+    }
+};
+
+interface ChargerEnemy extends Enemy {
+    chargerTimer: CountDown;
+    canCharge: boolean;
+}
+
+const EnemyControllerInitMap: Record<string, (enemy: Enemy) => void> = {
+    charger(enemy: Enemy) {
+        let charger = enemy as ChargerEnemy;
+        if (!charger.chargerTimer) {
+            charger.canCharge = true;
+            charger.chargerTimer = new CountDown(12000, () => {
+                charger.canCharge = true;
+            });
+            charger.addChildren(charger.chargerTimer);
         }
     }
 };
@@ -250,7 +274,7 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
                         applyKnockback((node as any) as Buffable,
                             node.position.clone().sub(this.position)
                                 .normalize().rotate(Math.PI / 3)
-                                .multiplyScalar(this.speed * 20),
+                                .multiplyScalar(this.speed * (charging ? 20 : 5)),
                             200
                         );
                     }

@@ -287,6 +287,8 @@ export function applyCharge(target: Buffable,
         runPercent = 1 - startPercent;
     }
 
+    applyCasting(target, fullDuration);
+
     const buffer = createTimerBuffer({
         duration: fullDuration,
         id: CHARGE_ID,
@@ -305,5 +307,26 @@ export function applyCharge(target: Buffable,
 }
 export function hasCharge(target: Buffable) {
     const buffer = target.bufferList.find(x => x.id == CHARGE_ID);
+    return !!buffer;
+}
+
+export const CASTING_ID = 'casting';
+export function applyCasting(target: Buffable,
+    duration: number,
+    properties = {}
+) {
+    const buffer = createTimerBuffer({
+        duration,
+        id: CASTING_ID,
+        takeEffect(target: IMovable, percent: number) {
+
+        },
+        properties
+    });
+
+    target.bufferList.push(buffer);
+}
+export function hasCasting(target: Buffable) {
+    const buffer = target.bufferList.find(x => x.id == CASTING_ID);
     return !!buffer;
 }

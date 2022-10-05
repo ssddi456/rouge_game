@@ -9,8 +9,6 @@ import { Enemy } from "./enemy";
 import { getRunnerApp } from "./runnerApp";
 import { applyBuffer, applyCharge, applyDamageFlash, applyEventBuffer, applyFireAura, applyKnockback, Buffable, BUFFER_EVENTNAME_HEALTH_CHANGE, checkBufferAlive, createTimerBuffer, hasCharge } from "./buffer";
 import { GlowFilter } from '@pixi/filter-glow';
-
-import easingsFunctions, { twean } from "./easingFunctions";
 import tween from "./tween";
 import { Bow1 } from "./bow";
 import { overGroundCenterHeight } from "./groups";
@@ -417,5 +415,13 @@ export class Player extends UpdatableObject
         this.ammoPools.pool = [];
         this.bufferList = [];
         this.sprite.destroy();
+        for (const key in this.effects) {
+            if (Object.prototype.hasOwnProperty.call(this.effects, key)) {
+                const element = this.effects[key];
+                if (element.hasOwnProperty('stop')) {
+                    (element as AnimatedSprite).stop();
+                }
+            }
+        }
     }
 }
