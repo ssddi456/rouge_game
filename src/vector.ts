@@ -156,4 +156,110 @@ export class Vector {
         const nv = v.clone().normalize();
         this.sub(nv.multiplyScalar(2 * this.dot(nv)));
     }
+
+    // https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line
+    distanceToLine(line: VectorLine) {
+        return Math.abs(
+            (line.point2.x - line.point1.x) * (line.point1.y - this.y) - (line.point1.x - this.x) * (line.point2.y - line.point1.y)
+        ) / line.length
+    }
+
+    orthogonal() {
+        if (this.y == 0) {
+            return new Vector(0, 1);
+        }
+
+        return new Vector(1, - (this.x / this.y));
+    }
+}
+
+export class VectorLine {
+    constructor(
+        public point1: Vector,
+        public point2: Vector,
+    ) {}
+
+    get length() {
+        return Math.sqrt(this.lengthSq());
+    }
+
+    lengthSq() {
+        return this.point2.clone().sub(this.point1).lengthSq();
+    }
+}
+
+export class VectorCircle {
+    constructor(
+        public center: Vector,
+        public radius: number,
+    ) {}
+
+    collidesWithCircle(circle: VectorCircle) {
+        return this.center.distanceToSq(circle.center) >= (this.radius * this.radius + circle.radius + circle.radius);
+    }
+
+    collidesWithSegment(segment: VectorSegment) {
+        const maxDist = this.radius + segment.width;
+        if (this.center.distanceToLine(segment) > maxDist) {
+            return false;
+        }
+        const orth = segment.orthogonalForm();
+        const maxDistOrth = this.radius + orth.width;
+        if (this.center.distanceToLine(orth) > maxDistOrth) {
+            return false;
+        }
+        return true;
+    }
+}
+
+export class VectorSegment extends VectorLine {
+    constructor(
+        public point1: Vector,
+        public point2: Vector,
+        public width: number
+    ) {
+        super(point1, point2);
+    }
+
+    direction() {
+        return this.point2.clone().sub(this.point1);
+    }
+
+    points() {
+        const orth = this.direction().orthogonal().normalize().multiplyScalar(this.width);
+
+        return [
+            this.point1.clone().sub(orth),
+            this.point1.clone().add(orth),
+            this.point2.clone().sub(orth),
+            this.point2.clone().add(orth),
+        ];
+    }
+
+    center()  {
+        return new Vector(
+            this.point2.x / 2 + this.point1.x / 2,
+            this.point2.y / 2 + this.point1.y / 2,
+        );
+    }
+
+    lengthSq() {
+        const x = this.point2.x - this.point1.x;
+        const y = this.point2.y - this.point1.y;
+        return x * x + y * y;
+    }
+
+    get length(): number {
+        return Math.sqrt(this.lengthSq());
+    }
+
+    orthogonalForm() {
+        const center = this.center();
+        const orth = this.direction().orthogonal().normalize().multiplyScalar(this.width);
+        return new VectorSegment(
+            center.clone().sub(orth),
+            center.clone().add(orth),
+            this.length / 2
+        );
+    }
 }

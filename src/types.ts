@@ -192,6 +192,7 @@ export interface BaseBuffer {
     id: string;
     properties: Record<string, any>;
     dead?: boolean;
+    // ?? add comment here
     canEffect?: (target: any) => boolean;
     takeEffect?: (target: any, percent: number, ...rest: any[]) => void;
     afterEffect?: (target: any) => void;

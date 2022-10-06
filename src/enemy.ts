@@ -45,14 +45,12 @@ const EnemyControllerMap: Record<string, (enemy: Enemy, player?: Player) => void
             charger.canCharge = false;
             charger.chargerTimer.start();
             charger.idleJump.pause().reset();
-            charger.shake.reset().resume();
             applyCharge(enemy, 1200, {
                 start_pos: enemy.position.clone(),
                 direct: player.position.clone().sub(enemy.position).normalize().multiplyScalar(300 + 100),
                 chargingTime: 1500
             }).then(() => {
                 charger.idleJump.resume();
-                charger.shake.pause();
             });
 
         } else {
@@ -77,8 +75,8 @@ const EnemyControllerInitMap: Record<string, (enemy: Enemy) => void> = {
             });
             charger.shake = charger.addChildren(new Shake(charger.bodySprite,  {
                 frames: 10,
-                base: - overGroundCenterHeight,
-                height: 10,
+                base: 1,
+                height: 1.1,
             }));
             charger.shake.pause();
             charger.addChildren(charger.chargerTimer);
