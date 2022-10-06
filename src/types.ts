@@ -31,9 +31,10 @@ export abstract class UpdatableObject implements Updatable, Disposible {
 
     cacheProperty?(): void;
 
-    addChildren( obj: Updatable & Disposible ) {
+    addChildren<T extends Updatable & Disposible>( obj: T ) {
         this.updations.push(obj);
         this.dispositions.push(obj);
+        return obj;
     }
 
     update() {

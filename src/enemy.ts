@@ -11,7 +11,7 @@ import { applyBuffer, applyCharge, applyDamageFlash, applyEventBuffer, applyKnoc
 import { cloneAnimationSprites } from "./sprite_utils";
 import { overGroundCenterHeight } from "./groups";
 import { debugInfo } from "./debug_info";
-import { IdleJump } from "./helper/animated_utils";
+import { IdleJump, Shake } from "./helper/animated_utils";
 import { HotClass } from "./helper/class_reloader";
 import { getBlobShadow } from './uicomponents/blobShadow';
 import { Viewport } from 'pixi-viewport';
@@ -44,11 +44,17 @@ const EnemyControllerMap: Record<string, (enemy: Enemy, player?: Player) => void
         if (charger.canCharge && enemy.distSqToPlayer < 300 * 300) {
             charger.canCharge = false;
             charger.chargerTimer.start();
+            charger.idleJump.pause().reset();
+            charger.shake.reset().resume();
             applyCharge(enemy, 1200, {
                 start_pos: enemy.position.clone(),
                 direct: player.position.clone().sub(enemy.position).normalize().multiplyScalar(300 + 100),
                 chargingTime: 1500
+            }).then(() => {
+                charger.idleJump.resume();
+                charger.shake.pause();
             });
+
         } else {
             this.tracer(enemy, player);
         }
@@ -58,6 +64,7 @@ const EnemyControllerMap: Record<string, (enemy: Enemy, player?: Player) => void
 interface ChargerEnemy extends Enemy {
     chargerTimer: CountDown;
     canCharge: boolean;
+    shake: Shake
 }
 
 const EnemyControllerInitMap: Record<string, (enemy: Enemy) => void> = {
@@ -68,6 +75,12 @@ const EnemyControllerInitMap: Record<string, (enemy: Enemy) => void> = {
             charger.chargerTimer = new CountDown(12000, () => {
                 charger.canCharge = true;
             });
+            charger.shake = charger.addChildren(new Shake(charger.bodySprite,  {
+                frames: 10,
+                base: - overGroundCenterHeight,
+                height: 10,
+            }));
+            charger.shake.pause();
             charger.addChildren(charger.chargerTimer);
         }
     }
@@ -108,6 +121,14 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
 
     distSqToPlayer: number = 0;
     controller: keyof (typeof EnemyControllerMap) = 'charger';
+    idleJump: IdleJump = this.addChildren(new IdleJump(
+        this.bodySprite,
+        {
+            frames: 36,
+            base: - overGroundCenterHeight,
+            height: 10,
+        }
+    ));
 
     constructor(
         public spirtes: Record<string, AnimatedSprite>,
@@ -121,16 +142,6 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
 
         this.bodySprite.position.y = - overGroundCenterHeight;
         this.bodySprite.addChild(this.spirtes[this.sprite_names.idle]);
-        this.dispositions.push(
-            new IdleJump(
-                this.bodySprite,
-                {
-                    frames: 36,
-                    base: - overGroundCenterHeight,
-                    height: 10,
-                }
-            )
-        );
 
         this.sprite.addChild(this.debugInfo.pointer);
         this.sprite.addChild(this.debugInfo.text);
