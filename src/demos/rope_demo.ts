@@ -21,6 +21,14 @@ const context = createDemoContext(
             const geometry = new SimplePlane(texture, 2, 2);
             const texturePiece = app.renderer.generateTexture(geometry);
             texturePiece.baseTexture.wrapMode = WRAP_MODES.REPEAT;
+
+            const textures = (hitAnimateMap.hit_1.textures as Texture[]).map( x => {
+                geometry.texture = x;
+                const texturePiece = app.renderer.generateTexture(geometry);
+                texturePiece.baseTexture.wrapMode = WRAP_MODES.REPEAT;
+                return texturePiece;
+            });
+
             const points: Point[] = [];
             const total = 15;
             const seg = 20;
@@ -65,8 +73,12 @@ const context = createDemoContext(
                     // relative position
                     points[i].x = Math.random() * 10;
                 }
+
+                frameIndex += 1;
+                rope.texture = textures[frameIndex % textures.length];
             }
             let counter = 0;
+            let frameIndex = 0;
             return function () {
                 counter++;
                 if (!(counter % 10)) {
