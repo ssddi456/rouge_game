@@ -1,4 +1,4 @@
-import { AnimatedSprite, Container, Graphics, Point, Renderer } from "pixi.js";
+import { AnimatedSprite, Container, Graphics, Mesh, MeshMaterial, PlaneGeometry, Point, Renderer, SimplePlane, Texture } from "pixi.js";
 import { Camera } from "../camara";
 import { CountDown } from "../countdown";
 import { loadSpriteSheet } from "../loadAnimation";
@@ -41,9 +41,27 @@ const context = createDemoContext(
             laserBeam.position.y = - 16;
             laserBeam.anchor.set(0.5, 1);
             laser.addChild(laserBeam);
-            laserCenter.animationSpeed = laserBeam.animationSpeed = 1/16;
+            laserCenter.animationSpeed = laserBeam.animationSpeed = 1/100;
             laserCenter.play();
             laserBeam.play();
+
+            const beamTexture = laserAnimateMap.hit_0.textures[2] as Texture;
+            const beam = new class extends Mesh {
+                constructor() {
+                    var planeGeometry = new PlaneGeometry(32, -800, 2, 2);
+                    var meshMaterial = new MeshMaterial(Texture.WHITE);
+                    super(planeGeometry, meshMaterial);
+                    // lets call the setter to ensure all necessary updates are performed
+                    this.texture = beamTexture; // streched not repeated
+                }
+            };
+            beam.position.x = -16;
+            beam.position.y = -32;
+            laser.addChild(beam);
+            
+            laserBeam.onFrameChange = (index) => {
+                beam.texture = laserBeam._texture;
+            };
 
             /** update func */
             return function () {

@@ -81,19 +81,12 @@ const context = createDemoContext(
             let frameIndex = 0;
             return function () {
                 counter++;
-                if (!(counter % 10)) {
+                if (!(counter % 7)) {
                     updateRope();
+                    genWireframe(rope, ropeMesh.clear());
                 }
-                animateContainer.removeChild(ropeMesh);
-                ropeMesh.destroy();
-                ropeMesh = genWireframe(rope);
-                animateContainer.addChild(ropeMesh);
 
-                ropeMesh.position.x =
-                    rope.position.x = 80;
 
-                ropeMesh.position.y =
-                    rope.position.y = 40;
             };
         }
     });
