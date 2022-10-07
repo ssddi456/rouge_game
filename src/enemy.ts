@@ -437,6 +437,9 @@ export class EnemyPool extends UpdatableObject implements IObjectPools {
         const app = getRunnerApp();
         const player = app.getPlayer();
         let enemy: Enemy;
+        if (!player) {
+            return;
+        }
         for (let index = 0; index < this.livenodes.length; index++) {
             enemy = this.livenodes[index];
             enemy.distSqToPlayer = enemy.position.distanceToSq(player.position);
@@ -452,15 +455,13 @@ export class EnemyPool extends UpdatableObject implements IObjectPools {
         const cross = 4 * screen.worldHeight * screen.worldHeight + screen.worldWidth * screen.worldWidth;
         let pos = { x: 0, y: 0 };
         let enemy: Enemy;
-        let dist: number;
         let r: number;
         let radius: number;
 
         for (let index = 0; index < livenodes.length; index++) {
             enemy = livenodes[index];
-            dist = enemy.position.distanceToSq(player.position);
 
-            if (dist > cross) {
+            if (enemy.distSqToPlayer > cross) {
                 r = Math.floor(Math.random() * index) / 180 * Math.PI;
                 radius = 500 + Math.random() * 300;
                 pos.x = player!.position.x + Math.sin(r) * radius;

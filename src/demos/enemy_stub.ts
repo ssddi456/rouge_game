@@ -4,6 +4,20 @@ import { EnemyPool } from "../enemy";
 import { Vector } from "../vector";
 
 export class EnemyStub extends EnemyPool {
+    simpleEnemyTypes = [
+        // bunny
+        {
+            sprite_names: {
+                idle: 'bunny_idle',
+                idle_back: 'bunny_idle_back',
+                die: 'bunny_die',
+                die_back: 'bunny_die_back'
+            },
+            speed: 1.5,
+            health: 20,
+            controller: ['tracer'],
+        },
+    ];
     constructor(
         public spirtes: Record<string, AnimatedSprite>,
         public container: Container,

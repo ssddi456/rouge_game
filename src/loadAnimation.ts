@@ -182,6 +182,7 @@ export async function setupResource(app: Application,) {
     const gunAnimateMap = await loadSpriteSheet(loader, 'Nintendo Switch - Disgaea 5 Complete - Weapons Gun');
     const enemyAnimateMap = await loadSpriteSheet(loader, 'Nintendo Switch - Disgaea 5 Complete - Miscellaneous Monsters');
     const heartAnimationAnimateMap = await loadSpriteSheet(loader, '20m2d_HeartAnimation');
+    const laserAnimateMap = await loadSpriteSheet(loader, '20m2d_ShoggothLaser');
 
     const hitEffect = await loadSpriteSheet(loader, 'crosscode_hiteffect');
     const treeAnimateMap = await loadSpriteSheet(loader, 'Hazel Tree');
@@ -227,6 +228,8 @@ export async function setupResource(app: Application,) {
         gunAnimateMap: cloneAnimationSprites(gunAnimateMap),
         enemyAnimateMap: cloneAnimationSprites(enemyAnimateMap),
         heartAnimationAnimateMap: cloneAnimationSprites(heartAnimationAnimateMap),
+        laserAnimateMap: cloneAnimationSprites(laserAnimateMap),
+
         hitEffect,
         treeAnimateMap,
         upgradeSpriteMap,

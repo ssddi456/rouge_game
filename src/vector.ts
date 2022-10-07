@@ -236,6 +236,11 @@ export class VectorSegment extends VectorLine {
         ];
     }
 
+    localPoints() {
+        const points = this.points();
+        return points.map(x => x.clone().sub(this.point1));
+    }
+
     center()  {
         return new Vector(
             this.point2.x / 2 + this.point1.x / 2,
