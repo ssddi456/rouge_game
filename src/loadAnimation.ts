@@ -172,23 +172,44 @@ export function getImageUrl(name: string) {
     return `http://localhost:7001/public/${name}`
 }
 
+const animations = {
+    player: 'Nintendo Switch - Disgaea 5 Complete - LiezerotaDark',
+    bow: 'Nintendo Switch - Disgaea 5 Complete - Weapons Bow',
+    gun: 'Nintendo Switch - Disgaea 5 Complete - Weapons Gun',
+    enemy: 'Nintendo Switch - Disgaea 5 Complete - Miscellaneous Monsters',
+    heartAnimation: '20m2d_HeartAnimation',
+    hitEffect: 'crosscode_hiteffect',
+    tree: 'Hazel Tree',
+};
+
+const sprites = {
+    upgrade: '20m2d_powerups',
+    freezeFXSmall: '20m2d_FreezeFXSmall',
+    powerupPanel: '20m2d_PowerupPanel',
+    heartAnimation: '20m2d_HeartAnimation',
+};
+
+/** not config start */
+/** not config end */
 
 export async function setupResource(app: Application,) {
     const loader = app.loader;
     const resources = app.loader.resources;
 
+    /** load resource start */
     const playerAnimateMap = await loadSpriteSheet(loader, 'Nintendo Switch - Disgaea 5 Complete - LiezerotaDark');
     const bowAnimateMap = await loadSpriteSheet(loader, 'Nintendo Switch - Disgaea 5 Complete - Weapons Bow');
     const gunAnimateMap = await loadSpriteSheet(loader, 'Nintendo Switch - Disgaea 5 Complete - Weapons Gun');
     const enemyAnimateMap = await loadSpriteSheet(loader, 'Nintendo Switch - Disgaea 5 Complete - Miscellaneous Monsters');
     const heartAnimationAnimateMap = await loadSpriteSheet(loader, '20m2d_HeartAnimation');
-
-    const hitEffect = await loadSpriteSheet(loader, 'crosscode_hiteffect');
+    const hitEffectAnimateMap = await loadSpriteSheet(loader, 'crosscode_hiteffect');
     const treeAnimateMap = await loadSpriteSheet(loader, 'Hazel Tree');
+
     const upgradeSpriteMap = await loadSprites(loader, '20m2d_powerups');
     const freezeFXSmallSpriteMap = await loadSprites(loader, '20m2d_FreezeFXSmall');
     const powerupPanelSpriteMap = await loadSprites(loader, '20m2d_PowerupPanel');
     const heartAnimationSpriteMap = await loadSprites(loader, '20m2d_HeartAnimation');
+    /** load resource end */
 
     await new Promise<void>(r => {
         const name1 = 'magicCircle1';
@@ -222,19 +243,22 @@ export async function setupResource(app: Application,) {
     // Listen for frame updates
     const cloneResourceMap = () => ({
         resources,
+
+        /** declare resource start */
         playerAnimateMap: cloneAnimationSprites(playerAnimateMap),
         bowAnimateMap: cloneAnimationSprites(bowAnimateMap),
         gunAnimateMap: cloneAnimationSprites(gunAnimateMap),
         enemyAnimateMap: cloneAnimationSprites(enemyAnimateMap),
         heartAnimationAnimateMap: cloneAnimationSprites(heartAnimationAnimateMap),
-        hitEffect,
-        treeAnimateMap,
+        hitEffectAnimateMap: cloneAnimationSprites(hitEffectAnimateMap),
+        treeAnimateMap: cloneAnimationSprites(treeAnimateMap),
+
         upgradeSpriteMap,
         freezeFXSmallSpriteMap,
         powerupPanelSpriteMap,
         heartAnimationSpriteMap,
+        /** declare resource end */
     });
-
 
     const runnerApp = getRunnerApp();
     runnerApp.setGetResourceMap((cloneResourceMap as unknown) as GetResourceFunc);
