@@ -190,6 +190,10 @@ const sprites = {
 };
 
 /** not config start */
+({
+    "animations": [],
+    "sprites": []
+})
 /** not config end */
 
 export async function setupResource(app: Application,) {
@@ -209,7 +213,7 @@ export async function setupResource(app: Application,) {
     const freezeFXSmallSpriteMap = await loadSprites(loader, '20m2d_FreezeFXSmall');
     const powerupPanelSpriteMap = await loadSprites(loader, '20m2d_PowerupPanel');
     const heartAnimationSpriteMap = await loadSprites(loader, '20m2d_HeartAnimation');
-    /** load resource end */
+/** load resource end */
 
     await new Promise<void>(r => {
         const name1 = 'magicCircle1';
@@ -257,7 +261,7 @@ export async function setupResource(app: Application,) {
         freezeFXSmallSpriteMap,
         powerupPanelSpriteMap,
         heartAnimationSpriteMap,
-        /** declare resource end */
+/** declare resource end */
     });
 
     const runnerApp = getRunnerApp();

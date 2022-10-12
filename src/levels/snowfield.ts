@@ -44,7 +44,7 @@ export class SnowFieldLevel extends Level {
         const gunAnimateMap = newResources.gunAnimateMap;
         const enemyAnimateMap = newResources.enemyAnimateMap;
         const treeAnimateMap = newResources.treeAnimateMap;
-        const hitEffect = newResources.hitEffect;
+        const hitEffect = newResources.hitEffectAnimateMap;
         const resources = newResources.resources;
 
         playerAnimateMap.ammo = ammoA;

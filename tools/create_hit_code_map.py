@@ -75,3 +75,5 @@ create_formated_sprite_map('20m2d_PowerupPanel',
 
 create_formated_sprite_map('20m2d_HeartAnimation',
                            0, 0, 4, 1, 32, 32, hit_effect_sizes=[3])
+
+update_resource_loader()
