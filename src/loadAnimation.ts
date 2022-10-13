@@ -257,8 +257,8 @@ export async function setupResource(app: Application,) {
         enemyAnimateMap: cloneAnimationSprites(enemyAnimateMap),
         heartAnimationAnimateMap: cloneAnimationSprites(heartAnimationAnimateMap),
         hitEffectAnimateMap: cloneAnimationSprites(hitEffectAnimateMap),
-        treeAnimateMap: cloneAnimationSprites(treeAnimateMap),
         laserAnimateMap: cloneAnimationSprites(laserAnimateMap),
+        treeAnimateMap: cloneAnimationSprites(treeAnimateMap),
 
         upgradeSpriteMap,
         freezeFXSmallSpriteMap,
