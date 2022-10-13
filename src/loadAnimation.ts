@@ -179,6 +179,7 @@ const animations = {
     enemy: 'Nintendo Switch - Disgaea 5 Complete - Miscellaneous Monsters',
     heartAnimation: '20m2d_HeartAnimation',
     hitEffect: 'crosscode_hiteffect',
+    laser: '20m2d_ShoggothLaser',
     tree: 'Hazel Tree',
 };
 
@@ -207,6 +208,7 @@ export async function setupResource(app: Application,) {
     const enemyAnimateMap = await loadSpriteSheet(loader, 'Nintendo Switch - Disgaea 5 Complete - Miscellaneous Monsters');
     const heartAnimationAnimateMap = await loadSpriteSheet(loader, '20m2d_HeartAnimation');
     const hitEffectAnimateMap = await loadSpriteSheet(loader, 'crosscode_hiteffect');
+    const laserAnimateMap = await loadSpriteSheet(loader, '20m2d_ShoggothLaser');
     const treeAnimateMap = await loadSpriteSheet(loader, 'Hazel Tree');
 
     const upgradeSpriteMap = await loadSprites(loader, '20m2d_powerups');
@@ -256,6 +258,7 @@ export async function setupResource(app: Application,) {
         heartAnimationAnimateMap: cloneAnimationSprites(heartAnimationAnimateMap),
         hitEffectAnimateMap: cloneAnimationSprites(hitEffectAnimateMap),
         treeAnimateMap: cloneAnimationSprites(treeAnimateMap),
+        laserAnimateMap: cloneAnimationSprites(laserAnimateMap),
 
         upgradeSpriteMap,
         freezeFXSmallSpriteMap,

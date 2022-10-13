@@ -7,16 +7,15 @@ import { ECollisionType, EFacing, ICollisionable, IMovable, Shootable, Buffer, L
 import { checkCollision } from "./collision_helper";
 import { Enemy } from "./enemy";
 import { getRunnerApp } from "./runnerApp";
-import { applyBuffer, applyDamageFlash, applyEventBuffer, applyFireAura, applyKnockback, Buffable, BUFFER_EVENTNAME_HEALTH_CHANGE, checkBufferAlive, createTimerBuffer } from "./buffer";
+import { applyBuffer, applyCharge, applyDamageFlash, applyEventBuffer, applyFireAura, applyKnockback, Buffable, BUFFER_EVENTNAME_HEALTH_CHANGE, checkBufferAlive, createTimerBuffer, hasCharge } from "./buffer";
 import { GlowFilter } from '@pixi/filter-glow';
-
-import easingsFunctions, { twean } from "./easingFunctions";
 import tween from "./tween";
 import { Bow1 } from "./bow";
 import { overGroundCenterHeight } from "./groups";
 import { HotClass } from "./helper/class_reloader";
 import { ShootManager } from "./shootManager";
 import { CountDown } from "./countdown";
+import { getBlobShadow } from './uicomponents/blobShadow';
 @HotClass({ module })
 export class Player extends UpdatableObject
     implements
@@ -89,15 +88,9 @@ export class Player extends UpdatableObject
         this.position.setV(startPosition);
 
         // soft shadow
-        const shadow = new PIXI.Graphics();
         this.bodyContainer.position.y = - this.centerHeight;
         this.bodyContainer.scale.set(this.baseScale, this.baseScale);
-        this.effects.shadow = shadow;
-
-        shadow.beginFill(0x000000);
-        shadow.drawEllipse(-10, 80, 30, 10);
-        shadow.endFill();
-        shadow.filters = [new PIXI.filters.BlurFilter(5, 5)];
+        this.effects.shadow = getBlobShadow(getRunnerApp().getApp().renderer as PIXI.Renderer);
 
         // main character
 
@@ -242,18 +235,10 @@ export class Player extends UpdatableObject
                 this.costing = true;
                 if (keypressed.heavy_attack) {
                     const direct = this.direct.clone().normalize().multiplyScalar(400);
-                    this.bufferList.push(createTimerBuffer({
-                        duration: 200,
-                        id: 'heavy_attack',
-                        takeEffect(target: IMovable, percent: number) {
-                            target.position.x = this.properties.start_pos.x + twean(0, this.properties.direct.x, easingsFunctions.easeOutCubic, percent);
-                            target.position.y = this.properties.start_pos.y + twean(0, this.properties.direct.y, easingsFunctions.easeOutCubic, percent);
-                        },
-                        properties: {
-                            start_pos: this.position.clone(),
-                            direct,
-                        }
-                    }))
+                    applyCharge(this, 200, {
+                        start_pos: this.position.clone(),
+                        direct,
+                    });
                 }
             }
         }
@@ -280,15 +265,16 @@ export class Player extends UpdatableObject
             collisionTypes: [ECollisionType.enemy],
         }) as Enemy[];
 
-        const is_rush = this.bufferList.find(buffer => buffer.id === 'heavy_attack');
-        if (is_rush) {
+        if (hasCharge(this)) {
             for (let index = 0; index < enemies.length; index++) {
                 const enemy = enemies[index];
                 const checkRes = checkCollision(this, enemy);
                 if (checkRes) {
-                    applyKnockback(enemy,
-                        enemy.position.clone().sub(this.position).normalize().multiplyScalar(this.speed * 3.1)
-                    );
+                    if (!hasCharge(enemy)) {
+                        applyKnockback(enemy,
+                            enemy.position.clone().sub(this.position).normalize().multiplyScalar(this.speed * 3.1)
+                        );
+                    }
                 }
             }
         } else {
@@ -428,5 +414,14 @@ export class Player extends UpdatableObject
         super.dispose();
         this.ammoPools.pool = [];
         this.bufferList = [];
+        this.sprite.destroy();
+        for (const key in this.effects) {
+            if (Object.prototype.hasOwnProperty.call(this.effects, key)) {
+                const element = this.effects[key];
+                if (element.hasOwnProperty('stop')) {
+                    (element as AnimatedSprite).stop();
+                }
+            }
+        }
     }
 }

@@ -1,11 +1,13 @@
 import { Container, Sprite } from "pixi.js";
 import { Group, Layer, Stage } from '@pixi/layers';
 
+export const maskZIndex = 400;
 export const uiZIndex = 300;
 export const skyZIndex = 200;
 export const textParticleZIndex = 130;
 export const ammoZIndex = 110;
 export const overGroundZindex = 100;
+export const shadowZindex = 50;
 export const enemyZIndex = 90;
 export const dropletZIndex = 70;
 export const groundZIndex = 0;
@@ -46,6 +48,7 @@ export function createGroups (container: Stage){
         textGroup: createGroup(container, textParticleZIndex),
         ammoGroup: createGroup(container, ammoZIndex),
         overGroundGroup: createGroup(container, overGroundZindex),
+        shadowGroup: createGroup(container, shadowZindex),
         groundGroup: createGroup(container, groundZIndex),
         dropletGroup: createGroup(container, dropletZIndex),
     };

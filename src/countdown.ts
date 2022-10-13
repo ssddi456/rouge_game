@@ -1,7 +1,7 @@
 import { getRunnerApp } from "./runnerApp";
-import { Updatable } from "./types";
+import { Disposible, Updatable } from "./types";
 
-export class CountDown implements Updatable {
+export class CountDown implements Updatable, Disposible {
     last_update_time = 0;
     exec_times = 0;
     constructor(
@@ -9,6 +9,10 @@ export class CountDown implements Updatable {
         public exec: Function
     ) {
         this.last_update_time = getRunnerApp().now() || 0;
+    }
+    disposed: boolean = false;
+    dispose(): void {
+        this.exec_times = 0;
     }
 
     update() {

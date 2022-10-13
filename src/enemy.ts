@@ -5,19 +5,84 @@ import { Vector } from "./vector";
 import * as PIXI from 'pixi.js';
 import { IMovable, ICollisionable, EFacing, IObjectPools, ECollisionType, LivingObject, Buffer, Updatable, UpdatableObject } from "./types";
 import { checkCollision } from "./collision_helper";
-import { Droplets as Droplet } from "./droplet";
+import { Droplet as Droplet } from "./droplet";
 import { getRunnerApp } from "./runnerApp";
-import { applyBuffer, applyDamageFlash, applyEventBuffer, Buffable, BUFFER_EVENTNAME_DEAD, BUFFER_EVENTNAME_HEALTH_CHANGE, BUFFER_EVENTNAME_HITTED, BUFFER_EVENTNAME_MOVE, checkBufferAlive } from "./buffer";
+import { applyBuffer, applyCharge, applyDamageFlash, applyEventBuffer, applyKnockback, Buffable, BUFFER_EVENTNAME_DEAD, BUFFER_EVENTNAME_HEALTH_CHANGE, BUFFER_EVENTNAME_HITTED, checkBufferAlive, hasCharge, hasKnockback } from "./buffer";
 import { cloneAnimationSprites } from "./sprite_utils";
 import { overGroundCenterHeight } from "./groups";
 import { debugInfo } from "./debug_info";
-import { IdleJump } from "./helper/animated_utils";
+import { IdleJump, Shake } from "./helper/animated_utils";
 import { HotClass } from "./helper/class_reloader";
+import { getBlobShadow } from './uicomponents/blobShadow';
+import { Viewport } from 'pixi-viewport';
 
 
-type ReinitableProps = Pick<Enemy,
+type ReinitableProps = Partial<Pick<Enemy,
     'speed' | 'size' | 'health' | 'sprite_names'
->;
+>> & {
+    controller: controllerKey[]
+};
+
+type controllerKey = (keyof (typeof EnemyControllerMap));
+
+const EnemyControllerMap: Record<string, (enemy: Enemy, player?: Player) => void> = {
+    tracer(enemy: Enemy, player: Player = getRunnerApp().getPlayer()) {
+        if (player as Player) {
+            enemy.direct.setV(player.position.clone()
+                .sub(enemy.position)
+                .normalize()
+                .multiplyScalar(enemy.speed));
+        } else {
+            enemy.direct.set(0, 0);
+        }
+    },
+    charger(enemy, player: Player = getRunnerApp().getPlayer()) {
+        let charger = enemy as ChargerEnemy;
+        if (!charger.chargerTimer) {
+            EnemyControllerInitMap.charger(enemy);
+        }
+        if (charger.canCharge && enemy.distSqToPlayer < 300 * 300) {
+            charger.canCharge = false;
+            charger.chargerTimer.start();
+            charger.idleJump.pause().reset();
+            applyCharge(enemy, 1200, {
+                start_pos: enemy.position.clone(),
+                direct: player.position.clone().sub(enemy.position).normalize().multiplyScalar(300 + 100),
+                chargingTime: 1500
+            }).then(() => {
+                charger.idleJump.resume();
+            });
+
+        } else {
+            this.tracer(enemy, player);
+        }
+    }
+};
+
+interface ChargerEnemy extends Enemy {
+    chargerTimer: CountDown;
+    canCharge: boolean;
+    shake: Shake
+}
+
+const EnemyControllerInitMap: Record<string, (enemy: Enemy) => void> = {
+    charger(enemy: Enemy) {
+        let charger = enemy as ChargerEnemy;
+        if (!charger.chargerTimer) {
+            charger.canCharge = true;
+            charger.chargerTimer = new CountDown(12000, () => {
+                charger.canCharge = true;
+            });
+            charger.shake = charger.addChildren(new Shake(charger.bodySprite,  {
+                frames: 10,
+                base: 1,
+                height: 1.1,
+            }));
+            charger.shake.pause();
+            charger.addChildren(charger.chargerTimer);
+        }
+    }
+};
 
 @HotClass({ module })
 export class Enemy extends UpdatableObject implements IMovable, ICollisionable, LivingObject, Buffable {
@@ -41,7 +106,7 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
     bodySprite = this.sprite.addChild(new Container);
     bufferList: Buffer[] = [];
 
-    shadow: Graphics;
+    shadow: Sprite;
 
     debugInfo = debugInfo();
 
@@ -52,36 +117,32 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
         die_back: 'die_back'
     };
 
+    distSqToPlayer: number = 0;
+    controller: keyof (typeof EnemyControllerMap) = 'charger';
+    idleJump: IdleJump = this.addChildren(new IdleJump(
+        this.bodySprite,
+        {
+            frames: 36,
+            base: - overGroundCenterHeight,
+            height: 10,
+        }
+    ));
+
     constructor(
         public spirtes: Record<string, AnimatedSprite>,
     ) {
         super();
 
         // soft shadow
-        const shadow = new PIXI.Graphics();
+        const shadow = getBlobShadow(getRunnerApp().getApp().renderer as PIXI.Renderer);
         this.sprite.addChild(shadow);
-        shadow.position.y = - overGroundCenterHeight;
-
         this.shadow = shadow;
-        shadow.beginFill(0x000000);
-        shadow.drawEllipse(0, 60, 30, 10);
-        shadow.endFill();
-        shadow.filters = [new PIXI.filters.BlurFilter(5, 5)];
 
         this.bodySprite.position.y = - overGroundCenterHeight;
         this.bodySprite.addChild(this.spirtes[this.sprite_names.idle]);
-        this.dispositions.push(
-            new IdleJump(
-                this.bodySprite,
-                {
-                    frames: 36,
-                    base: - overGroundCenterHeight,
-                    height: 10,
-                }
-            )
-        );
 
         this.sprite.addChild(this.debugInfo.pointer);
+        this.sprite.addChild(this.debugInfo.text);
     }
 
     assets: PIXI.DisplayObject[] = [];
@@ -96,6 +157,7 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
 
     recieveDamage(damage: number, hitPos: Vector): void {
         this.health -= damage;
+        this.debugInfo.text.text = `${this.health}/${this.max_health}`;
         applyEventBuffer(this, BUFFER_EVENTNAME_HEALTH_CHANGE);
 
         const app = getRunnerApp();
@@ -136,7 +198,7 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
 
     init(
         position: Vector,
-        props?: Partial<ReinitableProps>
+        props?: Omit<ReinitableProps, 'controller'> & { controller: controllerKey }
     ) {
         this.position.setV(position);
         this.sprite.x = position.x;
@@ -145,6 +207,7 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
         this.dead = false;
 
         if (props) {
+            this.controller = props.controller;
             if (props.speed) {
                 this.speed = props.speed;
             }
@@ -185,42 +248,44 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
     }
 
     updatePosition() {
-        
-        const app = getRunnerApp();
-        const player = app.getEntities({
-            collisionTypes: [ECollisionType.player]
-        })[0];
-        if (player as Player) {
-            this.direct.setV(player.position.clone()
-                .sub(this.position)
-                .normalize()
-                .multiplyScalar(this.speed));
-        } else {
-            this.direct
-                .setX(0)
-                .setY(0);
-        }
-
-        applyBuffer(this, );
-        applyEventBuffer(this, BUFFER_EVENTNAME_MOVE);
-
-
         this.position.x += this.direct.x;
         this.position.y += this.direct.y;
 
-        const nodes = getRunnerApp().getEntities({
+        const nodes = getRunnerApp().getNearbyEntity({
             collisionTypes: [ECollisionType.enemy, ECollisionType.player],
+            position: this.position,
         });
+        const charging = hasCharge(this);
+
+        let node: ICollisionable;
+        let checkRes: ReturnType<typeof checkCollision>;
 
         for (let index = 0; index < nodes.length; index++) {
-            const node = nodes[index];
+            node = nodes[index];
             if (node !== this) {
-                const checkRes = checkCollision(this, node);
+                checkRes = checkCollision(this, node);
                 if (checkRes) {
-                    this.position.setV(checkRes.collisionPos);
+                    if (charging) {
+                        if (!hasCharge((node as any) as Buffable)) {
+                            applyKnockback((node as any) as Buffable,
+                                node.position.clone().sub(this.position)
+                                    .normalize().rotate(Math.PI / 3)
+                                    .multiplyScalar(this.speed * 20),
+                                200
+                            );
+                        }
+                    } else {
+                        this.position.setV(checkRes.collisionPos);
+                    }
                     if (node.collisison_type === ECollisionType.player) {
                         applyEventBuffer(node as Player, BUFFER_EVENTNAME_HITTED);
                         (node as Player).recieveDamage(1, checkRes.collisionHitPos);
+                        applyKnockback((node as any) as Buffable,
+                            node.position.clone().sub(this.position)
+                                .normalize().rotate(Math.PI / 3)
+                                .multiplyScalar(this.speed * (charging ? 20 : 5)),
+                            200
+                        );
                     }
                 }
             }
@@ -230,10 +295,10 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
     }
 
     updateSprite() {
-        if (this.direct.x > 0 && this.sprite.scale.x > 0) {
-            this.sprite.scale.x = -1;
-        } else if (this.direct.x < 0 && this.sprite.scale.x < 0) {
-            this.sprite.scale.x = 1;
+        if (this.direct.x > 0 && this.bodySprite.scale.x > 0) {
+            this.bodySprite.scale.x = -1;
+        } else if (this.direct.x < 0 && this.bodySprite.scale.x < 0) {
+            this.bodySprite.scale.x = 1;
         }
 
         if ((this.direct.y > 0 && this.prev_direct.y <= 0)
@@ -259,6 +324,8 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
     }
 
     updateBuffer() {
+        // for timer buffers
+        applyBuffer(this,);
         this.bufferList = checkBufferAlive(this);
     }
 
@@ -269,9 +336,20 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
         }
         super.update();
         this.updateBuffer();
-
+        if (
+            !hasKnockback(this)
+            && !hasCharge(this)
+        ) {
+            EnemyControllerMap[this.controller](this,);
+        } else {
+            this.direct.setV({ x: 0, y: 0 });
+        }
         this.updatePosition();
         this.updateSprite();
+    }
+
+    dispose(): void {
+        this.sprite.destroy();
     }
 }
 
@@ -279,10 +357,9 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
 export class EnemyPool extends UpdatableObject implements IObjectPools {
     pool: Enemy[] = [];
     spawnTimer: Updatable;
-    livenodes = 0;
+    livenodes: Enemy[] = [];
 
-
-    simpleEnemyTypes: Partial<ReinitableProps>[] = [
+    simpleEnemyTypes: ReinitableProps[] = [
         // bottle
         {
             sprite_names: {
@@ -293,6 +370,7 @@ export class EnemyPool extends UpdatableObject implements IObjectPools {
             },
             speed: 1,
             health: 30,
+            controller: ['tracer', 'charger'],
         },
         // bunny
         {
@@ -304,6 +382,7 @@ export class EnemyPool extends UpdatableObject implements IObjectPools {
             },
             speed: 1.5,
             health: 20,
+            controller: ['tracer'],
         },
     ];
 
@@ -332,7 +411,13 @@ export class EnemyPool extends UpdatableObject implements IObjectPools {
         if (isNaN(position.x) || isNaN(position.y)) {
             debugger
         }
-        const type = this.simpleEnemyTypes[Math.floor(0.49 + Math.random())]
+
+        const pickType = this.simpleEnemyTypes[Math.floor(Math.random() * this.simpleEnemyTypes.length)];
+        const type = {
+            ...pickType,
+            controller: pickType.controller[Math.floor(Math.random() * pickType.controller.length)] as controllerKey
+        };
+
         const dead = this.pool.find(enemy => enemy.dead);
         if (dead) {
             dead.init(position, type);
@@ -348,22 +433,63 @@ export class EnemyPool extends UpdatableObject implements IObjectPools {
         }
     }
 
+    updateEnemyDist() {
+        const app = getRunnerApp();
+        const player = app.getPlayer();
+        let enemy: Enemy;
+        if (!player) {
+            return;
+        }
+        for (let index = 0; index < this.livenodes.length; index++) {
+            enemy = this.livenodes[index];
+            enemy.distSqToPlayer = enemy.position.distanceToSq(player.position);
+        }
+    }
+
+    relocate() {
+        const livenodes = this.livenodes;
+        const app = getRunnerApp();
+        const player = app.getPlayer();
+        const screen = app.getGameView() as Viewport;
+        // 2 screen cross
+        const cross = 4 * screen.worldHeight * screen.worldHeight + screen.worldWidth * screen.worldWidth;
+        let pos = { x: 0, y: 0 };
+        let enemy: Enemy;
+        let r: number;
+        let radius: number;
+
+        for (let index = 0; index < livenodes.length; index++) {
+            enemy = livenodes[index];
+
+            if (enemy.distSqToPlayer > cross) {
+                r = Math.floor(Math.random() * index) / 180 * Math.PI;
+                radius = 500 + Math.random() * 300;
+                pos.x = player!.position.x + Math.sin(r) * radius;
+                pos.y = player!.position.y + Math.cos(r) * radius;
+                enemy.position.setV(pos);
+                // console.log('relocate at ', pos.x, pos.y);
+            }
+        }
+    }
+
     update() {
         this.spawnTimer.update();
+        this.livenodes = this.pool.filter(x => !x.dead);
+        this.updateEnemyDist();
         super.update();
-        this.livenodes = this.pool.filter(x => !x.dead).length;
+        this.livenodes = this.pool.filter(x => !x.dead);
+        this.relocate();
     }
 
     spawn = () => {
-        if (this.livenodes > 300) {
+        if (this.livenodes.length > 1) {
             return;
         }
         const app = getRunnerApp();
-        const player = app.getEntities({
-            collisionTypes: [ECollisionType.player],
-        })[0];
+        const player = app.getPlayer();
         const radius = 800;
-        const n = Math.min(Math.floor(app.getSession().now() / 20e3) + 1, 5);
+        const n = Math.min(Math.floor(app.getSession().now() / 20e3) + 1, 3);
+        // const n = 3;
         const minR = 10;
         let r = Math.random() * 360;
         for (let index = 0; index < n; index++) {

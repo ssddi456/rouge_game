@@ -104,12 +104,6 @@ export class ShootManager {
     doShoot(shootInfo: ShootInfo) {
         const app = getRunnerApp();
 
-        if (this.currentAmmoCount <= 0) {
-            shootInfo.shooted = true;
-            this.doReload();
-            return;
-        }
-
         this.currentAmmoCount -= 1;
         const ammo = (() => {
             if (shootInfo.dir) {
@@ -139,6 +133,11 @@ export class ShootManager {
             this.shooting = true;
         } else {
             this.shooting = false;
+        }
+
+        if (this.currentAmmoCount <= 0) {
+            this.doReload();
+            return;
         }
     }
 

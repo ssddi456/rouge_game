@@ -8,6 +8,7 @@ import { default as initIkDemo } from './demos/ik_demo';
 import { default as initBowDemo } from './demos/bow_demo';
 import { default as initTreeDemo } from './demos/tree_demo';
 import { default as initAoeDemo } from './demos/aoe_demo';
+import { default as initSegmentDemo } from './demos/segment_demo';
 
 import { getRunnerApp } from './runnerApp';
 import { Camera } from './camara';
@@ -17,6 +18,7 @@ import { EnemyStub } from './demos/enemy_stub';
 import { setupResource } from './loadAnimation';
 import { createGroups } from './groups';
 import { Stage } from '@pixi/layers';
+import { GameSession } from './game_session';
 
 const app = new PIXI.Application({
     backgroundColor: 0x1099bb,
@@ -81,6 +83,11 @@ const runnerApp = getRunnerApp();
 runnerApp.setApp(app);
 runnerApp.setCamera(camera);
 runnerApp.setGameView(app.stage);
+runnerApp.setSession(new (class extends GameSession  {
+    ifSessionFailed() {
+        return false;
+    }
+}));
 
 (async function () {
     
@@ -112,5 +119,6 @@ runnerApp.setGameView(app.stage);
     initBowDemo(app);
     initTreeDemo(app);
     initAoeDemo(app);
-    
+    initSegmentDemo(app);
+
 })();

@@ -1,7 +1,6 @@
 import { Graphics, Mesh } from "pixi.js";
 
-export function genWireframe(sprite: Mesh) {
-    const graphics = new Graphics();
+export function genWireframe(sprite: Mesh, graphics = new Graphics()) {
     sprite.calculateVertices();
 
     const indices = sprite.geometry.getIndex().data;

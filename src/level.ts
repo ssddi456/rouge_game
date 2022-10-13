@@ -1,11 +1,11 @@
 import { Stage } from "@pixi/layers";
 import { Viewport } from "pixi-viewport";
-import { Application, Container, State, TilingSprite } from "pixi.js";
+import { Application, Container, DisplayObject, Graphics, State, TilingSprite } from "pixi.js";
 import { Camera } from "./camara";
 import { DropletPool } from "./droplet";
 import { EnemyPool } from "./enemy";
 import { GameSession } from "./game_session";
-import { createGroups } from "./groups";
+import { createGroups, maskZIndex } from "./groups";
 import { Fade } from "./helper/animated_utils";
 import { BaseMenu } from "./menu/base";
 import { Player } from "./player";
@@ -138,9 +138,10 @@ export abstract class Level {
         blockContext?.dispose();
 
         const grass = this.ground;
+        grass?.destroy();
 
         const forest = this.forest;
-        forest && (forest.trees = []);
+        forest && forest.dispose();
 
         const ui = this.ui;
         ui?.dispose();
@@ -172,7 +173,6 @@ export class LevelManager {
         public gameView: Container,
         public getResources: () => Record<string, Record<string, any>>
     ) {
-        
     }
 
     levelPause() {
@@ -196,21 +196,26 @@ export class LevelManager {
         this.levelPause();
         return new Promise<void>(resolve => {
             requestAnimationFrame(async () => {
-                await this.fadeEffect.doFade(0, 1, 500);
                 
                 if (!this.levelClassMap[levelId]) {
                     throw new Error(`cannot found level ${levelId}`);
+                }
+                const lastLevel = this.currentLevel;
+                if (lastLevel) {
+                    await this.fadeEffect.doFade(0, 1, 2000);
+                    lastLevel.dispose();
                 }
                 getRunnerApp().setGroups(createGroups(this.gameView as Stage));
                 if (!this.levelMap[levelId]) {
                     this.levelMap[levelId] = new this.levelClassMap[levelId](this.app, this.getResources);
                 }
-                const currentLevel = this.levelMap[levelId];
 
+                const currentLevel = this.levelMap[levelId];
                 currentLevel.init(this.gameView);
                 this.currentLevel = currentLevel;
-                await this.fadeEffect.doFade(1, 0, 500);
                 this.levelResume();
+
+                await this.fadeEffect.doFade(1, 0, 2000);
                 resolve();
             });
         });

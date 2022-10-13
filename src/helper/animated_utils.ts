@@ -1,12 +1,15 @@
 import clamp from "lodash/clamp";
 import { Container, DisplayObject, Graphics, Ticker } from "pixi.js";
+import easingsFunctions, { twean } from '../easingFunctions';
+import { maskZIndex } from '../groups';
 import { getRunnerApp } from "../runnerApp";
 import { Disposible, Updatable, UpdatableObject, } from "../types";
 
-export class IdleJump implements Disposible {
+export class IdleJump implements Updatable, Disposible {
 
     currentFrame = 0;
     disposed: boolean = false;
+    paused: boolean = false;
 
     constructor(
         public target: DisplayObject,
@@ -16,13 +19,13 @@ export class IdleJump implements Disposible {
             height: number
         }
     ) {
-        Ticker.shared.add(this.handler);
     }
 
-    handler = () => {
-        if (this.disposed) {
+    update () {
+        if (this.paused) {
             return;
         }
+
         this.currentFrame += 1;
         const realFrame = this.currentFrame % this.options.frames;
         const percent = realFrame / this.options.frames;
@@ -30,8 +33,38 @@ export class IdleJump implements Disposible {
         this.target.position.y = this.options.base + Math.sin(percent * Math.PI) * this.options.height;
     }
 
+    reset() {
+        this.target.position.y = this.options.base;
+        this.currentFrame = 0;
+        return this;
+    }
+
+    pause() {
+        this.paused = true;
+        return this;
+    }
+
+    resume() {
+        this.paused = false;
+        return this;
+    }
+
     dispose(): void {
-        Ticker.shared.remove(this.handler);
+        // do nothing
+    }
+}
+
+export class Shake extends IdleJump {
+    update(): void {
+        if (this.paused) {
+            return;
+        }
+
+        this.currentFrame += 1;
+        const realFrame = this.currentFrame % this.options.frames;
+        const percent = realFrame / this.options.frames;
+
+        this.target.scale.y = this.options.base + Math.sin(percent * Math.PI) * this.options.height;
     }
 }
 
@@ -61,6 +94,7 @@ export class Fade extends UpdatableObject implements Disposible {
             .drawRect(0, 0, this.width, this.height)
             .endFill()
         this.sprite.visible = true;
+        this.sprite.zIndex = maskZIndex;    
 
         this.container.addChild(this.sprite);
         this.startTime = getRunnerApp().realWorldNow();
@@ -86,16 +120,11 @@ export class Fade extends UpdatableObject implements Disposible {
             return;
         }
         const ct = getRunnerApp().realWorldNow();
-        this.sprite.parentGroup = getRunnerApp().getGroups()?.uiGroup;
 
         const percent = clamp ((ct - this.startTime) / this.time, 0, 1);
-        const realV = this.from + (this.to - this.from) * percent;
-        if (realV == 0) {
-            this.sprite.visible = false;
-        } else {
-            this.sprite.visible = true;
-        }
-        
+        const realV = twean(this.from, this.to, easingsFunctions.easeOutCubic, percent);
+
+
         this.sprite.alpha = realV;
         if (ct > this.startTime + this.time) {
             this.stopped = true;

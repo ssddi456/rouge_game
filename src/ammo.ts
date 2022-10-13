@@ -9,6 +9,11 @@ import { getRunnerApp } from "./runnerApp";
 import { Buffer, ECollisionType, EFacing, ICollisionable, IMovable, IObjectPools } from "./types";
 import { Vector } from "./vector";
 
+export interface DamageInfo {
+    collision: ReturnType<typeof checkCollision>;
+    damage: number
+}
+
 @HotClass({ module })
 export class Ammo implements IMovable, ICollisionable, Buffable {
     start_position = new Vector(0, 0);
@@ -215,10 +220,10 @@ export class AmmoPool implements IObjectPools {
 
     updateHit() {
         const ammos = this.pool.filter(ammo => !ammo.dead);
-        const enemies = getRunnerApp().getEntities({ collisionTypes: [ECollisionType.enemy] });
         for (let index = 0; index < ammos.length; index++) {
             const ammo = ammos[index];
             const _temp_hitting_items: ICollisionable[] = [];
+            const enemies = getRunnerApp().getNearbyEntity({ collisionTypes: [ECollisionType.enemy], position: ammo.position });
             for (let jndex = 0; jndex < enemies.length; jndex++) {
                 const enemy = enemies[jndex] as Enemy;
                 if (!enemy.dead) {
@@ -227,11 +232,15 @@ export class AmmoPool implements IObjectPools {
                         _temp_hitting_items.push(enemy);
 
                         if (!ammo.current_hitting_items.includes(enemy)) {
-                            applyEventBuffer(ammo, BUFFER_EVENTNAME_HIT, enemy);
+                            const damageInfo: DamageInfo = {
+                                collision: ifCollision,
+                                damage: ammo.damage
+                            };
 
-                            applyEventBuffer(enemy, BUFFER_EVENTNAME_HITTED, ammo);
+                            applyEventBuffer(ammo, BUFFER_EVENTNAME_HIT, enemy, damageInfo);
+                            applyEventBuffer(enemy, BUFFER_EVENTNAME_HITTED, ammo, damageInfo);
 
-                            enemy.recieveDamage(ammo.damage, ifCollision.collisionHitPos);
+                            enemy.recieveDamage(damageInfo.damage, ifCollision.collisionHitPos);
                             const app = getRunnerApp();
                             app.emitParticles(ifCollision.collisionHitPos,
                                 this.hitAnimate,
