@@ -64,7 +64,7 @@ export const ice_hurts: Upgrade = {
 export const arrow_brancing: Upgrade = {
     title: "arrow brancing",
     id: "arrow brancing",
-    description: "the ice arrow will brancing when hit",
+    description: "the ice arrow will brancing small pieces when hit, slow the enemies around, upto 2 target",
     iconIdentifier: "102",
     requirements: [ice_mark.id],
     apply: function (player: Player, session: GameSession): void {
@@ -80,7 +80,7 @@ export const arrow_brancing: Upgrade = {
                 console.log('trigger ice arrow brancing');
                 const resource = getRunnerApp().getGetResourceMap()();
                 const currentCenter = enemy.position.clone();
-                let branchingTarget: Enemy;
+                const branchingTarget: Enemy[] = [];
                 let disSq = 300 * 300;
                 getRunnerApp().walkNearbyEntityInDistance({
                     collisionTypes: [ECollisionType.enemy],
@@ -91,27 +91,32 @@ export const arrow_brancing: Upgrade = {
                         if (item !== enemy) {
                             if (currentCenter.distanceToSq(item.position) < disSq) {
                                 (item as Enemy).debugInfo.text.text = 'selected ! : ' + currentCenter.distanceToSq(item.position);
-                                branchingTarget = item as Enemy;
-                                return true;
+                                branchingTarget.push(item as Enemy);
+                                if (branchingTarget.length > 1) {
+                                    return true;
+                                }
                             }
                         }
                     }
                 });
 
-                if (branchingTarget!) {
-                    const ammo = player.shootManager.ammoPool.emit(
-                        branchingTarget.position.clone().sub(currentCenter).normalize(),
-                        currentCenter,
-                        3000,
-                        10,
-                        resource.iceAnimateMap.projectile as AnimatedSprite,
-                        null,
-                        resource.ice_hitAnimateMap.hit_effect as AnimatedSprite,
-                    );
-                    ammo.max_piecing_count = 0;
-                    ammo.max_bouncing_count = 0;
-                    ammo.current_hitting_items = [enemy];
-                    ammo.bufferList.push(getAmmoIceSlow());
+                if (branchingTarget.length) {
+                    for (let index = 0; index < branchingTarget.length; index++) {
+                        const element = branchingTarget[index];
+                        const ammo = player.shootManager.ammoPool.emit(
+                            element.position.clone().sub(currentCenter).normalize(),
+                            currentCenter,
+                            3000,
+                            10,
+                            resource.iceAnimateMap.projectile as AnimatedSprite,
+                            null,
+                            resource.ice_hitAnimateMap.hit_effect as AnimatedSprite,
+                        );
+                        ammo.max_piecing_count = 0;
+                        ammo.max_bouncing_count = 0;
+                        ammo.current_hitting_items = [enemy];
+                        ammo.bufferList.push(getAmmoIceSlow());
+                    }
                 }
             },
         })
