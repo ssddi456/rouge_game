@@ -181,6 +181,13 @@ const animations = {
     hitEffect: 'crosscode_hiteffect',
     laser: '20m2d_ShoggothLaser',
     tree: 'Hazel Tree',
+
+    ice: "IceVFX 1 Repeatable",
+    ice_hit: "Ice VFX 1 Hit",
+
+    thunder: "Thunder projectile1 w blur",
+    thunder_hit: "Thunder hit w blur",
+
 };
 
 const sprites = {
@@ -192,8 +199,34 @@ const sprites = {
 
 /** not config start */
 ({
-    "animations": [],
-    "sprites": []
+    "animations": [
+        "20m2d_FreezeFXSmall",
+        "20m2d_PowerupPanel",
+        "20m2d_powerups",
+        "bullet souls",
+        "Dark VFX 1 (40x32)",
+        "Dark VFX 2 (48x64)",
+        "Projectile 2 w blur"
+    ],
+    "sprites": [
+        "20m2d_ShoggothLaser",
+        "bullet souls",
+        "crosscode_hiteffect",
+        "Dark VFX 1 (40x32)",
+        "Dark VFX 2 (48x64)",
+        "Hazel Tree",
+        "Ice VFX 1 Hit",
+        "IceVFX 1 Repeatable",
+        "Nintendo Switch - Disgaea 5 Complete - LiezerotaDark",
+        "Nintendo Switch - Disgaea 5 Complete - Miscellaneous Monsters",
+        "Nintendo Switch - Disgaea 5 Complete - Weapons Bow",
+        "Nintendo Switch - Disgaea 5 Complete - Weapons Gun",
+        "Projectile 2 w blur",
+        "spell_circle_2",
+        "Texture2D",
+        "Thunder hit w blur",
+        "Thunder projectile1 w blur"
+    ]
 })
 /** not config end */
 
@@ -210,6 +243,10 @@ export async function setupResource(app: Application,) {
     const hitEffectAnimateMap = await loadSpriteSheet(loader, 'crosscode_hiteffect');
     const laserAnimateMap = await loadSpriteSheet(loader, '20m2d_ShoggothLaser');
     const treeAnimateMap = await loadSpriteSheet(loader, 'Hazel Tree');
+    const iceAnimateMap = await loadSpriteSheet(loader, 'IceVFX 1 Repeatable');
+    const ice_hitAnimateMap = await loadSpriteSheet(loader, 'Ice VFX 1 Hit');
+    const thunderAnimateMap = await loadSpriteSheet(loader, 'Thunder projectile1 w blur');
+    const thunder_hitAnimateMap = await loadSpriteSheet(loader, 'Thunder hit w blur');
 
     const upgradeSpriteMap = await loadSprites(loader, '20m2d_powerups');
     const freezeFXSmallSpriteMap = await loadSprites(loader, '20m2d_FreezeFXSmall');
@@ -259,6 +296,10 @@ export async function setupResource(app: Application,) {
         hitEffectAnimateMap: cloneAnimationSprites(hitEffectAnimateMap),
         laserAnimateMap: cloneAnimationSprites(laserAnimateMap),
         treeAnimateMap: cloneAnimationSprites(treeAnimateMap),
+        iceAnimateMap: cloneAnimationSprites(iceAnimateMap),
+        ice_hitAnimateMap: cloneAnimationSprites(ice_hitAnimateMap),
+        thunderAnimateMap: cloneAnimationSprites(thunderAnimateMap),
+        thunder_hitAnimateMap: cloneAnimationSprites(thunder_hitAnimateMap),
 
         upgradeSpriteMap,
         freezeFXSmallSpriteMap,

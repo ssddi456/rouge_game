@@ -125,6 +125,7 @@ export interface GetResourceFunc {
 export interface EntityManager {
     getEntities(options: { collisionTypes: ECollisionType[]}): ICollisionable[];
     getNearbyEntity(options: { collisionTypes: ECollisionType[], position: Vector}): ICollisionable[];
+    walkNearbyEntityInDistance(options: { collisionTypes: ECollisionType[], position: Vector, distance: number, handler: (item: ICollisionable) => (boolean | void)  }): void;
     emitParticles(position: Vector, animation: AnimatedSprite | Sprite, updateFunc: ((percent:number) => void) | undefined, duration: number): Particle;
     emitTextParticles(position: Vector, sprite: Sprite, updateFunc: ((percent: number) => void) | undefined, duration: number, id?: string): Particle;
     emitDamageParticles(position: Vector, amount: number): Particle;

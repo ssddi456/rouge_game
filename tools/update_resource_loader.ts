@@ -79,14 +79,18 @@ async function updateResource() {
     const declareAnimateCodeTpl = (alias: string,) => `        ${alias}AnimateMap: cloneAnimationSprites(${alias}AnimateMap),`;
     const declareSpriteCodeTpl = (alias: string,) => `        ${alias}SpriteMap,`;
 
+    console.log(
+        resourceContent.animations,
+        uniq(Object.values(codeConfig.animationsAlias))
+    )
     const notConfigResource =  {
         animations: difference(
+            resourceContent.animations,
             uniq(Object.values(codeConfig.animationsAlias)),
-            resourceContent.animations
         ),
         sprites: difference(
+            resourceContent.sprites,
             uniq(Object.values(codeConfig.spritesAlias)),
-            resourceContent.sprites
         )
     };
 
@@ -113,4 +117,8 @@ async function updateResource() {
     ].join('\n'))
 }
 
-updateResource();
+if (require.main == module) {
+    updateResource();
+}
+
+export default updateResource;

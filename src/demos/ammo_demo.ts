@@ -63,7 +63,7 @@ const context = createDemoContext(
                 );
 
                 for (let index = 0; index < 10; index++) {
-                    const ammo = ammoPool.emit(
+                    const ammo = ammoPool.emitLast(
                         new Vector(0, 0.3),
                         new Vector(60 + 20 * index, 10),
                         1000,

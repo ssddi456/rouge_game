@@ -22,8 +22,8 @@ module.exports = function ({ entry }) {
         [entry]: `./src/${entryName[entry]}`,
     };
     const server = {
-            port: ports[entry]
-        };
+        port: ports[entry]
+    };
     const isEditor = entrys && entrys.editor;
     const shouldRefreshReact = isEditor && isDevelopment;
     console.log('entrys', entrys, 'isDevelopment', isDevelopment, 'shouldRefreshReact', shouldRefreshReact);
@@ -41,6 +41,7 @@ module.exports = function ({ entry }) {
         /** @type {import("webpack-dev-server").Configuration} */
         devServer: {
             ...server,
+            historyApiFallback: true,
             host: "0.0.0.0",
             open: {
                 target: 'http://localhost:7000',

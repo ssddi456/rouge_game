@@ -35,7 +35,7 @@ export function createExplosion(
     .endHole();
     
     sprite.addChild(preEffect);
-    let animateEffect = cloneAnimationSprite(resources.hitEffect.hit_2);
+    let animateEffect = cloneAnimationSprite(resources.hitEffectAnimateMap.hit_2);
     sprite.addChild(animateEffect);
     animateEffect.parentGroup = getRunnerApp().getGroups()?.skyGroup;
     animateEffect.visible = false;

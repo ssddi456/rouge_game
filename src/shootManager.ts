@@ -8,10 +8,12 @@
  * miss exposion
  */
 
+import { DisplayObject } from "pixi.js";
 import { AmmoPool } from "./ammo";
+import { Buffable, BUFFER_BEFORE_SHOOT, execEventBuffer } from "./buffer";
 import { HotClass } from "./helper/class_reloader";
 import { getRunnerApp } from "./runnerApp";
-import { EventBuffer } from "./types";
+import { Buffer, EventBuffer } from "./types";
 import { keypressed, mouse } from "./user_input";
 import { Vector } from "./vector";
 
@@ -20,9 +22,13 @@ interface ShootInfo {
     dir?: Vector;
     target?: Vector;
     shooted: boolean;
+    damage: number;
+    whenShoot?: () => void;
+    hitEffects: EventBuffer[];
+    ammoDieEffects: EventBuffer[];
 }
 @HotClass({ module })
-export class ShootManager {
+export class ShootManager implements Buffable {
     position: Vector = new Vector(0, 0);
     // 15deg = 15/180 * Math.PI
     dispersionRad: number = 0;
@@ -46,6 +52,10 @@ export class ShootManager {
 
     hiteffects: EventBuffer[] = [];
     ammoDieEffects: EventBuffer[] = [];
+    
+    bufferList: Buffer[] = [];
+    assets: DisplayObject[] = [];
+    ground_assets: DisplayObject[] = [];
 
     constructor(
         public center: Vector,
@@ -72,33 +82,44 @@ export class ShootManager {
         this.lastShootTime = now;
 
         const dir = target.clone().sub(this.position).normalize();
+        const ammoToShoot: ShootInfo[] = [];
         if (this.dispersionRad == 0) {
-            this.shootQueue.push({
+            ammoToShoot.push({
                 frameDelay: 0,
                 dir,
                 shooted: false,
+                damage: this.damage,
+                hitEffects: [...this.hiteffects],
+                ammoDieEffects: [...this.ammoDieEffects],
             });
         } else {
             if (this.projectileCount == 1) {
-                this.shootQueue.push({
+                ammoToShoot.push({
                     frameDelay: 0,
                     dir,
                     shooted: false,
+                    damage: this.damage,
+                    hitEffects: [...this.hiteffects],
+                    ammoDieEffects: [...this.ammoDieEffects],
                 });
             } else {
                 const startRad = - this.dispersionRad / 2;
                 const deltaRad = this.dispersionRad / (this.projectileCount - 1);
                 for (let index = 0; index < this.projectileCount; index++) {
                     const theta = startRad + deltaRad * index;
-                    this.shootQueue.push({
+                    ammoToShoot.push({
                         frameDelay: 0,
                         dir: dir.clone().rotate(theta),
                         shooted: false,
-                    })
+                        damage: this.damage,
+                        hitEffects: [...this.hiteffects],
+                        ammoDieEffects: [...this.ammoDieEffects],
+                    });
                 }
-
             }
         }
+        execEventBuffer(this, BUFFER_BEFORE_SHOOT, ammoToShoot);
+        this.shootQueue.push(...ammoToShoot);
     }
 
     doShoot(shootInfo: ShootInfo) {
@@ -106,28 +127,26 @@ export class ShootManager {
 
         this.currentAmmoCount -= 1;
         const ammo = (() => {
+            shootInfo.shooted = true;
             if (shootInfo.dir) {
-                shootInfo.shooted = true;
-                return this.ammoPool!.emit(
+                return this.ammoPool!.emitLast(
                     shootInfo.dir,
                     this.position,
                     600,
-                    this.damage,
+                    shootInfo.damage,
                 );
             } else {
-                shootInfo.shooted = true;
                 const dir = this.position.clone().sub(shootInfo.target!).normalize();
-                return this.ammoPool!.emit(
+                return this.ammoPool!.emitLast(
                     dir,
                     this.position,
                     600,
-                    this.damage,
+                    shootInfo.damage,
                 );
             }
         })();
 
-        ammo?.bufferList.push(...this.hiteffects, ...this.ammoDieEffects);
-
+        ammo?.bufferList.push(...shootInfo.hitEffects, ...shootInfo.ammoDieEffects);
 
         if (this.lastShootTime < app.now() - this.shootInterval) {
             this.shooting = true;

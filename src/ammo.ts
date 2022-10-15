@@ -1,11 +1,13 @@
+import * as PIXI from "pixi.js";
 import { AnimatedSprite, Container, DisplayObject, Point, SimpleRope, Texture } from "pixi.js";
-import { applyEventBuffer, applyKnockback, Buffable, BUFFER_EVENTNAME_DEAD, BUFFER_EVENTNAME_HIT, BUFFER_EVENTNAME_HITTED } from "./buffer";
+import { execEventBuffer, applyKnockback, Buffable, BUFFER_EVENTNAME_DEAD, BUFFER_EVENTNAME_HIT, BUFFER_EVENTNAME_HITTED } from "./buffer";
 import { checkCollision } from "./collision_helper";
 import { Enemy } from "./enemy";
 import { overGroundCenterHeight } from "./groups";
 import { HotClass } from "./helper/class_reloader";
 import { Particle } from "./particle";
 import { getRunnerApp } from "./runnerApp";
+import { cloneAnimationSprite } from "./sprite_utils";
 import { Buffer, ECollisionType, EFacing, ICollisionable, IMovable, IObjectPools } from "./types";
 import { Vector } from "./vector";
 
@@ -34,9 +36,10 @@ export class Ammo implements IMovable, ICollisionable, Buffable {
     history: Vector[] = [];
     shootedTime = 0;
     damage = 1;
+    trail: SimpleRope;
 
     constructor(
-        public textures: Texture[],
+        public head: AnimatedSprite,
         public trailTexture: Texture,
         public container: Container,
     ) {
@@ -45,15 +48,28 @@ export class Ammo implements IMovable, ICollisionable, Buffable {
             this.history.push(new Vector(0, 0));
         }
 
-        const sprite = new SimpleRope(trailTexture, this.points);
-        sprite.width = this.size;
-        sprite.position.y = - overGroundCenterHeight;
-        this.sprite.addChild(sprite);
+        const trail = new SimpleRope(trailTexture, this.points);
+        trail.width = this.size;
+        this.trail = trail;
+
+        if (trailTexture == PIXI.Texture.WHITE) {
+            this.trail.visible = false;
+        } else {
+            this.trail.visible = true;
+        }
+        
+        this.sprite.addChild(head);
+        this.sprite.addChild(trail);
+        head.position.y = - overGroundCenterHeight;
+        trail.position.y = - overGroundCenterHeight;
+
     }
 
     bufferList: Buffer[] = [];
     assets: DisplayObject[] = [];
     ground_assets: DisplayObject[] = [];
+
+    hit_effect: AnimatedSprite | null = null;
 
     size: number = 5;
     collisison_type: ECollisionType = ECollisionType.none;
@@ -63,7 +79,7 @@ export class Ammo implements IMovable, ICollisionable, Buffable {
     prev_facing: EFacing = EFacing.top;
     facing: EFacing = EFacing.top;
 
-    max_piecing_counnt = 3;
+    max_piecing_count = 3;
     current_piecing_count = 0;
 
     max_bouncing_count = 0;
@@ -76,6 +92,9 @@ export class Ammo implements IMovable, ICollisionable, Buffable {
         position: Vector,
         range: number,
         damage: number,
+        head?: AnimatedSprite,
+        trail?: Texture | null,
+        hitEffect?: AnimatedSprite
     ) {
         this.shootedTime = getRunnerApp().getSession().now();
         this.direct.setV(direct);
@@ -93,9 +112,27 @@ export class Ammo implements IMovable, ICollisionable, Buffable {
         this.prev_position.setV(position);
         this.position.setV(position);
 
-        // this.sprite.pivot.set(this.sprite.width / 2, this.sprite.height);
-        // this.sprite.rotation = -1 * (direct.rad() - Math.PI / 2);
-        this.max_piecing_counnt = 3;
+        if (head) {
+            this.sprite.removeChild(this.head);
+            this.head = head;
+            head.position.y = - overGroundCenterHeight;
+            this.sprite.addChildAt(head, 0);
+            this.head.play();
+        }
+
+        this.head.rotation = Math.PI/2 - direct.rad();
+
+        if (trail && trail !== PIXI.Texture.WHITE) {
+            this.trail.texture = trail;
+            this.trail.visible = true;
+        } else if (trail == null || trail === PIXI.Texture.WHITE) {
+            this.trail.visible = false;
+        }
+        if (hitEffect) {
+            this.hit_effect = hitEffect;
+        }
+
+        this.max_piecing_count = 3;
         this.current_piecing_count = 0;
 
         this.max_bouncing_count = 1;
@@ -132,7 +169,7 @@ export class Ammo implements IMovable, ICollisionable, Buffable {
     }
     
     die() {
-        applyEventBuffer(this, BUFFER_EVENTNAME_DEAD);
+        execEventBuffer(this, BUFFER_EVENTNAME_DEAD);
         this.dead = true;
         this.container.removeChild(this.sprite);
     }
@@ -142,17 +179,10 @@ export class Ammo implements IMovable, ICollisionable, Buffable {
     }
 
     updateSprite() {
-        // this.sprite.texture = this.textures[this.textureIndex];
-        // this.textureIndex = this.textureIndex + 1;
-        // if (this.textureIndex >= this.textures.length) {
-        //     this.textureIndex = 0;
-        // }
         const last = this.history.pop()!;
         this.history.unshift(last);
         last.x = this.position.x;
         last.y = this.position.y;
-
-        // console.log('history', JSON.stringify(this.history));
     }
 
     updateRange() {
@@ -176,6 +206,12 @@ export class Ammo implements IMovable, ICollisionable, Buffable {
 export class AmmoPool implements IObjectPools {
     spirte: AnimatedSprite;
     pool: Ammo[] = [];
+
+
+    lastSprite: AnimatedSprite;
+    lastTrail: Texture;
+    lastHitEffect: AnimatedSprite;
+
     constructor(
         spirte: AnimatedSprite, // head
         public trailTexture: Texture, // tail
@@ -183,18 +219,29 @@ export class AmmoPool implements IObjectPools {
         public hitAnimate: AnimatedSprite,
     ) {
         this.spirte = spirte;
+
+        this.lastSprite = spirte;
+        this.lastTrail = trailTexture;
+        this.lastHitEffect = hitAnimate;
     }
+    
 
     emit(
         direct: Vector,
         position: Vector,
         range: number,
         damage: number,
+        head: AnimatedSprite,
+        trail: Texture | null,
+        hitEffect: AnimatedSprite,
     ) {
-        if (this.pool.length < 100) {
-            const ammo = new Ammo(this.spirte.textures as Texture[],
-                this.trailTexture,
+        const makeNewAmmo =  () => {
+
+            const ammo = new Ammo(
+                cloneAnimationSprite(head),
+                trail || PIXI.Texture.WHITE,
                 this.container);
+            ammo.hit_effect = hitEffect;
             this.pool.push(ammo);
             ammo.init(
                 direct,
@@ -203,19 +250,50 @@ export class AmmoPool implements IObjectPools {
                 damage,
             );
             return ammo;
-        } else {
-            return this.pool.find(ammo => {
-                if (ammo.dead) {
-                    ammo.init(
-                        direct,
-                        position,
-                        range,
-                        damage,
-                    );
-                    return true;
-                }
-            });
         }
+        if (this.pool.length < 100) {
+            return makeNewAmmo();
+        } else {
+            const found = this.pool.find(ammo => ammo.dead);
+            if (found) {
+                found.init(
+                    direct,
+                    position,
+                    range,
+                    damage,
+                    cloneAnimationSprite(head),
+                    trail,
+                    hitEffect,
+                );
+                return found;
+            }
+            return makeNewAmmo();
+        }
+    }
+
+    emitLast(
+        direct: Vector,
+        position: Vector,
+        range: number,
+        damage: number,
+    ) {
+        return this.emit(direct, position, range, damage, this.lastSprite, this.lastTrail, this.lastHitEffect);
+    }
+
+    emitHitEffect(pos: Vector, effect: AnimatedSprite) {
+        const app = getRunnerApp();
+        app.emitParticles(new Vector(pos.x, pos.y - overGroundCenterHeight),
+            effect,
+            function (this: Particle, percent) {
+                const sprite = this.sprite.children[0] as AnimatedSprite;
+                if (!sprite.playing) {
+                    sprite.play();
+                    sprite.onLoop = () => {
+                        this.die();
+                        sprite.stop();
+                    };
+                }
+            }, -1);
     }
 
     updateHit() {
@@ -237,27 +315,18 @@ export class AmmoPool implements IObjectPools {
                                 damage: ammo.damage
                             };
 
-                            applyEventBuffer(ammo, BUFFER_EVENTNAME_HIT, enemy, damageInfo);
-                            applyEventBuffer(enemy, BUFFER_EVENTNAME_HITTED, ammo, damageInfo);
+                            execEventBuffer(ammo, BUFFER_EVENTNAME_HIT, enemy, damageInfo);
+                            execEventBuffer(enemy, BUFFER_EVENTNAME_HITTED, ammo, damageInfo);
 
                             enemy.recieveDamage(damageInfo.damage, ifCollision.collisionHitPos);
-                            const app = getRunnerApp();
-                            app.emitParticles(ifCollision.collisionHitPos,
-                                this.hitAnimate,
-                                function (this: Particle, percent) {
-                                    const sprite = this.sprite.children[0] as AnimatedSprite;
-                                    if (!sprite.playing) {
-                                        sprite.play();
-                                        sprite.onLoop = () => {
-                                            this.die();
-                                            sprite.stop();
-                                        };
-                                    }
-                                }, -1);
+
+                            if (ammo.hit_effect) {
+                                this.emitHitEffect(ifCollision.collisionHitPos, ammo.hit_effect);
+                            }
 
                             applyKnockback(enemy, ammo.direct.clone(), 100);
 
-                            if (ammo.current_piecing_count < ammo.max_piecing_counnt) {
+                            if (ammo.current_piecing_count < ammo.max_piecing_count) {
                                 ammo.current_piecing_count += 1;
                             } else if (ammo.currrent_bouncing_count < ammo.max_bouncing_count) {
                                 ammo.doBouncing(ifCollision.normal);

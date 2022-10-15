@@ -7,7 +7,7 @@ import { IMovable, ICollisionable, EFacing, IObjectPools, ECollisionType, Living
 import { checkCollision } from "./collision_helper";
 import { Droplet as Droplet } from "./droplet";
 import { getRunnerApp } from "./runnerApp";
-import { applyBuffer, applyCharge, applyDamageFlash, applyEventBuffer, applyKnockback, Buffable, BUFFER_EVENTNAME_DEAD, BUFFER_EVENTNAME_HEALTH_CHANGE, BUFFER_EVENTNAME_HITTED, checkBufferAlive, hasCharge, hasKnockback } from "./buffer";
+import { applyBuffer, applyCharge, applyDamageFlash, execEventBuffer, applyKnockback, Buffable, BUFFER_EVENTNAME_DEAD, BUFFER_EVENTNAME_HEALTH_CHANGE, BUFFER_EVENTNAME_HITTED, checkBufferAlive, hasCharge, hasKnockback } from "./buffer";
 import { cloneAnimationSprites } from "./sprite_utils";
 import { overGroundCenterHeight } from "./groups";
 import { debugInfo } from "./debug_info";
@@ -158,7 +158,7 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
     recieveDamage(damage: number, hitPos: Vector): void {
         this.health -= damage;
         this.debugInfo.text.text = `${this.health}/${this.max_health}`;
-        applyEventBuffer(this, BUFFER_EVENTNAME_HEALTH_CHANGE);
+        execEventBuffer(this, BUFFER_EVENTNAME_HEALTH_CHANGE);
 
         const app = getRunnerApp();
         app.emitDamageParticles(hitPos, damage);
@@ -191,7 +191,7 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
             this.sprite.parent.removeChild(this.sprite);
             this.sprite.parentGroup = undefined;
 
-            applyEventBuffer(this, BUFFER_EVENTNAME_DEAD);
+            execEventBuffer(this, BUFFER_EVENTNAME_DEAD);
         }
     }
 
@@ -278,7 +278,7 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
                         this.position.setV(checkRes.collisionPos);
                     }
                     if (node.collisison_type === ECollisionType.player) {
-                        applyEventBuffer(node as Player, BUFFER_EVENTNAME_HITTED);
+                        execEventBuffer(node as Player, BUFFER_EVENTNAME_HITTED);
                         (node as Player).recieveDamage(1, checkRes.collisionHitPos);
                         applyKnockback((node as any) as Buffable,
                             node.position.clone().sub(this.position)
@@ -492,11 +492,11 @@ export class EnemyPool extends UpdatableObject implements IObjectPools {
         // const n = 3;
         const minR = 10;
         let r = Math.random() * 360;
+        let j = Math.PI / 180;
         for (let index = 0; index < n; index++) {
             r += Math.floor(Math.random() * index) * minR / 180 * Math.PI;
-
-            const pos = [player!.position.x + Math.sin(r) * radius, player!.position.y + Math.cos(r) * radius,];
             for (let jndex = 0; jndex < 5; jndex++) {
+                const pos = [player!.position.x + Math.sin(r + j * jndex) * radius, player!.position.y + Math.cos(r + j * jndex) * radius,];
                 this.emit(new Vector(pos[0], pos[1]));
             }
         }

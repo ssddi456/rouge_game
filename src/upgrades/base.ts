@@ -2,7 +2,7 @@ import { Sprite } from "pixi.js";
 import { GameSession } from "../game_session";
 import { Player } from "../player";
 import { health } from "./health";
-import { ice_arrow } from "./icon_arrow";
+import { ice_arrow } from "./ice_arrow";
 
 export interface Upgrade {
     title: string;

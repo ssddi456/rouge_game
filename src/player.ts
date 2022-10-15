@@ -7,7 +7,7 @@ import { ECollisionType, EFacing, ICollisionable, IMovable, Shootable, Buffer, L
 import { checkCollision } from "./collision_helper";
 import { Enemy } from "./enemy";
 import { getRunnerApp } from "./runnerApp";
-import { applyBuffer, applyCharge, applyDamageFlash, applyEventBuffer, applyFireAura, applyKnockback, Buffable, BUFFER_EVENTNAME_HEALTH_CHANGE, checkBufferAlive, createTimerBuffer, hasCharge } from "./buffer";
+import { applyBuffer, applyCharge, applyDamageFlash, execEventBuffer, applyFireAura, applyKnockback, Buffable, BUFFER_EVENTNAME_HEALTH_CHANGE, checkBufferAlive, createTimerBuffer, hasCharge } from "./buffer";
 import { GlowFilter } from '@pixi/filter-glow';
 import tween from "./tween";
 import { Bow1 } from "./bow";
@@ -90,7 +90,9 @@ export class Player extends UpdatableObject
         // soft shadow
         this.bodyContainer.position.y = - this.centerHeight;
         this.bodyContainer.scale.set(this.baseScale, this.baseScale);
-        this.effects.shadow = getBlobShadow(getRunnerApp().getApp().renderer as PIXI.Renderer);
+        const app = getRunnerApp();
+        const resource = app.getGetResourceMap()();
+        this.effects.shadow = getBlobShadow(app.getApp().renderer as PIXI.Renderer);
 
         // main character
 
@@ -135,7 +137,7 @@ export class Player extends UpdatableObject
 
 
         this.ammoPools = new AmmoPool(
-            this.playerSpirtes.ammo,
+            resource.iceAnimateMap.projectile as AnimatedSprite,
             this.ammoTextures.ammoTrail,
             this.container,
             this.hitSpirtes.hit_1,
@@ -182,11 +184,12 @@ export class Player extends UpdatableObject
 
     recieveDamage(damage: number, hitPos: Vector): void {
         this.health -= damage;
+
         if (this.health <= 0) {
             this.dead = true;
         }
 
-        applyEventBuffer(this, BUFFER_EVENTNAME_HEALTH_CHANGE);
+        execEventBuffer(this, BUFFER_EVENTNAME_HEALTH_CHANGE);
 
         const app = getRunnerApp();
         app.emitDamageParticles(hitPos, damage);

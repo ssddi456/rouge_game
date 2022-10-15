@@ -2,6 +2,7 @@ import express, { Request, Response, NextFunction} from 'express';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import bodyParser from 'body-parser';
+import updateResource from '../tools/update_resource_loader';
 
 const configRoot = path.join(__dirname, '../src/assets/');
 const animationConfig = (name: string) => path.join(configRoot, `${name}.animation.json`);
@@ -26,7 +27,19 @@ app.use((req, res, next) => {
     }
     next();
 });
-app.use('/public', express.static(configRoot));
+const imageMiddleWare = express.static(configRoot);
+app.use('/public', imageMiddleWare, (req, res, next) => {
+    const relativePath = decodeURIComponent(req.path);
+    console.log('req.path', relativePath);
+    if (relativePath.match('.rgba.')) {
+        const foreignImage = path.join(configRoot, relativePath.replace('.rgba.', '.'))
+        if (fs.existsSync(foreignImage)) {
+            fs.copyFileSync(foreignImage, path.join(configRoot, relativePath));
+            return imageMiddleWare(req,res, next);
+        }
+    }
+    next();
+});
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
 
@@ -53,13 +66,34 @@ app.get('/list', (req, res,) => {
 });
 
 app.get('/get_marked', (req, res) => {
-    const config = fs.readJSONSync(markedConfig(req.query.name as string));
-    res.json(resOk({ config }));
-})
+    const fileName = markedConfig(req.query.name as string);
+    if (fs.existsSync(fileName)) {
+        const config = fs.readJSONSync(markedConfig(req.query.name as string));
+        res.json(resOk({ config }));
+    } else {
+        fs.writeJSONSync(fileName, {});
+        res.json(resOk({ config: {} }));
+    }
+});
+
+app.post('/save_marked', (req, res, next) => {
+    if (!req.body.name || !req.body.config) {
+        throw new Error('name or config is not found');
+    }
+    fs.writeJSONSync(markedConfig(req.body.name), req.body.config);
+    updateResource();
+    res.json(resOk({}));
+});
 
 app.get('/get_animation', (req, res, next) => {
-    const config = fs.readJSONSync(animationConfig(req.query.name as string));
-    res.json(resOk({config}));
+    const fileName = animationConfig(req.query.name as string);
+    if (fs.existsSync(fileName)) {
+        const config = fs.readJSONSync(fileName);
+        res.json(resOk({config}));
+    } else {
+        fs.writeJSONSync(fileName, {});
+        res.json(resOk({ config: {} }));
+    }
 });
 
 app.post('/save_animation', (req, res, next) => {
@@ -68,6 +102,7 @@ app.post('/save_animation', (req, res, next) => {
         throw new Error('name or config is not found');
     }
     fs.writeJSONSync(animationConfig(req.body.name), req.body.config);
+    updateResource();
     res.json(resOk({}));
 });
 

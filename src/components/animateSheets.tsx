@@ -95,7 +95,10 @@ export class AnimationPreview extends React.Component<
                     element.loop = true;
                 }
             }
-            this.pixiApp.stage.addChild(animationMap[this.props.animationName || 'idle']);
+            const firstAnimation = animationMap[this.props.animationName || 'idle'];
+            if (firstAnimation) {
+                this.pixiApp.stage.addChild(firstAnimation);
+            }
         }
     }
 

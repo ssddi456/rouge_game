@@ -193,7 +193,7 @@ export function applyFireAura(target: Buffable) {
     target.ground_assets.push(maskInner);
 }
 
-export function applyEventBuffer(target: Buffable, eventName: string, ...rest: any[]) {
+export function execEventBuffer(target: Buffable, eventName: string, ...rest: any[]) {
     const app = getRunnerApp();
     const bufferList = target.bufferList;
     for (let index = 0; index < bufferList.length; index++) {
@@ -232,7 +232,12 @@ export const BUFFER_EVENTNAME_HITTED = 'hitted';
 export const BUFFER_EVENTNAME_HEALTH_CHANGE = 'health_change';
 // when unit move
 export const BUFFER_EVENTNAME_MOVE = 'move';
-
+// when prepare ammo
+export const BUFFER_BEFORE_SHOOT = 'before_shoot';
+// when shoot last bullet
+export const BUFFER_BEFORE_RELOAD = 'before_reload';
+// when full reload
+export const BUFFER_AFTER_RELOAD = 'after_reload';
 
 
 export const ICE_MARK_ID = 'ice_mark';
@@ -296,7 +301,6 @@ export function applyCharge(target: Buffable,
                 const chargePercent = (percent - startPercent) / runPercent;
                 target.position.x = properties.start_pos.x + twean(0, properties.direct.x, easingsFunctions.easeOutCubic, chargePercent);
                 target.position.y = properties.start_pos.y + twean(0, properties.direct.y, easingsFunctions.easeOutCubic, chargePercent);
-                console.log('charge length', target.position.clone().sub(properties.start_pos).length);
             }
         },
         properties
