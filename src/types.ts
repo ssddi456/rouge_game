@@ -28,6 +28,7 @@ export abstract class UpdatableObject implements Updatable, Disposible {
     updations: Updatable[] = [];
     dispositions: Disposible[] = [];
     disposed = false;
+    dead = false;
 
     cacheProperty?(): void;
 
@@ -57,6 +58,11 @@ export abstract class UpdatableObject implements Updatable, Disposible {
     }
 }
 
+export interface UpdatableMisc extends Updatable, Disposible {
+    dead: boolean,
+    sprite?: DisplayObject,
+    position?: Vector
+}
 export interface GameObject {
     id?: string;
     position: Vector;
@@ -137,6 +143,9 @@ export interface EntityManager {
     emitDroplets(position: Vector, pickUp: () => void, duration: number): Droplet;
     emitAOE(position: Vector, aoe: Partial<AreaOfEffect<any>> & Omit<AreaOfEffect<any>, 'position'>): AreaOfEffect<any>;
     updateAOE(): void;
+
+    addMisc(item: UpdatableMisc): void;
+    updateMisc(): void;
 
     pause(): void;
     resume(): void;

@@ -83,6 +83,7 @@ const runnerApp = getRunnerApp();
 runnerApp.setApp(app);
 runnerApp.setCamera(camera);
 runnerApp.setGameView(app.stage);
+app.stage.sortableChildren = true;
 runnerApp.setSession(new (class extends GameSession  {
     ifSessionFailed() {
         return false;

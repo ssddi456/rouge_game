@@ -14,6 +14,7 @@ import { camelCase } from 'lodash';
             'demo',
             'level',
             'menu',
+            'upgrade'
         ]
     });
 
@@ -42,6 +43,9 @@ import { camelCase } from 'lodash';
             break;
         case 'menu':
             await fs.writeFile(path.join(__dirname, `../src/menu/${templatingName.templateName}.ts`), rendered);
+            break;
+        case 'upgrade':
+            await fs.writeFile(path.join(__dirname, `../src/upgrades/${templatingName.templateName}.ts`), rendered);
             break;
         default:
             throw new Error('illegal templatingType');

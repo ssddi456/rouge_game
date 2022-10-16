@@ -6,7 +6,7 @@ import { Enemy, EnemyPool } from "./enemy";
 import { Particle } from "./particle";
 import { Player } from "./player";
 import { cloneAnimationSprite } from "./sprite_utils";
-import { AreaOfEffect, ECollisionType, EntityManager, GetResourceFunc, ICollisionable } from "./types";
+import { AreaOfEffect, Disposible, ECollisionType, EntityManager, GetResourceFunc, ICollisionable, UpdatableMisc } from "./types";
 import { Vector } from "./vector";
 import { mouse } from './user_input';
 import { LevelManager } from "./level";
@@ -29,7 +29,7 @@ let getResourceMap: GetResourceFunc;
 let groups: ReturnType<typeof createGroups>;
 let session: GameSession;
 let aoes: AreaOfEffect<any>[] = [];
-
+let misc: UpdatableMisc[] = [];
 
 let entityTypeCache: Record<string, ICollisionable[]> = {};
 let entityGrid: Record<string, ICollisionable[]> | null = null;
@@ -38,10 +38,10 @@ function clearEntityTypeCache() {
     entityGrid = null;
 }
 const collisionCellSize = 40;
-function getPositionKey (position: Vector) {
+function getPositionKey(position: Vector) {
     return Math.floor(position.x / collisionCellSize) + '_' + Math.floor(position.y / collisionCellSize);
 }
-function getNearbyPositionKey(position: Vector)  {
+function getNearbyPositionKey(position: Vector) {
     const x = Math.floor(position.x / collisionCellSize);
     const y = Math.floor(position.y / collisionCellSize);
     return [
@@ -53,14 +53,14 @@ function getNearbyPositionKey(position: Vector)  {
 
         String(x - 1) + '_' + String(y - 0),
         String(x + 1) + '_' + String(y - 0),
-        
+
         String(x - 1) + '_' + String(y + 1),
         String(x) + '_' + String(y + 1),
         String(x + 1) + '_' + String(y + 1),
     ];
 }
 
-function getNearbyPositionKeyInDistance (position: Vector, distance: number) {
+function getNearbyPositionKeyInDistance(position: Vector, distance: number) {
     if (distance <= collisionCellSize) {
         return getNearbyPositionKey(position);
     }
@@ -76,7 +76,7 @@ function getNearbyPositionKeyInDistance (position: Vector, distance: number) {
             ret.push(String(x + n) + '_' + String(y + m));
         }
 
-        for ( s = - m + 1; s < m; s++) {
+        for (s = - m + 1; s < m; s++) {
             ret.push(String(x - m) + '_' + String(y + s));
             ret.push(String(x + m) + '_' + String(y + s));
         }
@@ -121,7 +121,7 @@ function getEntitiesNearby(position: Vector): ICollisionable[] {
             }
         }
     }
-    
+
     return ret;
 }
 
@@ -331,6 +331,30 @@ const runnerApp: EntityManager = {
             }
         }
         aoes = newAoes;
+    },
+
+    addMisc(item) {
+        misc.push(item);
+        if (item.sprite) {
+            gameView.addChild(item.sprite);
+        }
+    },
+
+    updateMisc: () => {
+        let newMisc: (typeof misc) = [];
+        for (let index = 0; index < misc.length; index++) {
+            const element = misc[index];
+            element.update();
+            if (!element.dead) {
+                newMisc.push(element);
+                if (element.sprite && element.position) {
+                    camera.updateItemPos(element as { position: Vector, sprite: DisplayObject});
+                }
+            } else {
+                element.dispose();
+            }
+        }
+        misc = newMisc;
     },
 
     screenPosToWorldPos: (screenPos: Vector) => {

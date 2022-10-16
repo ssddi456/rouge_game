@@ -3,6 +3,7 @@ import { GameSession } from "../game_session";
 import { Player } from "../player";
 import { health } from "./health";
 import { ice_arrow } from "./ice_arrow";
+import { pets } from "./pet";
 
 export interface Upgrade {
     title: string;
@@ -18,7 +19,8 @@ export interface Upgrade {
 
 export const allUpgrades : Upgrade[] = [
     ...health,
-    ...ice_arrow
+    ...ice_arrow,
+    ...pets
 ];
 
 export const upgradeManager = {

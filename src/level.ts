@@ -55,6 +55,7 @@ export abstract class Level {
         warfog?.update();
 
         runnerApp?.updateAOE();
+        runnerApp?.updateMisc();
         enemys?.update();
 
         droplets?.update();
