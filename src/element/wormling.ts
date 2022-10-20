@@ -6,6 +6,8 @@ import { Disposible, Updatable } from "../types";
 import { getBlobShadow } from "../uicomponents/blobShadow";
 import { Vector } from "../vector";
 
+
+
 export class Wormling extends Container implements Updatable, Disposible {
 
     rootPoint = new Vector(0, 0);

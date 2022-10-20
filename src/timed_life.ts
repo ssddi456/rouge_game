@@ -1,4 +1,5 @@
 import { Container } from "pixi.js";
+import { Behavior } from "./behavior";
 import { getRunnerApp } from "./runnerApp";
 import { Disposible, Updatable, UpdatableObject } from "./types";
 import { Vector } from "./vector";
@@ -12,12 +13,15 @@ export class TimedSummoned extends UpdatableObject implements Disposible {
         public duration: number,
         public position: Vector,
         public sprite: Container,
+        public behavior: Behavior
     ) {
         super();
         this.createTime = getRunnerApp().now();
         if ('update' in sprite) {
             this.addChildren((this.sprite as any) as (Updatable & Disposible));
         }
+        this.behavior.setOwner(this);
+        this.addChildren(this.behavior);
     }
 
     update() {

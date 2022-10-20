@@ -1,3 +1,4 @@
+import { WormlingBehavior } from "../behavior";
 import { addEventBuffer, BUFFER_EVENTNAME_HITTED } from "../buffer";
 import { CountDown } from "../countdown";
 import { Wormling } from "../element/wormling";
@@ -5,6 +6,7 @@ import { GameSession } from "../game_session";
 import { randomPosAround } from "../helper/utils";
 import { Player } from "../player";
 import { getRunnerApp } from "../runnerApp";
+import { Shooter } from "../skills/shooter";
 import { TimedSummoned } from "../timed_life";
 import { Upgrade } from "./base"
 
@@ -19,9 +21,17 @@ export const pet: Upgrade = {
         //
         const spawnWormling = player.addChildren(new CountDown(5e3, () => {
             const app = getRunnerApp();
-            const wormling = new TimedSummoned(15e3,
+            const wormling = new TimedSummoned(
+                15e3,
                 randomPosAround(player.position, 300),
-                new Wormling);
+                new Wormling,
+                new WormlingBehavior(
+                    'enemy',
+                    [
+                        new Shooter(false, 1000, true)
+                    ],
+                    600)
+                );
             
             app.addMisc(wormling);
         }));

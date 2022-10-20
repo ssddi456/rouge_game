@@ -16,6 +16,7 @@ import { Rect } from "../rect";
 import { getRunnerApp } from "../runnerApp";
 import { Forest, Tree } from "../tree";
 import { arrow_brancing } from "../upgrades/ice_arrow";
+import { pet } from "../upgrades/pet";
 import { Vector } from "../vector";
 import WarFog from "../warfog";
 
@@ -157,7 +158,7 @@ export class ForestLevel extends Level {
             }
         });
 
-        this.session.pickUpgrade(arrow_brancing);
+        this.session.pickUpgrade(pet);
 
         this.ui = new PlayerStatusMenu(gameView, (gameView as any).worldWidth, (gameView as any).worldHeight);
         this.ui.init();

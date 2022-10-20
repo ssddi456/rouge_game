@@ -1,6 +1,7 @@
 import { AnimatedSprite } from "pixi.js";
 import { Ammo, DamageInfo } from "../ammo";
 import { createExplosion } from "../aoe";
+import { findEnemy } from "../behavior";
 import { applyIceMark, BUFFER_EVENTNAME_DEAD, BUFFER_EVENTNAME_HIT, hasIceMark } from "../buffer";
 import { Enemy } from "../enemy";
 import { GameSession } from "../game_session";
@@ -80,26 +81,7 @@ export const arrow_brancing: Upgrade = {
                 console.log('trigger ice arrow brancing');
                 const resource = getRunnerApp().getGetResourceMap()();
                 const currentCenter = enemy.position.clone();
-                const branchingTarget: Enemy[] = [];
-                let disSq = 300 * 300;
-                getRunnerApp().walkNearbyEntityInDistance({
-                    collisionTypes: [ECollisionType.enemy],
-                    position: currentCenter,
-                    distance: 300,
-                    handler(item) {
-                        (item as Enemy).debugInfo.text.text = 'checked ! : ' + currentCenter.distanceToSq(item.position);
-                        if (item !== enemy) {
-                            if (currentCenter.distanceToSq(item.position) < disSq) {
-                                (item as Enemy).debugInfo.text.text = 'selected ! : ' + currentCenter.distanceToSq(item.position);
-                                branchingTarget.push(item as Enemy);
-                                if (branchingTarget.length > 1) {
-                                    return true;
-                                }
-                            }
-                        }
-                    }
-                });
-
+                const branchingTarget = findEnemy(enemy.position.clone(), 300, 1, (target) => target !== enemy);
                 if (branchingTarget.length) {
                     for (let index = 0; index < branchingTarget.length; index++) {
                         const element = branchingTarget[index];
