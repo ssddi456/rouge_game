@@ -7,7 +7,7 @@ import { Enemy } from "../enemy";
 import { GameSession } from "../game_session";
 import { Player } from "../player";
 import { getRunnerApp } from "../runnerApp";
-import { ECollisionType, EventBuffer } from "../types";
+import { EventBuffer } from "../types";
 import { Upgrade } from "./base"
 
 const ID_APPLY_ICE_SLOW = "apply_ice_slow";
