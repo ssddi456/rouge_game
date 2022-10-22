@@ -14,6 +14,7 @@ import { Vector } from "./vector";
 
 
 export interface Updatable {
+    start?(...args: any[]): void;
     update(...args: any[]): void;
 }
 

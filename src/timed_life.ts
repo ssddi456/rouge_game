@@ -1,5 +1,6 @@
 import { Container } from "pixi.js";
 import { Behavior } from "./behavior";
+import { DebugInfo, debugInfo } from "./debug_info";
 import { getRunnerApp } from "./runnerApp";
 import { Disposible, Updatable, UpdatableObject } from "./types";
 import { Vector } from "./vector";
@@ -9,6 +10,7 @@ export class TimedSummoned extends UpdatableObject implements Disposible {
     dying: boolean = false;
     dead: boolean = false;
     fadeSpeed: number = 1 / 60; // in 1 sec
+    debugInfo: Container;
     constructor(
         public duration: number,
         public position: Vector,
@@ -20,6 +22,9 @@ export class TimedSummoned extends UpdatableObject implements Disposible {
         if ('update' in sprite) {
             this.addChildren((this.sprite as any) as (Updatable & Disposible));
         }
+
+        this.debugInfo = this.sprite.addChild(new DebugInfo());
+
         this.behavior.setOwner(this);
         this.addChildren(this.behavior);
     }

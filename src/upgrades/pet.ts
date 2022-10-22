@@ -28,7 +28,7 @@ export const pet: Upgrade = {
                 new WormlingBehavior(
                     'enemy',
                     [
-                        new Shooter(false, 1000, true)
+                        new Shooter(false, 600, true)
                     ],
                     600)
                 );

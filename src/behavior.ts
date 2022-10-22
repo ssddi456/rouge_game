@@ -1,3 +1,4 @@
+import { DebugInfo } from "./debug_info";
 import { Enemy } from "./enemy";
 import { Player } from "./player";
 import { getRunnerApp } from "./runnerApp";
@@ -23,10 +24,19 @@ export class Behavior implements UpdatableMisc {
         this.skills.forEach(skill => skill.update());
         if (this.targetAlive()) {
             // donothing
+            for (let index = 0; index < this.skills.length; index++) {
+                const skill = this.skills[index];
+                skill.doCast();
+            }
         } else {
             this.findTarget();
         }
         this.updateFacing();
+
+        const debugInfo = (this.owner as any)?.debugInfo;
+        if (debugInfo) {
+            debugInfo.text = `target: ${!!this.target}`;
+        }
     };
 
     setOwner(owner: Player | Enemy | UpdatableMisc) {
@@ -34,6 +44,10 @@ export class Behavior implements UpdatableMisc {
         for (let index = 0; index < this.skills.length; index++) {
             const element = this.skills[index];
             element.setOwner(this.owner);
+        }
+        const debugInfo: DebugInfo = (this.owner as any)?.debugInfo;
+        if (debugInfo) {
+            debugInfo.size = this.searchRadius;
         }
     }
 
@@ -53,7 +67,7 @@ export class Behavior implements UpdatableMisc {
                 this.target = player;
             }
         } else if (this.targetType == 'enemy') {
-            this.target = findEnemy(this.owner!.position!, this.searchRadius, 1, (target) => target !== this.owner)[0] as Enemy;
+            this.target = findEnemy(this.owner!.position!, this.searchRadius, 1, (target) => target === this.owner)[0] as Enemy;
         }
         if (!this.target) {
             return false;
