@@ -9,6 +9,8 @@ import React from "react";
 import { AnimationPreview } from "./animateSheets";
 import { AnimationPicker } from "./animationPicker";
 import { SheetInfo } from "../editor";
+import Paragraph from "antd/lib/typography/Paragraph";
+
 
 interface EditorState {
     list: SheetInfo[];
@@ -223,6 +225,7 @@ export class AnimationEditor extends React.Component<{}, EditorState> {
                         >
                             保存
                         </Button>
+                        <Paragraph style={{display: 'inline-block'}} copyable={{ text: this.state.selected }} />
                     </Col>
                 </Row>
                 {this.renderBody()}
