@@ -27,6 +27,9 @@ export class AnimationPreview extends React.Component<
     pixiApp: PIXI.Application | null = null;
 
     loadPixi = (div: HTMLDivElement) => {
+        if (!div) {
+            return;
+        }
         this.pixiContainer = div;
 
         const app = new PIXI.Application({

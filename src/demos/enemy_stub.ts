@@ -8,7 +8,19 @@ export class EnemyStub extends EnemyPool {
         // bunny
         {
             sprite_names: {
-                idle: 'bunny_idle',
+                idle: 'succubus_idle',
+                idle_back: 'bunny_idle_back',
+                die: 'bunny_die',
+                die_back: 'bunny_die_back'
+            },
+            speed: 1.5,
+            health: 20,
+            controller: ['tracer'],
+        },
+
+        {
+            sprite_names: {
+                idle: 'succubus_idle',
                 idle_back: 'bunny_idle_back',
                 die: 'bunny_die',
                 die_back: 'bunny_die_back'

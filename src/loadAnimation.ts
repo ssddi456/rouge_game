@@ -177,6 +177,8 @@ const animations = {
     bow: 'Nintendo Switch - Disgaea 5 Complete - Weapons Bow',
     gun: 'Nintendo Switch - Disgaea 5 Complete - Weapons Gun',
     enemy: 'Nintendo Switch - Disgaea 5 Complete - Miscellaneous Monsters',
+    succubus: "Nintendo Switch - Disgaea 4 - Succubus",
+
     heartAnimation: '20m2d_HeartAnimation',
     hitEffect: 'crosscode_hiteffect',
     laser: '20m2d_ShoggothLaser',
@@ -206,7 +208,6 @@ const sprites = {
         "bullet souls",
         "Dark VFX 1 (40x32)",
         "Dark VFX 2 (48x64)",
-        "Nintendo Switch - Disgaea 4 - Succubus",
         "Projectile 2 w blur"
     ],
     "sprites": [
@@ -241,6 +242,7 @@ export async function setupResource(app: Application,) {
     const bowAnimateMap = await loadSpriteSheet(loader, 'Nintendo Switch - Disgaea 5 Complete - Weapons Bow');
     const gunAnimateMap = await loadSpriteSheet(loader, 'Nintendo Switch - Disgaea 5 Complete - Weapons Gun');
     const enemyAnimateMap = await loadSpriteSheet(loader, 'Nintendo Switch - Disgaea 5 Complete - Miscellaneous Monsters');
+    const succubusAnimateMap = await loadSpriteSheet(loader, 'Nintendo Switch - Disgaea 4 - Succubus');
     const heartAnimationAnimateMap = await loadSpriteSheet(loader, '20m2d_HeartAnimation');
     const hitEffectAnimateMap = await loadSpriteSheet(loader, 'crosscode_hiteffect');
     const laserAnimateMap = await loadSpriteSheet(loader, '20m2d_ShoggothLaser');
@@ -286,7 +288,8 @@ export async function setupResource(app: Application,) {
     initUpgradeSprites(upgradeSpriteMap);
 
     // Listen for frame updates
-    const cloneResourceMap = () => ({
+    const cloneResourceMap = () => {
+        const map = ({
         resources,
 
         /** declare resource start */
@@ -294,6 +297,7 @@ export async function setupResource(app: Application,) {
         bowAnimateMap: cloneAnimationSprites(bowAnimateMap),
         gunAnimateMap: cloneAnimationSprites(gunAnimateMap),
         enemyAnimateMap: cloneAnimationSprites(enemyAnimateMap),
+        succubusAnimateMap: cloneAnimationSprites(succubusAnimateMap),
         heartAnimationAnimateMap: cloneAnimationSprites(heartAnimationAnimateMap),
         hitEffectAnimateMap: cloneAnimationSprites(hitEffectAnimateMap),
         laserAnimateMap: cloneAnimationSprites(laserAnimateMap),
@@ -309,6 +313,14 @@ export async function setupResource(app: Application,) {
         heartAnimationSpriteMap,
 /** declare resource end */
     });
+
+    map.enemyAnimateMap = {
+        ...map.enemyAnimateMap,
+        ...map.succubusAnimateMap
+    };
+
+    return map;
+};
 
     const runnerApp = getRunnerApp();
     runnerApp.setGetResourceMap((cloneResourceMap as unknown) as GetResourceFunc);

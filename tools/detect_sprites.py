@@ -82,7 +82,7 @@ def show_ui(marked_img, mask, img_rgba):
 def nothing(x):
     pass
 
-def pick_color(name):
+def pick_color_hsv(name):
 
     # Create a window
     cv2.namedWindow('image')
@@ -158,6 +158,77 @@ def pick_color(name):
 
     cv2.destroyAllWindows()
 
+
+def pick_color_rgb(name):
+
+    # Create a window
+    cv2.namedWindow('image')
+
+    # create trackbars for color change
+    # Hue is from 0-179 for Opencv
+    cv2.createTrackbar('rMin', 'image', 0, 255, nothing)
+    cv2.createTrackbar('bMin', 'image', 0, 255, nothing)
+    cv2.createTrackbar('gMin', 'image', 0, 255, nothing)
+    cv2.createTrackbar('rMax', 'image', 0, 255, nothing)
+    cv2.createTrackbar('bMax', 'image', 0, 255, nothing)
+    cv2.createTrackbar('gMax', 'image', 0, 255, nothing)
+
+    # Set default value for MAX HSV trackbars.
+    cv2.setTrackbarPos('rMax', 'image', 255)
+    cv2.setTrackbarPos('bMax', 'image', 255)
+    cv2.setTrackbarPos('gMax', 'image', 255)
+
+    # Initialize to check if HSV min/max value changes
+    rMin = bMin = gMin = rMax = bMax = gMax = 0
+    prMin = pbMin = pgMin = prMax = pbMax = pgMax = 0
+
+    img = cv2.imread(('../src/assets/%s.png' % name))
+
+    waitTime = 33
+    b_channel, g_channel, r_channel = cv2.split(img)
+
+    while(1):
+
+        # get current positions of all trackbars
+        rMin = cv2.getTrackbarPos('rMin', 'image')
+        bMin = cv2.getTrackbarPos('bMin', 'image')
+        gMin = cv2.getTrackbarPos('gMin', 'image')
+
+        rMax = cv2.getTrackbarPos('rMax', 'image')
+        bMax = cv2.getTrackbarPos('bMax', 'image')
+        gMax = cv2.getTrackbarPos('gMax', 'image')
+
+        # Set minimum and max HSV values to display
+        lower = np.array([rMin, bMin, gMin])
+        upper = np.array([rMax, bMax, gMax])
+
+        mask = cv2.bitwise_not(cv2.inRange(img, lower, upper))
+
+        img_rgba = cv2.merge((b_channel, g_channel, r_channel, mask))
+
+        # Print if there is a change in HSV value
+        if((prMin != rMin) | (pbMin != bMin) | (pgMin != gMin) | (prMax != rMax) | (pbMax != bMax) | (pgMax != gMax)):
+            # print("(rMin = %d , bMin = %d, gMin = %d), (rMax = %d , bMax = %d, gMax = %d)" % (
+            #     rMin, bMin, gMin, rMax, bMax, gMax))
+
+            print("[%d, %d, %d], [%d, %d, %d]" % (rMin, bMin, gMin, rMax, bMax, gMax))
+
+            prMin = rMin
+            pbMin = bMin
+            pgMin = gMin
+            prMax = rMax
+            pbMax = bMax
+            pgMax = gMax
+
+        # Display output image
+        cv2.imshow('image', img_rgba)
+
+        # Wait longer to prevent freeze for videos.
+        if cv2.waitKey(waitTime) & 0xFF == ord('q'):
+            break
+
+    cv2.destroyAllWindows()
+
 def process_sheet(name):
     img = cv2.imread(
         ('../src/assets/%s.png' % name))
@@ -221,7 +292,7 @@ def process_sheet(name):
         f.write(json.dumps(sprites_map).encode('utf-8'))
 
 
-def process_sheet2(name):
+def process_sheet2(name, low, high):
     img = cv2.imread(
         ('../src/assets/%s.png' % name))
     # print("%s" % name)
@@ -254,12 +325,38 @@ def process_sheet2(name):
 
     show_ui(marked_img, marked_img, img)
 
-process_sheet2('Nintendo Switch - Disgaea 4 - Succubus',
-    (107, 130, 206),
-    (109, 133, 210))
+
+def process_rgba(name, low, high):
+    img = cv2.imread(
+        ('../src/assets/%s.png' % name))
+    b_channel, g_channel, r_channel = cv2.split(img)
+
+    mask = cv2.bitwise_not(cv2.inRange(
+        img,
+        np.array(low, dtype="uint8"),
+        np.array(high, dtype="uint8")
+    ))
+
+    img_rgba = cv2.merge((b_channel, g_channel, r_channel, mask))
+
+    cv2.imwrite(
+        ('../src/assets/%s.rgba.png' % name), img_rgba)
+
+    cv2.namedWindow("img_rgba", cv2.WINDOW_NORMAL)
+    cv2.imshow("img_rgba", img_rgba)
+
+    if cv2.waitKey(0):
+
+        cv2.destroyAllWindows()
 
 
-# pick_color('Nintendo Switch - Disgaea 4 - Succubus')
+pick_color_rgb('Nintendo Switch - Disgaea 4 - Succubus')
+
+# process_rgba('Nintendo Switch - Disgaea 4 - Succubus',
+#              [202, 138, 100], [209, 141, 103])
+
+
+# pick_color_hsv('Nintendo Switch - Disgaea 4 - Succubus')
 # process_sheet('Nintendo Switch - Disgaea 5 Complete - LiezerotaDark')
 # process_sheet('Nintendo Switch - Disgaea 5 Complete - Weapons Bow')
 # process_sheet('Nintendo Switch - Disgaea 5 Complete - Weapons Gun')

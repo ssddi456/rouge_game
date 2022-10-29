@@ -37,7 +37,9 @@ export class AnimationPicker extends React.Component<
     render() {
         const { url, spriteSheet, animateIndexMap, animationName } = this.props;
         const { pickState, newAnimationName } = this.state;
-
+        if (!animationName) {
+            return null;
+        }
         const currentAnimationIdx =
             animateIndexMap[this.props.animationName] || [];
         const spritePositions = currentAnimationIdx.map((idx) => {

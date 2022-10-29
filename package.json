@@ -8,7 +8,8 @@
     "dev": "webpack-dev-server -c ./webpack.config.js",
     "dev:editor": "webpack-dev-server -c ./webpack.config.js --env entry=editor",
     "dev:demos": "webpack-dev-server -c ./webpack.config.js --env entry=demos",
-    "template": "ts-node ./bin/template.ts"
+    "template": "ts-node ./bin/template.ts",
+    "update": "ts-node ./tools/update_resource_loader.ts"
   },
   "repository": {
     "type": "git",

@@ -11,7 +11,7 @@ export function getNextKey(selectedSpriteSheet: Record<number, any>) {
     return maxKey + 1;
 }
 
-export function pointInCoords(p: { x: number, y: number }, coords: Coords) {
+export function pointInCoords(p: PointXY, coords: Coords) {
     if (p.x > coords[0]
         && p.x < coords[0] + coords[2]
         && p.y > coords[1]
@@ -22,7 +22,66 @@ export function pointInCoords(p: { x: number, y: number }, coords: Coords) {
     return false;
 }
 
+export function getCoordsControll(coords: Coords) {
+    const size = 8;
+    const h = size / 2;
+    return {
+        [CoordControll.TopLeft]: [coords[0] - h, coords[1] - h, size, size],
+        [CoordControll.TopCenter]: [coords[0] + (coords[2] / 2) - h, coords[1] - h, size, size],
+        [CoordControll.TopRight]: [coords[0] + coords[2] - h, coords[1] - h, size, size],
+
+        [CoordControll.MiddleLeft]: [coords[0] - h, coords[1] + (coords[3] / 2) - h, size, size],
+        [CoordControll.MiddleCenter]: [-1, -1, 0, 0],
+        [CoordControll.MiddleRight]: [coords[0] + coords[2] - h, coords[1] + (coords[3] / 2) - h, size, size],
+
+        [CoordControll.BottomLeft]: [coords[0] - h, coords[1] + coords[3] - h, size, size],
+        [CoordControll.BottomCenter]: [coords[0] + (coords[2] / 2) - h, coords[1] + coords[3] - h, size, size],
+        [CoordControll.BottomRight]: [coords[0] + coords[2] - h, coords[1] + coords[3] - h, size, size],
+    } as Record<CoordControll, Coords>;
+}
+
+export function pointInCoordsControll(p: PointXY, coords: Coords) {
+    const CoordControllCoords = getCoordsControll(coords);
+
+    for (const key in CoordControllCoords) {
+        if (Object.prototype.hasOwnProperty.call(CoordControllCoords, key)) {
+            const element = CoordControllCoords[(key as any) as CoordControll];
+            if (pointInCoords(p, element)) {
+                return Number(key) as CoordControll;
+            }
+        }
+    }
+
+    if (pointInCoords(p, coords)) {
+        return CoordControll.MiddleCenter;
+    }
+    return false;
+}
+
+export function normalizeCoord(coord: Coords) {
+    if (coord[2] < 0) {
+        coord[0] += coord[2];
+        coord[2] *= -1;
+    }
+    if (coord[3] < 0) {
+        coord[1] += coord[3];
+        coord[3] *= -1;
+    }
+}
+
 type Coords = [number, number, number, number];
+type PointXY = { x: number, y: number };
+enum CoordControll {
+    TopLeft,
+    TopCenter,
+    TopRight,
+    MiddleLeft,
+    MiddleCenter,
+    MiddleRight,
+    BottomLeft,
+    BottomCenter,
+    BottomRight,
+}
 
 interface EditorState {
     list: SheetInfo[];
@@ -131,7 +190,7 @@ export class SpriteEditor extends React.Component<{}, EditorState> {
             const transform = e.currentTarget.transform as Transform;
             startPos = transform.worldTransform.applyInverse(globalPos);
             // not selet a sprite
-            if (!Object.values(this.state.selectedSpriteSheet).some(x => pointInCoords(startPos, x))) {
+            if (!Object.values(this.state.selectedSpriteSheet).some(x => pointInCoordsControll(startPos, x))) {
                 delta = { w: 0, h: 0 };
             }
         });
@@ -194,8 +253,9 @@ export class SpriteEditor extends React.Component<{}, EditorState> {
     bindMoveSprite() {
         const gameview = this.gameview!;
         let startPos: { x: number, y: number };
-        let startSpritePos:{ x: number, y: number };
+        let startSpriteCoord: Coords;
         let delta: { w: number, h: number };
+        let moveMode: CoordControll | false;
 
         gameview.on('pointerdown', (e) => {
             const currentSprite = this.getCurrentSprite();
@@ -203,11 +263,12 @@ export class SpriteEditor extends React.Component<{}, EditorState> {
                 const globalPos = e.data.global as Point; // screen?
                 const transform = e.currentTarget.transform as Transform;
                 startPos = transform.worldTransform.applyInverse(globalPos);
-
+                moveMode = pointInCoordsControll(startPos, currentSprite);
+                console.log('moveMode', moveMode, moveMode !== false && CoordControll[moveMode]);
                 // not selet a sprite
-                if (pointInCoords(startPos, currentSprite)) {
+                if (moveMode !== false) {
                     delta = { w: 0, h: 0 };
-                    startSpritePos= {x: currentSprite[0], y: currentSprite[1]};
+                    startSpriteCoord = [...currentSprite];
                 }
             }
         });
@@ -217,16 +278,61 @@ export class SpriteEditor extends React.Component<{}, EditorState> {
                 const transform = e.currentTarget.transform as Transform;
                 const localPos = transform.worldTransform.applyInverse(globalPos);
                 delta = { w: localPos.x - startPos.x, h: localPos.y - startPos.y };
-
                 const currentSprite = this.getCurrentSprite()!;
-                currentSprite[0] = startSpritePos.x + delta.w;
-                currentSprite[1] = startSpritePos.y + delta.h;
+
+                if (moveMode == CoordControll.MiddleCenter) {
+                    currentSprite[0] = startSpriteCoord[0] + delta.w;
+                    currentSprite[1] = startSpriteCoord[1] + delta.h;
+                } else {
+                    switch (moveMode) {
+                        case CoordControll.TopLeft : 
+                            currentSprite[0] = startSpriteCoord[0] + delta.w;
+                            currentSprite[1] = startSpriteCoord[1] + delta.h;
+                            currentSprite[2] = startSpriteCoord[2] - delta.w;
+                            currentSprite[3] = startSpriteCoord[3] - delta.h;
+                            break;
+                        case CoordControll.TopCenter : 
+                            currentSprite[1] = startSpriteCoord[1] + delta.h;
+                            currentSprite[3] = startSpriteCoord[3] - delta.h;
+                            break;
+                        case CoordControll.TopRight : 
+                            currentSprite[1] = startSpriteCoord[1] + delta.h;
+                            currentSprite[2] = startSpriteCoord[2] + delta.w;
+                            currentSprite[3] = startSpriteCoord[3] - delta.h;
+                            break;
+                        case CoordControll.MiddleLeft : 
+                            currentSprite[0] = startSpriteCoord[0] + delta.w;
+                            currentSprite[2] = startSpriteCoord[2] - delta.w;
+                            break;
+                        case CoordControll.MiddleRight : 
+                            currentSprite[2] = startSpriteCoord[2] + delta.w;
+                            break;
+                        case CoordControll.BottomLeft : 
+                            currentSprite[0] = startSpriteCoord[0] + delta.w;
+                            currentSprite[2] = startSpriteCoord[2] - delta.w;
+                            currentSprite[3] = startSpriteCoord[3] + delta.h;
+                            break;
+                        case CoordControll.BottomCenter : 
+                            currentSprite[3] = startSpriteCoord[3] + delta.h;
+                            break;
+                        case CoordControll.BottomRight : 
+                            currentSprite[2] = startSpriteCoord[2] + delta.w;
+                            currentSprite[3] = startSpriteCoord[3] + delta.h;
+                            break;
+                    }
+                }
+
+                this.setState({});
                 this.reloadSpriteDisplay();
             }
         });
         gameview.on('pointerup', (e) => {
+            const currentSprite = this.getCurrentSprite()!;
+            if (currentSprite) {
+                normalizeCoord(currentSprite);
+            }
             (startPos as any) = undefined;
-            (startSpritePos as any) = undefined;
+            (startSpriteCoord as any) = undefined;
             (delta as any) = undefined;
         });
     }
@@ -310,7 +416,8 @@ export class SpriteEditor extends React.Component<{}, EditorState> {
             .lineTo(width!, 0)
             .lineTo(width!, height!)
             .lineTo(0, height!)
-            .lineTo(0, 0)
+            .lineTo(0, 0);
+        this.gameview!.resize();
         this.reloadSpriteDisplay();
     }
     reloadSpriteDisplay = () => {
@@ -324,9 +431,15 @@ export class SpriteEditor extends React.Component<{}, EditorState> {
 
             mask.on('click', () => {
                 message.info(`key: ${key}, coords: ${JSON.stringify(coords)}`);
-                this.setState({ selectedSpriteKey: this.state.selectedSpriteKey !== Number(key) ? Number(key) : -1 });
+                this.setState({ selectedSpriteKey: this.state.selectedSpriteKey !== Number(key) ? Number(key) : -1 },
+                () => this.reloadSpriteDisplay());
             });
         });
+
+        const currentSprite = this.getCurrentSprite();
+        if (currentSprite) {
+            Object.values(getCoordsControll(currentSprite)).forEach(coord => spriteDisplay.addChild(drawSpriteMask(coord)));
+        }
     }
 
     rebuildCut = () => {
@@ -392,13 +505,6 @@ export class SpriteEditor extends React.Component<{}, EditorState> {
         }
     }
 
-    changeCurrentSprite = (_, values) => {
-        message.info(`this.state.selectedSpriteKey ${this.state.selectedSpriteKey}, values ${JSON.stringify(values)}`);
-
-        this.state.selectedSpriteSheet[this.state.selectedSpriteKey] = [Number(values.x), Number(values.y), Number(values.w), Number(values.h)];
-        this.reloadSpriteDisplay();
-    }
-
     removeCurrentSprite = () => {
         delete this.state.selectedSpriteSheet[this.state.selectedSpriteKey];
         this.setState({ selectedSpriteKey: -1 });
@@ -432,19 +538,24 @@ export class SpriteEditor extends React.Component<{}, EditorState> {
                                     const coords = this.getCurrentSprite()!;
 
                                     return (
-                                        <Form
-                                            layout="inline"
-                                            key={this.state.selectedSpriteKey}
-                                            style={{ verticalAlign: 'middle' }}
-                                            onValuesChange={this.changeCurrentSprite}
-                                        >
-                                            <Form.Item key={`${this.state.selectedSpriteKey}-x`}name="x" label="x" initialValue={coords[0]} style={{ display: 'inline-block', }}><Input style={{ width: 60 }} /></Form.Item>
-                                            <Form.Item key={`${this.state.selectedSpriteKey}-y`}name="y" label="y" initialValue={coords[1]} style={{ display: 'inline-block', }}><Input style={{ width: 60 }} /></Form.Item>
-                                            <Form.Item key={`${this.state.selectedSpriteKey}-w`}name="w" label="w" initialValue={coords[2]} style={{ display: 'inline-block', }}><Input style={{ width: 60 }} /></Form.Item>
-                                            <Form.Item key={`${this.state.selectedSpriteKey}-h`}name="h" label="h" initialValue={coords[3]} style={{ display: 'inline-block', }}><Input style={{ width: 60 }} /></Form.Item>
+                                        <div style={{ verticalAlign: 'middle' }}>
+                                            {
+                                                ['x', 'y', 'w', 'h'].map((x, idx) => {
+                                                    return <Form.Item label={x} style={{ display: 'inline-block', }}>
+                                                        <Input
+                                                            style={{ width: 60 }}
+                                                            value={coords[idx]}
+                                                            onChange={(e) => {
+                                                                coords[idx] = Number(e.target.value);
+                                                                this.reloadSpriteDisplay();
+                                                            }}
+                                                        />
+                                                    </Form.Item>
+                                                })
+                                            }
                                             <Button danger onClick={this.removeCurrentSprite} >x</Button>
                                             <Button onClick={this.removeCurrentSprite} >copy</Button>
-                                        </Form>
+                                        </div>
                                     );
 
                                 })()

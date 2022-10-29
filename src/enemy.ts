@@ -140,6 +140,7 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
 
         this.bodySprite.position.y = - overGroundCenterHeight;
         this.bodySprite.addChild(this.spirtes[this.sprite_names.idle]);
+        this.spirtes[this.sprite_names.idle_back].play?.();
 
         this.sprite.addChild(this.debugInfo.pointer);
         this.sprite.addChild(this.debugInfo.text);
@@ -226,9 +227,11 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
         this.bodySprite.removeChildAt(this.mainSpirtIndex);
         if (this.facing == EFacing.top) {
             this.bodySprite.addChildAt(this.spirtes[this.sprite_names.idle_back], this.mainSpirtIndex);
+            this.spirtes[this.sprite_names.idle_back].play?.();
         }
         if (this.facing == EFacing.bottom) {
             this.bodySprite.addChildAt(this.spirtes[this.sprite_names.idle], this.mainSpirtIndex);
+            this.spirtes[this.sprite_names.idle].play?.();
         }
         // clearups
         this.bufferList = [];

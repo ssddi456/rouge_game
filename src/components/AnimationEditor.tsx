@@ -144,6 +144,9 @@ export class AnimationEditor extends React.Component<{}, EditorState> {
                                     })} />
                                 <Typography.Link
                                     onClick={() => {
+                                        if (!newAnimationName) {
+                                            return;
+                                        }
                                         this.setState({
                                             selectedAnimateIndexMap: {
                                                 ...selectedAnimateIndexMap,
