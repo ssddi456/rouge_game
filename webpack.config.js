@@ -44,7 +44,7 @@ module.exports = function ({ entry }) {
             historyApiFallback: true,
             host: "0.0.0.0",
             open: {
-                target: 'http://localhost:7000',
+                target: `http://localhost:${ports[entry]}`,
                 app: {
                     name: 'google chrome',
                 }

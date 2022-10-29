@@ -206,6 +206,7 @@ const sprites = {
         "bullet souls",
         "Dark VFX 1 (40x32)",
         "Dark VFX 2 (48x64)",
+        "Nintendo Switch - Disgaea 4 - Succubus",
         "Projectile 2 w blur"
     ],
     "sprites": [
@@ -217,6 +218,7 @@ const sprites = {
         "Hazel Tree",
         "Ice VFX 1 Hit",
         "IceVFX 1 Repeatable",
+        "Nintendo Switch - Disgaea 4 - Succubus",
         "Nintendo Switch - Disgaea 5 Complete - LiezerotaDark",
         "Nintendo Switch - Disgaea 5 Complete - Miscellaneous Monsters",
         "Nintendo Switch - Disgaea 5 Complete - Weapons Bow",
