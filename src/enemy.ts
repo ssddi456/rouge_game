@@ -1,4 +1,4 @@
-import { AnimatedSprite, Container, Graphics, Sprite } from "pixi.js";
+import { AnimatedSprite, Container, DisplayObject, Graphics, Sprite } from "pixi.js";
 import { CountDown } from "./countdown";
 import { Player } from "./player";
 import { Vector } from "./vector";
@@ -18,7 +18,7 @@ import { Viewport } from 'pixi-viewport';
 
 
 type ReinitableProps = Partial<Pick<Enemy,
-    'speed' | 'size' | 'health' | 'sprite_names'
+    'speed' | 'size' | 'health' | 'sprite_names' | 'scale'
 >> & {
     controller: controllerKey[]
 };
@@ -98,6 +98,7 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
     facing = EFacing.bottom;
 
     speed = 1;
+    scale = 1;
     size: number = 30;
     collisison_type: ECollisionType = ECollisionType.enemy;
 
@@ -139,7 +140,9 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
         this.shadow = shadow;
 
         this.bodySprite.position.y = - overGroundCenterHeight;
-        this.bodySprite.addChild(this.spirtes[this.sprite_names.idle]);
+        const item = this.bodySprite.addChild(this.spirtes[this.sprite_names.idle]);
+        console.log(item.scale);
+
         this.spirtes[this.sprite_names.idle_back].play?.();
 
         this.sprite.addChild(this.debugInfo.pointer);
@@ -215,6 +218,13 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
             if (props.size) {
                 this.size = props.size;
             }
+
+            if (props.scale) {
+                this.scale = props.scale;
+            } else {
+                this.scale = 1;
+            }
+
             if (props.health) {
                 this.health = props.health;
                 this.max_health = props.health;
@@ -222,17 +232,22 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
             if (props.sprite_names) {
                 this.sprite_names = props.sprite_names;
             }
+        } else {
+            this.scale = 1;
         }
 
         this.bodySprite.removeChildAt(this.mainSpirtIndex);
         if (this.facing == EFacing.top) {
             this.bodySprite.addChildAt(this.spirtes[this.sprite_names.idle_back], this.mainSpirtIndex);
-            this.spirtes[this.sprite_names.idle_back].play?.();
         }
         if (this.facing == EFacing.bottom) {
             this.bodySprite.addChildAt(this.spirtes[this.sprite_names.idle], this.mainSpirtIndex);
-            this.spirtes[this.sprite_names.idle].play?.();
         }
+        const item = this.bodySprite.children[this.mainSpirtIndex];
+        item.scale.set(this.scale);
+        this.spirtes[this.sprite_names.idle_back].play?.();
+        this.spirtes[this.sprite_names.idle].play?.();
+
         // clearups
         this.bufferList = [];
         this.assets = [];
@@ -323,6 +338,8 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
             if (this.facing == EFacing.bottom) {
                 this.bodySprite.addChildAt(this.spirtes[this.sprite_names.idle], this.mainSpirtIndex);
             }
+            const item = this.bodySprite.children[this.mainSpirtIndex];
+            item.scale.set(this.scale);
         }
     }
 
@@ -372,7 +389,7 @@ export class EnemyPool extends UpdatableObject implements IObjectPools {
                 die_back: 'die_back'
             },
             speed: 1,
-            health: 30,
+            health: 50,
             controller: ['tracer', 'charger'],
         },
         // bunny
@@ -384,7 +401,20 @@ export class EnemyPool extends UpdatableObject implements IObjectPools {
                 die_back: 'bunny_die_back'
             },
             speed: 1.5,
-            health: 20,
+            health: 30,
+            controller: ['tracer'],
+        },
+        // succubus
+        {
+            sprite_names: {
+                idle: 'succubus_idle',
+                idle_back: 'succubus_idle',
+                die: 'succubus_idle',
+                die_back: 'succubus_idle'
+            },
+            scale: 0.5,
+            speed: 1.2,
+            health: 120,
             controller: ['tracer'],
         },
     ];

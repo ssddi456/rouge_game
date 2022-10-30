@@ -3,22 +3,17 @@ import { AnimatedSprite, Graphics, Point, Sprite, TilingSprite } from "pixi.js";
 import { createBlockContext } from "../block_context";
 import { BUFFER_EVENTNAME_HEALTH_CHANGE } from "../buffer";
 import { Camera } from "../camara";
-import { EnemyStub } from "../demos/enemy_stub";
 import { DropletPool } from "../droplet";
 import { EnemyPool } from "../enemy";
 import { GameSession } from "../game_session";
 import { HotClass } from "../helper/class_reloader";
 import { Level } from "../level";
-import { withChooseUpgradeMenuBtn } from "../menu/chooseUpgrade";
 import { PlayerStatusMenu } from "../menu/playerStatus";
 import { Player } from "../player";
-import { Rect } from "../rect";
 import { getRunnerApp } from "../runnerApp";
 import { Forest, Tree } from "../tree";
-import { arrow_brancing } from "../upgrades/ice_arrow";
 import { pet } from "../upgrades/pet";
 import { Vector } from "../vector";
-import WarFog from "../warfog";
 
 @HotClass({ module })
 export class ForestLevel extends Level {

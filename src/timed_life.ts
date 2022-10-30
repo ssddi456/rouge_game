@@ -38,7 +38,7 @@ export class TimedSummoned extends UpdatableObject implements Disposible {
             this.sprite.alpha -= this.fadeSpeed;
         }
         if (this.sprite.alpha <= 0) {
-            this.dead;
+            this.dead = true;
         }
     }
 
