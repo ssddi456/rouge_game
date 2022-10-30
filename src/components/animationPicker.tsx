@@ -9,11 +9,13 @@ import {
     Space,
     Typography,
 } from "antd";
+import { TextureConfig } from "../types";
+import { getCoordFromTextureConfig } from "../loadAnimation";
 
 interface AnimationPickerProps {
     name: string;
     url: string;
-    spriteSheet: Record<string, number[]>;
+    spriteSheet: Record<string, TextureConfig>;
     animateIndexMap: Record<string, number[]>;
     animationName: string;
     onChange(map: Record<string, number[]>): void;
@@ -45,7 +47,7 @@ export class AnimationPicker extends React.Component<
         const spritePositions = currentAnimationIdx.map((idx) => {
             return {
                 idx,
-                pos: spriteSheet[idx],
+                pos: getCoordFromTextureConfig(spriteSheet[idx]),
             };
         });
 
@@ -136,7 +138,7 @@ export class AnimationPicker extends React.Component<
                           })
                         : pickState == "pick"
                         ? Object.keys(spriteSheet).map((i) => {
-                              const sprite = spriteSheet[i];
+                              const sprite = getCoordFromTextureConfig(spriteSheet[i]);
                               return (
                                   <div
                                       key={`${i}`}

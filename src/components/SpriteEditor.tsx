@@ -5,6 +5,8 @@ import { SheetInfo } from "../editor";
 
 import { Viewport } from 'pixi-viewport'
 import { Stage } from '@pixi/layers';
+import { CoordControll, Coords, PointXY, TextureConfig } from "../types";
+import { copyTextureConfig, getCoordFromTextureConfig, getOffsetFromTextureConfig, updateOffset } from "../loadAnimation";
 
 export function getNextKey(selectedSpriteSheet: Record<number, any>) {
     const maxKey = Math.max(-1, ...Object.keys(selectedSpriteSheet).map(x => Number(x)));
@@ -22,7 +24,10 @@ export function pointInCoords(p: PointXY, coords: Coords) {
     return false;
 }
 
-export function getCoordsControll(coords: Coords) {
+export function getCoordsControll(config: TextureConfig) {
+    const coords = getCoordFromTextureConfig(config);
+    const offset = getOffsetFromTextureConfig(config);
+
     const size = 8;
     const h = size / 2;
     return {
@@ -37,11 +42,14 @@ export function getCoordsControll(coords: Coords) {
         [CoordControll.BottomLeft]: [coords[0] - h, coords[1] + coords[3] - h, size, size],
         [CoordControll.BottomCenter]: [coords[0] + (coords[2] / 2) - h, coords[1] + coords[3] - h, size, size],
         [CoordControll.BottomRight]: [coords[0] + coords[2] - h, coords[1] + coords[3] - h, size, size],
+
+        [CoordControll.OffsetPoint]: [coords[0] + (coords[2] / 2) + offset[0] - h, coords[1] + (coords[2] / 2) + offset[1] - h, size, size],
     } as Record<CoordControll, Coords>;
 }
 
-export function pointInCoordsControll(p: PointXY, coords: Coords) {
-    const CoordControllCoords = getCoordsControll(coords);
+export function pointInCoordsControll(p: PointXY, config: TextureConfig) {
+    const coords = getCoordFromTextureConfig(config);
+    const CoordControllCoords = getCoordsControll(config);
 
     for (const key in CoordControllCoords) {
         if (Object.prototype.hasOwnProperty.call(CoordControllCoords, key)) {
@@ -69,25 +77,11 @@ export function normalizeCoord(coord: Coords) {
     }
 }
 
-type Coords = [number, number, number, number];
-type PointXY = { x: number, y: number };
-enum CoordControll {
-    TopLeft,
-    TopCenter,
-    TopRight,
-    MiddleLeft,
-    MiddleCenter,
-    MiddleRight,
-    BottomLeft,
-    BottomCenter,
-    BottomRight,
-}
-
 interface EditorState {
     list: SheetInfo[];
     selected: string;
     selectedSheet: SheetInfo | undefined;
-    selectedSpriteSheet: Record<number, Coords>;
+    selectedSpriteSheet: Record<number, TextureConfig>;
     selectedSheetWidth: number;
     selectedSheetHeight: number;
     textureInfo: string;
@@ -190,7 +184,7 @@ export class SpriteEditor extends React.Component<{}, EditorState> {
             const transform = e.currentTarget.transform as Transform;
             startPos = transform.worldTransform.applyInverse(globalPos);
             // not selet a sprite
-            if (!Object.values(this.state.selectedSpriteSheet).some(x => pointInCoordsControll(startPos, x))) {
+            if (!Object.values(this.state.selectedSpriteSheet).some(x => pointInCoordsControll(startPos, getCoordFromTextureConfig(x)))) {
                 delta = { w: 0, h: 0 };
             }
         });
@@ -254,6 +248,7 @@ export class SpriteEditor extends React.Component<{}, EditorState> {
         const gameview = this.gameview!;
         let startPos: { x: number, y: number };
         let startSpriteCoord: Coords;
+        let startSpriteOffset: Coords;
         let delta: { w: number, h: number };
         let moveMode: CoordControll | false;
 
@@ -268,7 +263,8 @@ export class SpriteEditor extends React.Component<{}, EditorState> {
                 // not selet a sprite
                 if (moveMode !== false) {
                     delta = { w: 0, h: 0 };
-                    startSpriteCoord = [...currentSprite];
+                    startSpriteCoord = [...getCoordFromTextureConfig(currentSprite)];
+                    startSpriteOffset = [...getOffsetFromTextureConfig(currentSprite)];
                 }
             }
         });
@@ -278,8 +274,9 @@ export class SpriteEditor extends React.Component<{}, EditorState> {
                 const transform = e.currentTarget.transform as Transform;
                 const localPos = transform.worldTransform.applyInverse(globalPos);
                 delta = { w: localPos.x - startPos.x, h: localPos.y - startPos.y };
-                const currentSprite = this.getCurrentSprite()!;
-
+                const currentSpriteConfig = copyTextureConfig(this.getCurrentSprite()!);
+                const currentSprite = getCoordFromTextureConfig(currentSpriteConfig);
+                const currentOffset = getOffsetFromTextureConfig(currentSpriteConfig);
                 if (moveMode == CoordControll.MiddleCenter) {
                     currentSprite[0] = startSpriteCoord[0] + delta.w;
                     currentSprite[1] = startSpriteCoord[1] + delta.h;
@@ -319,17 +316,19 @@ export class SpriteEditor extends React.Component<{}, EditorState> {
                             currentSprite[2] = startSpriteCoord[2] + delta.w;
                             currentSprite[3] = startSpriteCoord[3] + delta.h;
                             break;
+                        case CoordControll.OffsetPoint :
+                            currentOffset[0] = startSpriteOffset[0] + delta.w;
+                            currentOffset[1] = startSpriteOffset[1] + delta.h;
+                            break;
                     }
                 }
-
-                this.setState({});
-                this.reloadSpriteDisplay();
+                this.setCurrentSprite(currentSpriteConfig);
             }
         });
         gameview.on('pointerup', (e) => {
             const currentSprite = this.getCurrentSprite()!;
             if (currentSprite) {
-                normalizeCoord(currentSprite);
+                normalizeCoord(getCoordFromTextureConfig(currentSprite));
             }
             (startPos as any) = undefined;
             (startSpriteCoord as any) = undefined;
@@ -426,8 +425,8 @@ export class SpriteEditor extends React.Component<{}, EditorState> {
         const spriteDisplay = this.spriteDisplay = this.spriteDisplay || this.gameview!.addChild(new Container);
         spriteDisplay.removeChildren();
 
-        Object.entries(selectedSpriteSheet as Record<string, Coords>).map(([key, coords]) => {
-            const mask = spriteDisplay.addChild(drawSpriteMask(coords));
+        Object.entries(selectedSpriteSheet as Record<string, TextureConfig>).map(([key, coords]) => {
+            const mask = spriteDisplay.addChild(drawSpriteMask(getCoordFromTextureConfig(coords)));
 
             mask.on('click', () => {
                 message.info(`key: ${key}, coords: ${JSON.stringify(coords)}`);
@@ -449,10 +448,12 @@ export class SpriteEditor extends React.Component<{}, EditorState> {
                 this.currentTexture?.height!,
             ], this.state.selectedSpriteSheet);
         } else {
-            this.doRebuildCut(this.state.selectedSpriteSheet[this.state.selectedSpriteKey], this.state.selectedSpriteSheet);
+            this.doRebuildCut(
+                getCoordFromTextureConfig(this.state.selectedSpriteSheet[this.state.selectedSpriteKey]),
+                this.state.selectedSpriteSheet);
         }
     }
-    doRebuildCut = (coords: [number, number, number, number,], selectedSpriteSheet: Record<number, Coords>) => {
+    doRebuildCut = (coords: [number, number, number, number,], selectedSpriteSheet: Record<number, TextureConfig>) => {
         const values = this.cutForm?.getFieldsValue();
         const width = Math.floor(coords[2] / values.n);
         const height = Math.floor(coords[3] / values.m);
@@ -495,20 +496,30 @@ export class SpriteEditor extends React.Component<{}, EditorState> {
         }
         return this.state.selectedSpriteSheet[this.state.selectedSpriteKey];
     }
+
+    setCurrentSprite = (config: TextureConfig) => {
+        this.state.selectedSpriteSheet[this.state.selectedSpriteKey] = config;
+        this.setState({}, () => {
+            this.reloadSpriteDisplay();
+        });
+    }
+
     copyCurrentSprite = () => {
         const current = this.getCurrentSprite();
         if (current) {
             const newKey = getNextKey(this.state.selectedSpriteSheet);
-            this.state.selectedSpriteSheet[newKey] = [...current];
-            this.setState({ selectedSpriteKey: newKey });
-            this.reloadSpriteDisplay();
+            this.state.selectedSpriteSheet[newKey] = copyTextureConfig(current);
+            this.setState({ selectedSpriteKey: newKey }, () => {
+                this.reloadSpriteDisplay();
+            });
         }
     }
 
     removeCurrentSprite = () => {
         delete this.state.selectedSpriteSheet[this.state.selectedSpriteKey];
-        this.setState({ selectedSpriteKey: -1 });
-        this.reloadSpriteDisplay();
+        this.setState({ selectedSpriteKey: -1 }, () => {
+            this.reloadSpriteDisplay();
+        });
     }
 
     render(): React.ReactNode {
@@ -535,8 +546,9 @@ export class SpriteEditor extends React.Component<{}, EditorState> {
                         {
                             this.state.selectedSpriteKey !== -1
                                 ? (() => {
-                                    const coords = this.getCurrentSprite()!;
-
+                                    const currentSprite = this.getCurrentSprite()!;
+                                    const coords = getCoordFromTextureConfig(currentSprite);
+                                    const offset = getOffsetFromTextureConfig(currentSprite);
                                     return (
                                         <div style={{ verticalAlign: 'middle' }}>
                                             {
@@ -548,6 +560,21 @@ export class SpriteEditor extends React.Component<{}, EditorState> {
                                                             onChange={(e) => {
                                                                 coords[idx] = Number(e.target.value);
                                                                 this.reloadSpriteDisplay();
+                                                            }}
+                                                        />
+                                                    </Form.Item>
+                                                })
+                                            }
+                                            {
+                                                ['offsetx', 'offsety'].map((x, idx) => {
+                                                    return <Form.Item label={x} style={{ display: 'inline-block', }}>
+                                                        <Input
+                                                            style={{ width: 60 }}
+                                                            value={offset[idx]}
+                                                            onChange={(e) => {
+                                                                const newOffset = [...offset] as Coords;
+                                                                newOffset[idx] = Number(e.target.value);;
+                                                                this.setCurrentSprite(updateOffset(currentSprite, newOffset));
                                                             }}
                                                         />
                                                     </Form.Item>

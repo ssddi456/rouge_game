@@ -1,14 +1,89 @@
-import { AnimatedSprite, Application, LoaderResource, Rectangle, Sprite, Texture } from 'pixi.js';
+import { AnimatedSprite, Application, BaseTexture, LoaderResource, Rectangle, Sprite, Texture } from 'pixi.js';
 import * as PIXI from 'pixi.js';
 import { initUpgradeSprites } from './upgrades/base';
 import { cloneAnimationSprites } from './sprite_utils';
 import { getRunnerApp } from './runnerApp';
-import { GetResourceFunc } from './types';
+import { Coords, GetResourceFunc, TextureConfig } from './types';
+
+export function createTextureFromConfig(base: BaseTexture, config: TextureConfig) {
+    if (Array.isArray(config)) {
+        return new Texture(base,
+            new Rectangle(...config));
+    }
+    if (config.frame && config.offset) {
+        return new Texture(base,
+            new Rectangle(...config.frame),
+            undefined,
+            new Rectangle(
+                - config.offset[0] / 2, - config.offset[1] / 2,
+                config.frame[2], config.frame[3],
+            ),
+            undefined,
+            // { x: 0.5, y: 0.5 }
+        );
+    }
+    throw new Error('illegal config');
+}
+
+export function getCoordFromTextureConfig(config: TextureConfig): Coords {
+    if (Array.isArray(config)) {
+        return config;
+    }
+    if (config.frame && config.offset) {
+        return config.frame;
+    }
+    throw new Error('illegal config');
+}
+
+export function getOffsetFromTextureConfig(config: TextureConfig): Coords {
+    if (Array.isArray(config)) {
+        return [0, 0, 0, 0];
+    }
+    if (config.frame && config.offset) {
+        return config.offset;
+    }
+    throw new Error('illegal config');
+}
+
+
+export function copyTextureConfig(config: TextureConfig): TextureConfig {
+    if (Array.isArray(config)) {
+        return {
+            frame: [...config],
+            offset: [0, 0, config[2], config[3]],
+        };
+    }
+    if (config.frame && config.offset) {
+        return {
+            frame: [...config.frame],
+            offset: [...config.offset.slice(0, 2), ...config.frame.slice(2)] as Coords,
+        };
+    }
+    throw new Error('illegal config');
+}
+
+
+export function updateOffset(config: TextureConfig, offset: Coords): TextureConfig {
+    if (Array.isArray(config)) {
+        return {
+            frame: [...config],
+            offset: [...offset]
+        };
+    }
+    if (config.frame && config.offset) {
+        return {
+            frame: [...config.frame],
+            offset: [...offset],
+        };
+    }
+    throw new Error('illegal config');
+}
+
 
 export async function loadAnimation(loader: PIXI.Loader,
     name: string,
     url: string,
-    spriteSheet: Record<string, number[]>,
+    spriteSheet: Record<string, TextureConfig>,
     animateIndexMap: Record<string, number[]>,
 ): Promise<Record<string, AnimatedSprite>> {
     return new Promise(resolve => {
@@ -59,8 +134,7 @@ export async function loadAnimation(loader: PIXI.Loader,
                     // Add the bunny to the scene we are building
                     const LiezerotaDarkAnimate = new PIXI.AnimatedSprite(
                         element.map((index) => {
-                            return new PIXI.Texture(LiezerotaDark.baseTexture,
-                                new PIXI.Rectangle(...spriteSheet[index]))
+                            return createTextureFromConfig(LiezerotaDark.baseTexture, spriteSheet[index]);
                         })
                     );
                     LiezerotaDarkAnimate.anchor.set(0.5, 0.5);
@@ -158,9 +232,7 @@ export async function loadSprites(loader: PIXI.Loader, name: string): Promise<Re
                 if (Object.prototype.hasOwnProperty.call(spriteSheet, key)) {
                     const element = spriteSheet[key];
                     spriteMap[key] = new Sprite(
-                        new Texture(LiezerotaDark.baseTexture,
-                            new Rectangle(...element)
-                        ));
+                        createTextureFromConfig(LiezerotaDark.baseTexture, element));
                 }
             }
 
@@ -290,9 +362,9 @@ export async function setupResource(app: Application,) {
     // Listen for frame updates
     const cloneResourceMap = () => {
         const map = ({
-        resources,
+            resources,
 
-        /** declare resource start */
+            /** declare resource start */
         playerAnimateMap: cloneAnimationSprites(playerAnimateMap),
         bowAnimateMap: cloneAnimationSprites(bowAnimateMap),
         gunAnimateMap: cloneAnimationSprites(gunAnimateMap),
@@ -312,15 +384,15 @@ export async function setupResource(app: Application,) {
         powerupPanelSpriteMap,
         heartAnimationSpriteMap,
 /** declare resource end */
-    });
+        });
 
-    map.enemyAnimateMap = {
-        ...map.enemyAnimateMap,
-        ...map.succubusAnimateMap
+        map.enemyAnimateMap = {
+            ...map.enemyAnimateMap,
+            ...map.succubusAnimateMap
+        };
+
+        return map;
     };
-
-    return map;
-};
 
     const runnerApp = getRunnerApp();
     runnerApp.setGetResourceMap((cloneResourceMap as unknown) as GetResourceFunc);

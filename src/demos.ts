@@ -105,7 +105,7 @@ runnerApp.setSession(new (class extends GameSession  {
     );
     runnerApp.setEnemys(enemys);
     runnerApp.setGroups(createGroups(app.stage as Stage));
-
+    
     app.ticker.add(() => {
         enemys.update();
     

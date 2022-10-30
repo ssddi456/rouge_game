@@ -228,6 +228,26 @@ export interface EventBuffer extends BaseBuffer {
 
 export type Buffer = TimerBuffer | CounterBuffer | EventBuffer;
 
+export type Coords = [number, number, number, number];
+export type PointXY = { x: number, y: number };
+export enum CoordControll {
+    TopLeft,
+    TopCenter,
+    TopRight,
+    MiddleLeft,
+    MiddleCenter,
+    MiddleRight,
+    BottomLeft,
+    BottomCenter,
+    BottomRight,
+    OffsetPoint,
+}
+
+export type TextureConfig = Coords | {
+    frame: Coords,
+    offset: Coords
+}
+
 if (module.hot) {
     module.hot.accept();
 }
