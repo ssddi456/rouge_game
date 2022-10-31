@@ -20,6 +20,7 @@ export function createDemoContext(
     let animateContainer: Container = module.hot?.data?.animateContainer || new Container();
     animateContainer.position.set(0, 0);
     let tickerFunction: (frame: number) => void;
+    let currentFrame = 0;
     const context = {
         app,
         animateContainer,
@@ -28,10 +29,14 @@ export function createDemoContext(
                 _app.stage.addChild(animateContainer);
             }
             context.app = app = _app;
+            currentFrame = 0;
 
             const _tickerFunction = await lifeCycle.initScence(context);
             if (_tickerFunction) {
-                tickerFunction = _tickerFunction;
+                tickerFunction = () => {
+                    currentFrame += 1;
+                    _tickerFunction(currentFrame);
+                };
                 app.ticker.add(tickerFunction);
             }
         }

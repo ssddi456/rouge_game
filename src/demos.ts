@@ -9,6 +9,7 @@ import { default as initBowDemo } from './demos/bow_demo';
 import { default as initTreeDemo } from './demos/tree_demo';
 import { default as initAoeDemo } from './demos/aoe_demo';
 import { default as initSegmentDemo } from './demos/segment_demo';
+import { default as initEmitDemo } from './demos/emit_demo';
 
 import { getRunnerApp } from './runnerApp';
 import { Camera } from './camara';
@@ -121,5 +122,6 @@ runnerApp.setSession(new (class extends GameSession  {
     initTreeDemo(app);
     initAoeDemo(app);
     initSegmentDemo(app);
+    initEmitDemo(app);
 
 })();
