@@ -8,6 +8,7 @@ import { GameSession } from "../game_session";
 import { Player } from "../player";
 import { getRunnerApp } from "../runnerApp";
 import { EventBuffer } from "../types";
+import { Vector } from "../vector";
 import { Upgrade } from "./base"
 
 const ID_APPLY_ICE_SLOW = "apply_ice_slow";
@@ -77,27 +78,29 @@ export const arrow_brancing: Upgrade = {
             id: 'ice arrow brancing',
             properties: {},
 
-            async takeEffect(ammo, percent, enemy: Enemy,) {
+            async takeEffect(ammo: Ammo, percent, enemy: Enemy,) {
                 console.log('trigger ice arrow brancing');
-                const resource = getRunnerApp().getGetResourceMap()();
+                const runnerApp = getRunnerApp();
+                const resource = runnerApp.getGetResourceMap()();
+                const ammoPool = runnerApp.getAmmoPool();
                 const currentCenter = enemy.position.clone();
                 const branchingTarget = findEnemy(enemy.position.clone(), 300, 1, (target) => target !== enemy);
                 if (branchingTarget.length) {
                     for (let index = 0; index < branchingTarget.length; index++) {
                         const element = branchingTarget[index];
-                        const ammo = player.shootManager.ammoPool.emit(
-                            element.position.clone().sub(currentCenter).normalize(),
+                        const newAmmo = ammoPool.emit(
+                            Vector.AB(enemy.position, element.position).normalize().multiplyScalar(ammo.direct.length),
                             currentCenter,
                             3000,
                             10,
-                            resource.iceAnimateMap.projectile as AnimatedSprite,
+                            resource.iceAnimateMap.projectile,
                             null,
-                            resource.ice_hitAnimateMap.hit_effect as AnimatedSprite,
+                            resource.ice_hitAnimateMap.hit_effect,
                         );
-                        ammo.max_piecing_count = 0;
-                        ammo.max_bouncing_count = 0;
-                        ammo.current_hitting_items = [enemy];
-                        ammo.bufferList.push(getAmmoIceSlow());
+                        newAmmo.max_piecing_count = 0;
+                        newAmmo.max_bouncing_count = 0;
+                        newAmmo.current_hitting_items = [enemy];
+                        newAmmo.bufferList.push(getAmmoIceSlow());
                     }
                 }
             },

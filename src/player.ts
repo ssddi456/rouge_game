@@ -3,7 +3,7 @@ import { AnimatedSprite, Container, DisplayObject, Graphics, Text } from "pixi.j
 import { Vector } from "./vector";
 import { keypressed, mouse } from "./user_input";
 import { AmmoPool } from "./ammo";
-import { ECollisionType, EFacing, ICollisionable, IMovable, Shootable, Buffer, LivingObject, LeveledObject, UpdatableObject } from "./types";
+import { ECollisionType, EFacing, ICollisionable, IMovable, Buffer, LivingObject, UpdatableObject } from "./types";
 import { checkCollision } from "./collision_helper";
 import { Enemy } from "./enemy";
 import { getRunnerApp } from "./runnerApp";
@@ -20,7 +20,6 @@ import { getBlobShadow } from './uicomponents/blobShadow';
 export class Player extends UpdatableObject
     implements
     IMovable,
-    Shootable,
     ICollisionable,
     LivingObject,
     Buffable {
@@ -67,9 +66,7 @@ export class Player extends UpdatableObject
     baseScale = 0.5;
     centerHeight = overGroundCenterHeight;
     showBuff = false;
-    
-    
-    ammoPools: AmmoPool;
+
     bow!: Bow1;
     shootManager!: ShootManager;
 
@@ -135,13 +132,6 @@ export class Player extends UpdatableObject
         buff_left_back.filters = [glow];
         buff_right_back.filters = [glow];
 
-
-        this.ammoPools = new AmmoPool(
-            resource.iceAnimateMap.projectile as AnimatedSprite,
-            this.ammoTextures.ammoTrail,
-            this.container,
-            this.hitSpirtes.hit_1,
-        );
 
         this.equipeRangedWeapon(
             ShootManager,
@@ -382,7 +372,8 @@ export class Player extends UpdatableObject
         ShootManagerClass: new (center: Vector, ammoPools: AmmoPool) => ShootManager,
         BowClass: new (weaponSpirtes: Record<string, AnimatedSprite>) => Bow1
     ) {
-        this.shootManager = new ShootManagerClass(new Vector(0, 0), this.ammoPools);
+        const ammoPools = getRunnerApp().getAmmoPool();
+        this.shootManager = new ShootManagerClass(new Vector(0, 0), ammoPools);
         this.bow = new BowClass(this.weaponSpirtes);
         this.bow.sprite.scale.set(0.6 * this.baseScale, 0.6 * this.baseScale);
         this.bow.sprite.position.y = - this.centerHeight;
@@ -394,7 +385,6 @@ export class Player extends UpdatableObject
         this.shootManager.update();
         this.bow.position.set(this.position.x, this.position.y - this.centerHeight);
         this.bow.update();
-        this.ammoPools.update();
     }
 
     update() {
@@ -415,7 +405,6 @@ export class Player extends UpdatableObject
 
     dispose() {
         super.dispose();
-        this.ammoPools.pool = [];
         this.bufferList = [];
         this.sprite.destroy();
         for (const key in this.effects) {

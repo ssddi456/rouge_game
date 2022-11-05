@@ -83,16 +83,8 @@ export abstract class Level {
             grass.tilePosition = camera.offset.clone().multiplyScalar(-1) as any;
         }
 
-        if (player && camera) {
-            for (let index = 0; index < player.ammoPools.pool.length; index++) {
-                const element = player.ammoPools.pool[index];
-                element.sprite.parentGroup = groups?.ammoGroup;
-                
-                if (!element.dead) {
-                    camera.updateItemPos(element);
-                }
-            }
-        }
+        runnerApp.updateAmmoPool();
+        runnerApp.updateEnemyAmmoPool();
 
         if (droplets && camera) {
             for (let index = 0; index < droplets.pool.length; index++) {
@@ -121,6 +113,10 @@ export abstract class Level {
 
     dispose() {
         const session = this.session;
+        const runnerApp = getRunnerApp();
+        // TODO： dispose logic
+        runnerApp.getAmmoPool();
+        runnerApp.getEnemyAmmoPool();
 
         const player = this.player;
         player?.dispose();

@@ -1,5 +1,6 @@
 import { Viewport } from "pixi-viewport";
 import { AnimatedSprite, Graphics, Point, Sprite, TilingSprite } from "pixi.js";
+import { AmmoPool } from "../ammo";
 import { createBlockContext } from "../block_context";
 import { Camera } from "../camara";
 import { DropletPool } from "../droplet";
@@ -66,7 +67,18 @@ export class SnowFieldLevel extends Level {
 
         const runnerApp = getRunnerApp();
         const groups = runnerApp.getGroups();
-
+        runnerApp.setAmmoPool(new AmmoPool(
+            newResources.iceAnimateMap.projectile as AnimatedSprite,
+            triangleT,
+            gameView,
+            hitEffect.hitSpirtes.hit_1,
+        ));
+        runnerApp.setEnemyAmmoPool(new AmmoPool(
+            newResources.thunderAnimateMap.projectile as AnimatedSprite,
+            triangleT,
+            gameView,
+            hitEffect.hitSpirtes.hit_1,
+        ));
         const player = new Player(playerAnimateMap,
             {
                 ...bowAnimateMap,

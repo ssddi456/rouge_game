@@ -3,7 +3,7 @@ import { CountDown } from "./countdown";
 import { Player } from "./player";
 import { Vector } from "./vector";
 import * as PIXI from 'pixi.js';
-import { IMovable, ICollisionable, EFacing, IObjectPools, ECollisionType, LivingObject, Buffer, Updatable, UpdatableObject } from "./types";
+import { IMovable, ICollisionable, IObjectPools, ECollisionType, LivingObject, Buffer, Updatable, UpdatableObject } from "./types";
 import { checkCollision } from "./collision_helper";
 import { Droplet as Droplet } from "./droplet";
 import { getRunnerApp } from "./runnerApp";
@@ -15,6 +15,7 @@ import { IdleJump, Shake } from "./helper/animated_utils";
 import { HotClass } from "./helper/class_reloader";
 import { getBlobShadow } from './uicomponents/blobShadow';
 import { Viewport } from 'pixi-viewport';
+import { pointsCircleAround } from "./helper/emit_utils";
 
 
 type ReinitableProps = Partial<Pick<Enemy,
@@ -28,10 +29,10 @@ type controllerKey = (keyof (typeof EnemyControllerMap));
 const EnemyControllerMap: Record<string, (enemy: Enemy, player?: Player) => void> = {
     tracer(enemy: Enemy, player: Player = getRunnerApp().getPlayer()) {
         if (player as Player) {
-            enemy.direct.setV(player.position.clone()
-                .sub(enemy.position)
-                .normalize()
-                .multiplyScalar(enemy.speed));
+            enemy.direct.setV(
+                Vector.AB(enemy.position, player.position)
+                    .normalize()
+                    .multiplyScalar(enemy.speed));
         } else {
             enemy.direct.set(0, 0);
         }
@@ -94,9 +95,6 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
     prev_position = new Vector(0, 0);
     position = new Vector(0, 0);
 
-    prev_facing = EFacing.bottom;
-    facing = EFacing.bottom;
-
     speed = 1;
     scale = 1;
     size: number = 30;
@@ -113,9 +111,7 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
 
     sprite_names = {
         idle: 'idle',
-        idle_back: 'idle_back',
         die: 'die',
-        die_back: 'die_back'
     };
 
     distSqToPlayer: number = 0;
@@ -140,10 +136,7 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
         this.shadow = shadow;
 
         this.bodySprite.position.y = - overGroundCenterHeight;
-        const item = this.bodySprite.addChild(this.spirtes[this.sprite_names.idle]);
-        console.log(item.scale);
-
-        this.spirtes[this.sprite_names.idle_back].play?.();
+        this.bodySprite.addChild(this.spirtes[this.sprite_names.idle]);
 
         this.sprite.addChild(this.debugInfo.pointer);
         this.sprite.addChild(this.debugInfo.text);
@@ -175,9 +168,15 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
 
         if (this.dead) {
             // 插入一个死亡动画
+            const dieSprite = this.spirtes[this.sprite_names.die];
+            dieSprite.scale.set(
+                this.scale * this.bodySprite.scale.x,
+                this.scale
+            );
+
             app.emitParticles(
                 this.position.clone().sub({ x: 0, y: overGroundCenterHeight }),
-                this.facing == EFacing.top ? this.spirtes[this.sprite_names.die_back] : this.spirtes[this.sprite_names.die],
+                dieSprite,
                 undefined,
                 600,
             );
@@ -237,15 +236,9 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
         }
 
         this.bodySprite.removeChildAt(this.mainSpirtIndex);
-        if (this.facing == EFacing.top) {
-            this.bodySprite.addChildAt(this.spirtes[this.sprite_names.idle_back], this.mainSpirtIndex);
-        }
-        if (this.facing == EFacing.bottom) {
-            this.bodySprite.addChildAt(this.spirtes[this.sprite_names.idle], this.mainSpirtIndex);
-        }
+        this.bodySprite.addChildAt(this.spirtes[this.sprite_names.idle], this.mainSpirtIndex);
         const item = this.bodySprite.children[this.mainSpirtIndex];
         item.scale.set(this.scale);
-        this.spirtes[this.sprite_names.idle_back].play?.();
         this.spirtes[this.sprite_names.idle].play?.();
 
         // clearups
@@ -260,7 +253,6 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
         this.prev_direct.y = this.direct.y;
         this.prev_position.x = this.position.x;
         this.prev_position.y = this.position.y;
-        this.prev_facing = this.facing;
         this.prev_dead = this.dead;
         this.prev_health = this.health;
     }
@@ -318,29 +310,6 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
         } else if (this.direct.x < 0 && this.bodySprite.scale.x < 0) {
             this.bodySprite.scale.x = 1;
         }
-
-        if ((this.direct.y > 0 && this.prev_direct.y <= 0)
-            || (this.direct.y < 0 && this.prev_direct.y >= 0)
-        ) {
-            if (this.direct.y > 0) {
-                this.facing = EFacing.bottom;
-            }
-            if (this.direct.y < 0) {
-                this.facing = EFacing.top;
-            }
-        }
-
-        if (this.facing != this.prev_facing) {
-            this.bodySprite.removeChildAt(this.mainSpirtIndex);
-            if (this.facing == EFacing.top) {
-                this.bodySprite.addChildAt(this.spirtes[this.sprite_names.idle_back], this.mainSpirtIndex);
-            }
-            if (this.facing == EFacing.bottom) {
-                this.bodySprite.addChildAt(this.spirtes[this.sprite_names.idle], this.mainSpirtIndex);
-            }
-            const item = this.bodySprite.children[this.mainSpirtIndex];
-            item.scale.set(this.scale);
-        }
     }
 
     updateBuffer() {
@@ -384,9 +353,7 @@ export class EnemyPool extends UpdatableObject implements IObjectPools {
         {
             sprite_names: {
                 idle: 'idle',
-                idle_back: 'idle_back',
                 die: 'die',
-                die_back: 'die_back'
             },
             speed: 1,
             health: 50,
@@ -396,9 +363,7 @@ export class EnemyPool extends UpdatableObject implements IObjectPools {
         {
             sprite_names: {
                 idle: 'bunny_idle',
-                idle_back: 'bunny_idle_back',
                 die: 'bunny_die',
-                die_back: 'bunny_die_back'
             },
             speed: 1.5,
             health: 30,
@@ -408,9 +373,7 @@ export class EnemyPool extends UpdatableObject implements IObjectPools {
         {
             sprite_names: {
                 idle: 'succubus_idle',
-                idle_back: 'succubus_idle',
                 die: 'succubus_idle',
-                die_back: 'succubus_idle'
             },
             scale: 0.5,
             speed: 1.2,
@@ -522,16 +485,11 @@ export class EnemyPool extends UpdatableObject implements IObjectPools {
         const player = app.getPlayer();
         const radius = 800;
         const n = Math.min(Math.floor(app.getSession().now() / 20e3) + 1, 3);
-        // const n = 3;
-        const minR = 10;
-        let r = Math.random() * 360;
-        let j = Math.PI / 180;
-        for (let index = 0; index < n; index++) {
-            r += Math.floor(Math.random() * index) * minR / 180 * Math.PI;
-            for (let jndex = 0; jndex < 5; jndex++) {
-                const pos = [player!.position.x + Math.sin(r + j * jndex) * radius, player!.position.y + Math.cos(r + j * jndex) * radius,];
-                this.emit(new Vector(pos[0], pos[1]));
-            }
+
+        const points = pointsCircleAround(player.position, radius, n);
+        for (let index = 0; index < points.length; index++) {
+            const element = points[index];
+            this.emit(element);
         }
     }
 

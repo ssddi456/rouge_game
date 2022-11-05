@@ -6,13 +6,15 @@ import { Enemy, EnemyPool } from "./enemy";
 import { Particle } from "./particle";
 import { Player } from "./player";
 import { cloneAnimationSprite } from "./sprite_utils";
-import { AreaOfEffect, Disposible, ECollisionType, EntityManager, GetResourceFunc, ICollisionable, UpdatableMisc } from "./types";
+import { AreaOfEffect, ECollisionType, EntityManager, ICollisionable, UpdatableMisc } from "./types";
 import { Vector } from "./vector";
 import { mouse } from './user_input';
 import { LevelManager } from "./level";
 import { createGroups } from "./groups";
 import { GameSession } from "./game_session";
 import { checkCollision } from "./collision_helper";
+import { AmmoPool } from "./ammo";
+import { CurrentResourceMapFunc } from "./loadAnimation";
 
 let timeElipsed = 0;
 let app: Application;
@@ -25,11 +27,13 @@ let textParticles: Particle[] = [];
 let gameView: Viewport;
 let mouseWorldPos: Vector | undefined;
 let levelManager: LevelManager;
-let getResourceMap: GetResourceFunc;
+let getResourceMap: CurrentResourceMapFunc;
 let groups: ReturnType<typeof createGroups>;
 let session: GameSession;
 let aoes: AreaOfEffect<any>[] = [];
 let misc: UpdatableMisc[] = [];
+let ammoPool: AmmoPool;
+let enemyAmmoPool: AmmoPool;
 
 let entityTypeCache: Record<string, ICollisionable[]> = {};
 let entityGrid: Record<string, ICollisionable[]> | null = null;
@@ -474,6 +478,7 @@ const runnerApp: EntityManager = {
         mouseWorldPos = runnerApp.screenPosToWorldPos(new Vector(mouse.x, mouse.y));
         return mouseWorldPos.clone();
     },
+
     getGetResourceMap() {
         return getResourceMap;
     },
@@ -495,6 +500,49 @@ const runnerApp: EntityManager = {
         session = _session
     },
 
+    setAmmoPool(_ammoPool: AmmoPool) {
+        ammoPool = _ammoPool;
+    },
+
+    getAmmoPool() {
+        return ammoPool;
+    },
+
+    updateAmmoPool() {
+        if (ammoPool && camera) {
+            ammoPool.update();
+            for (let index = 0; index < ammoPool.pool.length; index++) {
+                const element = ammoPool.pool[index];
+                element.sprite.parentGroup = groups?.ammoGroup;
+
+                if (!element.dead) {
+                    camera.updateItemPos(element);
+                }
+            }
+        }
+    },
+
+    setEnemyAmmoPool(_ammoPool: AmmoPool) {
+        enemyAmmoPool = _ammoPool;
+    },
+
+    getEnemyAmmoPool() {
+        return enemyAmmoPool;
+    },
+
+    updateEnemyAmmoPool() {
+        if (enemyAmmoPool && camera) {
+            enemyAmmoPool.pool.forEach(x => x.update());
+            for (let index = 0; index < enemyAmmoPool.pool.length; index++) {
+                const element = enemyAmmoPool.pool[index];
+                element.sprite.parentGroup = groups?.ammoGroup;
+
+                if (!element.dead) {
+                    camera.updateItemPos(element);
+                }
+            }
+        }
+    }
 };
 
 export function getRunnerApp() {

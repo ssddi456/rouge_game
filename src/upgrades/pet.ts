@@ -1,3 +1,4 @@
+import { AnimatedSprite } from "pixi.js";
 import { WormlingBehavior } from "../behavior";
 import { addEventBuffer, BUFFER_EVENTNAME_HITTED } from "../buffer";
 import { CountDown } from "../countdown";
@@ -6,7 +7,7 @@ import { GameSession } from "../game_session";
 import { randomPosAround } from "../helper/utils";
 import { Player } from "../player";
 import { getRunnerApp } from "../runnerApp";
-import { Shooter } from "../skills/shooter";
+import { AllianceShooter, Shooter } from "../skills/shooter";
 import { TimedSummoned } from "../timed_life";
 import { Upgrade } from "./base"
 
@@ -21,6 +22,8 @@ export const pet: Upgrade = {
         //
         const spawnWormling = player.addChildren(new CountDown(5e3, () => {
             const app = getRunnerApp();
+            const resource = app.getGetResourceMap()();
+
             const wormling = new TimedSummoned(
                 15e3,
                 randomPosAround(player.position, 300),
@@ -28,7 +31,11 @@ export const pet: Upgrade = {
                 new WormlingBehavior(
                     'enemy',
                     [
-                        new Shooter(false, 600, true)
+                        new AllianceShooter(false, 600, true,
+                            resource.iceAnimateMap.projectile,
+                            null,
+                            resource.ice_hitAnimateMap.hit_effect,
+                        )
                     ],
                     600)
                 );

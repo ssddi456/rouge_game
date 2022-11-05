@@ -395,7 +395,7 @@ export async function setupResource(app: Application,) {
     };
 
     const runnerApp = getRunnerApp();
-    runnerApp.setGetResourceMap((cloneResourceMap as unknown) as GetResourceFunc);
+    runnerApp.setGetResourceMap(cloneResourceMap);
 
     return cloneResourceMap;
 }
@@ -403,4 +403,4 @@ export async function setupResource(app: Application,) {
 type ResolveType<T extends Promise<any>> = T extends Promise<infer R> ? R : any;
 
 
-export type CurrentResourceMapFunc = ReturnType<(ResolveType<(ReturnType<(typeof setupResource)>)>)>;
+export type CurrentResourceMapFunc = ResolveType<(ReturnType<(typeof setupResource)>)>;

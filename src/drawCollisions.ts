@@ -1,4 +1,4 @@
-import { ICollisionable, IObjectPools, Shootable } from "./types";
+import { ICollisionable, IObjectPools, } from "./types";
 import * as PIXI from 'pixi.js'
 import { Camera } from "./camara";
 
@@ -64,12 +64,6 @@ export class CollisionView {
                 }
             } else {
                 this.showCollision(element as ICollisionable);
-                if (((element as any) as Shootable).ammoPools) {
-                    for (let j = 0; j < ((element as any) as Shootable).ammoPools.pool.length; j++) {
-                        const ammo = ((element as any) as Shootable).ammoPools.pool[j];
-                        this.showCollision(ammo);
-                    }
-                }
             }
         }
     }

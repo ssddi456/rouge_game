@@ -171,6 +171,17 @@ export class Vector {
 
         return new Vector(1, - (this.x / this.y));
     }
+    /**
+     * -->
+     *
+     * A B
+     */
+    static AB(a: { x: number, y: number }, b: { x: number, y: number },) {
+        return new Vector(
+            b.x - a.x,
+            b.y - a.y
+        );
+    }
 }
 
 export class VectorLine {

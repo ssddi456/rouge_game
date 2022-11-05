@@ -7,6 +7,7 @@ import { EnemyPool } from "./enemy";
 import { GameSession } from "./game_session";
 import { createGroups } from "./groups";
 import { LevelManager } from "./level";
+import { CurrentResourceMapFunc } from "./loadAnimation";
 import { Particle } from "./particle";
 import { Player } from "./player";
 import { Vector } from "./vector";
@@ -92,9 +93,6 @@ export interface IMovable extends GameObject {
     prev_direct: Vector;
     direct: Vector;
 
-    prev_facing: EFacing;
-    facing: EFacing;
-
     speed: number;
 
     updatePosition(): void;
@@ -116,10 +114,6 @@ export interface LeveledObject {
     lv: number;
     nextLevelExp: number;
     receiveExp(exp: number): void;
-}
-export interface Shootable {
-    shootCd: number;
-    ammoPools: AmmoPool;
 }
 
 export interface IObjectPools {
@@ -176,14 +170,22 @@ export interface EntityManager {
     getLevelManager(): LevelManager;
     setLevelManager(_levelManager: LevelManager): void;
 
-    getGetResourceMap(): GetResourceFunc;
-    setGetResourceMap(getResources: GetResourceFunc): void;
+    getGetResourceMap(): CurrentResourceMapFunc;
+    setGetResourceMap(getResources: CurrentResourceMapFunc): void;
 
     getGroups(): ReturnType<typeof createGroups>;
     setGroups(groups: ReturnType<typeof createGroups>): void;
 
     getSession(): GameSession;
     setSession(session: GameSession): void;
+
+    getAmmoPool(): AmmoPool;
+    setAmmoPool(ammoPool: AmmoPool): void;
+    updateAmmoPool(): void;
+
+    getEnemyAmmoPool(): AmmoPool;
+    setEnemyAmmoPool(ammoPool: AmmoPool): void;
+    updateEnemyAmmoPool(): void;
 }
 
 export enum AreaOfEffectType {

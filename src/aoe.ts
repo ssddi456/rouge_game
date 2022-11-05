@@ -17,7 +17,7 @@ export function createExplosion(
 ): AreaOfEffect<Enemy> {
 
     const { radius = 30, damage = 20 } = options;
-    const resources: CurrentResourceMapFunc = getRunnerApp().getGetResourceMap()() as any;
+    const resources = getRunnerApp().getGetResourceMap()();
     let _dead: boolean = false;
     let frameCount = 0;
     

@@ -15,7 +15,7 @@ export function cloneAnimationSprites(spriteMap: Record<string, AnimatedSprite>)
 
 export function cloneAnimationSprite(sprite: AnimatedSprite) {
     const ret = new AnimatedSprite(sprite.textures.map(x => (x as Texture).clone()));
-    
+    ret.scale = sprite.scale.clone();
     ret.anchor.set(sprite.anchor._x, sprite.anchor._y);
     ret.animationSpeed = sprite.animationSpeed;
     ret.loop = sprite.loop;

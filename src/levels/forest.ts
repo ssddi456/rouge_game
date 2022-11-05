@@ -1,5 +1,6 @@
 import { Viewport } from "pixi-viewport";
 import { AnimatedSprite, Graphics, Point, Sprite, TilingSprite } from "pixi.js";
+import { AmmoPool } from "../ammo";
 import { createBlockContext } from "../block_context";
 import { BUFFER_EVENTNAME_HEALTH_CHANGE } from "../buffer";
 import { Camera } from "../camara";
@@ -66,6 +67,18 @@ export class ForestLevel extends Level {
         const groups = runnerApp.getGroups();
 
         runnerApp.setGroups(groups);
+        runnerApp.setAmmoPool(new AmmoPool(
+            newResources.iceAnimateMap.projectile as AnimatedSprite,
+            triangleT,
+            gameView,
+            hitEffect.hitSpirtes.hit_1,
+        ));
+        runnerApp.setEnemyAmmoPool(new AmmoPool(
+            newResources.thunderAnimateMap.projectile as AnimatedSprite,
+            triangleT,
+            gameView,
+            hitEffect.hitSpirtes.hit_1,
+        ));
 
         const player = new Player(playerAnimateMap,
             {
