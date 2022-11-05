@@ -14,6 +14,7 @@ import { GameOverMenu } from "../menu/gameOver";
 import { cleanInput, keypressed } from "../user_input";
 import { getRunnerApp } from "../runnerApp";
 import { CountDown } from "../countdown";
+import { CurrentResourceMapFunc } from "../loadAnimation";
 
 @HotClass({ module })
 export class GameOverLevel extends Level {
@@ -22,7 +23,7 @@ export class GameOverLevel extends Level {
 
     constructor(
         public app: Application,
-        public getResources: () => Record<string, Record<string, any>>
+        public getResources: CurrentResourceMapFunc
     ) {
         super(app, getResources);
         this.ui = new GameOverMenu((null as any) as Container, 0, 0,);

@@ -71,13 +71,13 @@ export class ForestLevel extends Level {
             newResources.iceAnimateMap.projectile as AnimatedSprite,
             triangleT,
             gameView,
-            hitEffect.hitSpirtes.hit_1,
+            hitEffect.hit_1,
         ));
         runnerApp.setEnemyAmmoPool(new AmmoPool(
             newResources.thunderAnimateMap.projectile as AnimatedSprite,
             triangleT,
             gameView,
-            hitEffect.hitSpirtes.hit_1,
+            hitEffect.hit_1,
         ));
 
         const player = new Player(playerAnimateMap,
@@ -85,10 +85,6 @@ export class ForestLevel extends Level {
                 ...bowAnimateMap,
                 ...gunAnimateMap,
             },
-            {
-                ammoTrail: triangleT,
-            },
-            hitEffect,
             100,
             gameView,
             new Vector(

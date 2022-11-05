@@ -73,8 +73,6 @@ export class Player extends UpdatableObject
     constructor(
         public playerSpirtes: Record<string, AnimatedSprite>,
         public weaponSpirtes: Record<string, AnimatedSprite>,
-        public ammoTextures: Record<string, PIXI.Texture>,
-        public hitSpirtes: Record<string, AnimatedSprite>,
         public hp: number,
         public container: Container,
         startPosition: Vector,

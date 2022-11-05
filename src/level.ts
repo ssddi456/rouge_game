@@ -7,6 +7,7 @@ import { EnemyPool } from "./enemy";
 import { GameSession } from "./game_session";
 import { createGroups, maskZIndex } from "./groups";
 import { Fade } from "./helper/animated_utils";
+import { CurrentResourceMapFunc } from "./loadAnimation";
 import { BaseMenu } from "./menu/base";
 import { Player } from "./player";
 import { getRunnerApp } from "./runnerApp";
@@ -28,7 +29,7 @@ export abstract class Level {
 
     constructor(
         public app: Application,
-        public getResources: () => Record<string, Record<string, any>>
+        public getResources: CurrentResourceMapFunc
     ) {}
 
     abstract init(gameView: Container): void;
@@ -168,7 +169,7 @@ export class LevelManager {
     constructor(
         public app: Application,
         public gameView: Container,
-        public getResources: () => Record<string, Record<string, any>>
+        public getResources: CurrentResourceMapFunc
     ) {
     }
 

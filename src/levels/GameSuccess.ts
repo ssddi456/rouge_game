@@ -12,6 +12,7 @@ import { Updatable, Disposible } from "../types";
 import warfog from "../warfog";
 import { GameSuccessMenu } from "../menu/gameSuccess";
 import { getRunnerApp } from "../runnerApp";
+import { CurrentResourceMapFunc } from "../loadAnimation";
 
 @HotClass({ module })
 export class GameSuccessLevel extends Level {
@@ -19,7 +20,7 @@ export class GameSuccessLevel extends Level {
 
     constructor(
         public app: Application,
-        public getResources: () => Record<string, Record<string, any>>
+        public getResources: CurrentResourceMapFunc
     ) {
         super(app, getResources);
         this.ui = new GameSuccessMenu((null as any) as Container, 0, 0,);
