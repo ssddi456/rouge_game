@@ -453,7 +453,7 @@ export class EnemyPool extends UpdatableObject implements IObjectPools {
     }
 
     update() {
-        // this.spawnTimer.update();
+        this.spawnTimer.update();
         this.livenodes = this.pool.filter(x => !x.dead);
         this.updateEnemyDist();
         super.update();

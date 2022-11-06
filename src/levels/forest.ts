@@ -155,7 +155,7 @@ export class ForestLevel extends Level {
             }
         });
 
-        enemys.emit( new Vector(300, 300), 5);
+        // enemys.emit( new Vector(300, 300), 5);
 
         // this.session.pickUpgrade(pet);
 
