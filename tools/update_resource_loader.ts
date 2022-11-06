@@ -9,7 +9,12 @@ async function loadResourceMap() {
 
     const root = path.join(__dirname, '../src/assets');
     console.log('root', root);
-    return new Promise<{ animations: string[], sprites: string[] }>(resolve => {
+    return new Promise<{
+        animations: string[], 
+        sprites: string[],
+        animationsNames: Record<string, string[]>,
+        spritesNames: Record<string, string[]>
+    }>(resolve => {
 
         glob("*.json", {
             cwd: root,
@@ -24,11 +29,26 @@ async function loadResourceMap() {
             const animations = files.filter(x => x.endsWith(animationExt)).map(x => path.basename(x, animationExt));
             const sprites = files.filter(x => x.endsWith(spritsExt)).map(x => path.basename(x, spritsExt));
 
+            const animationsNames = animations.reduce((map, k) => {
+                map[k] = Object.keys(fs.readJsonSync( path.join(root, k + animationExt)));
+                return map;
+            }, {} as Record<string, string[]>);
+
+            const spritesNames = sprites.reduce((map, k) => {
+                map[k] = Object.keys(fs.readJsonSync(path.join(root, k + spritsExt)));
+                return map;
+            }, {} as Record<string, string[] >);
+
             console.log(
                 'animations', animations,
                 'sprites', sprites,
             );
-            resolve({ animations, sprites });
+            resolve({ 
+                animations,
+                sprites,
+                animationsNames,
+                spritesNames,
+            });
         });
     });
 }
@@ -76,8 +96,12 @@ async function updateResource() {
     const loadAnimateCodeTpl = (alias: string, resource: string) => `    const ${alias}AnimateMap = await loadSpriteSheet(loader, '${resource}');`;
     const loadSpriteCodeTpl = (alias: string, resource: string) => `    const ${alias}SpriteMap = await loadSprites(loader, '${resource}');`;
 
-    const declareAnimateCodeTpl = (alias: string,) => `        ${alias}AnimateMap: cloneAnimationSprites(${alias}AnimateMap),`;
-    const declareSpriteCodeTpl = (alias: string,) => `        ${alias}SpriteMap,`;
+    const declareAnimateCodeTpl = (alias: string, origin: string) => `        ${alias}AnimateMap: cloneAnimationSprites(${alias}AnimateMap) as Record<${
+        resourceContent.animationsNames[origin].map(x => JSON.stringify(x)).join(' | ')
+    }, AnimatedSprite>,`;
+    const declareSpriteCodeTpl = (alias: string, origin: string) => `        ${alias}SpriteMap: ${alias}SpriteMap as Record<${
+        resourceContent.spritesNames[origin].map(x => JSON.stringify(x)).join(' | ')
+    }, Sprite>,`;
 
     console.log(
         resourceContent.animations,
@@ -110,9 +134,9 @@ async function updateResource() {
         '',
         Object.entries(codeConfig.spritesAlias).map((entry) => loadSpriteCodeTpl(...entry)).join('\n'),
         sourceCode.slice(indexLoaderCodeRange[1], indexDeclareCodeRange[0]),
-        Object.keys(codeConfig.animationsAlias).map(alias => declareAnimateCodeTpl(alias)).join('\n'),
+        Object.keys(codeConfig.animationsAlias).map(alias => declareAnimateCodeTpl(alias, codeConfig.animationsAlias[alias])).join('\n'),
         '',
-        Object.keys(codeConfig.spritesAlias).map(alias => declareSpriteCodeTpl(alias)).join('\n'),
+        Object.keys(codeConfig.spritesAlias).map(alias => declareSpriteCodeTpl(alias, codeConfig.spritesAlias[alias])).join('\n'),
         sourceCode.slice(indexDeclareCodeRange[1]),
     ].join('\n'))
 }

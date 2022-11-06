@@ -3,9 +3,11 @@ import { AnimatedSprite, Container, DisplayObject, Point, SimpleRope, Texture } 
 import { execEventBuffer, applyKnockback, Buffable, BUFFER_EVENTNAME_DEAD, BUFFER_EVENTNAME_HIT, BUFFER_EVENTNAME_HITTED } from "./buffer";
 import { checkCollision } from "./collision_helper";
 import { Enemy } from "./enemy";
+import { createFastLookup } from "./entityTypeCache";
 import { overGroundCenterHeight } from "./groups";
 import { HotClass } from "./helper/class_reloader";
 import { Particle } from "./particle";
+import { Player } from "./player";
 import { getRunnerApp } from "./runnerApp";
 import { cloneAnimationSprite } from "./sprite_utils";
 import { Buffer, ECollisionType, EFacing, ICollisionable, IMovable, IObjectPools } from "./types";
@@ -206,7 +208,7 @@ export class Ammo implements IMovable, ICollisionable, Buffable {
 export class AmmoPool implements IObjectPools {
     spirte: AnimatedSprite;
     pool: Ammo[] = [];
-
+    lookupHelper = createFastLookup(this.pool);
 
     lastSprite: AnimatedSprite;
     lastTrail: Texture;
@@ -236,9 +238,10 @@ export class AmmoPool implements IObjectPools {
         hitEffect: AnimatedSprite,
     ) {
         const makeNewAmmo =  () => {
-
+            const headSpirt = cloneAnimationSprite(head);
+            headSpirt.play();
             const ammo = new Ammo(
-                cloneAnimationSprite(head),
+                headSpirt,
                 trail || PIXI.Texture.WHITE,
                 this.container);
             ammo.hit_effect = hitEffect;
@@ -296,6 +299,36 @@ export class AmmoPool implements IObjectPools {
             }, -1);
     }
 
+    ammoHitTarget(ammo: Ammo, enemyOrPlayer: Enemy | Player, ifCollision: ReturnType<typeof checkCollision>) {
+        if (!ifCollision) {
+            return;
+        }
+        const damageInfo: DamageInfo = {
+            collision: ifCollision,
+            damage: ammo.damage
+        };
+
+        execEventBuffer(ammo, BUFFER_EVENTNAME_HIT, enemyOrPlayer, damageInfo);
+        execEventBuffer(enemyOrPlayer, BUFFER_EVENTNAME_HITTED, ammo, damageInfo);
+
+        enemyOrPlayer.recieveDamage(damageInfo.damage, ifCollision.collisionHitPos);
+
+        if (ammo.hit_effect) {
+            this.emitHitEffect(ifCollision.collisionHitPos, ammo.hit_effect);
+        }
+
+        applyKnockback(enemyOrPlayer, ammo.direct.clone(), 100);
+
+        if (ammo.current_piecing_count < ammo.max_piecing_count) {
+            ammo.current_piecing_count += 1;
+        } else if (ammo.currrent_bouncing_count < ammo.max_bouncing_count) {
+            ammo.doBouncing(ifCollision.normal);
+            ammo.currrent_bouncing_count += 1;
+        } else {
+            ammo.die();
+        }
+    }
+
     updateHit() {
         const ammos = this.pool.filter(ammo => !ammo.dead);
         for (let index = 0; index < ammos.length; index++) {
@@ -308,34 +341,9 @@ export class AmmoPool implements IObjectPools {
                     const ifCollision = checkCollision(ammo, enemy);
                     if (ifCollision) {
                         _temp_hitting_items.push(enemy);
-
                         if (!ammo.current_hitting_items.includes(enemy)) {
-                            const damageInfo: DamageInfo = {
-                                collision: ifCollision,
-                                damage: ammo.damage
-                            };
-
-                            execEventBuffer(ammo, BUFFER_EVENTNAME_HIT, enemy, damageInfo);
-                            execEventBuffer(enemy, BUFFER_EVENTNAME_HITTED, ammo, damageInfo);
-
-                            enemy.recieveDamage(damageInfo.damage, ifCollision.collisionHitPos);
-
-                            if (ammo.hit_effect) {
-                                this.emitHitEffect(ifCollision.collisionHitPos, ammo.hit_effect);
-                            }
-
-                            applyKnockback(enemy, ammo.direct.clone(), 100);
-
-                            if (ammo.current_piecing_count < ammo.max_piecing_count) {
-                                ammo.current_piecing_count += 1;
-                            } else if (ammo.currrent_bouncing_count < ammo.max_bouncing_count) {
-                                ammo.doBouncing(ifCollision.normal);
-                                ammo.currrent_bouncing_count += 1;
-                            } else {
-                                ammo.die();
-                            }
+                            this.ammoHitTarget(ammo, enemy, ifCollision);
                         }
-
                     }
                 }
             }
@@ -345,6 +353,6 @@ export class AmmoPool implements IObjectPools {
 
     update() {
         this.pool.forEach(x => x.update());
-        this.updateHit();
+        this.lookupHelper.clearEntityTypeCache();
     }
 }

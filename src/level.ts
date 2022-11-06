@@ -227,7 +227,7 @@ export class LevelManager {
         if (this.currentLevel) {
             this.currentLevel.dispose();
             this.currentLevel = undefined;
-            getRunnerApp().disposeGameView();
+            getRunnerApp().disposeStage();
         }
         this.fadeEffect.dispose();
     }

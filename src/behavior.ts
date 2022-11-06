@@ -1,8 +1,10 @@
 import { DebugInfo } from "./debug_info";
+import { Wormling } from "./element/wormling";
 import { Enemy } from "./enemy";
 import { Player } from "./player";
 import { getRunnerApp } from "./runnerApp";
 import { ActiveSkill } from "./skills/activeskill";
+import { TimedSummoned } from "./timed_life";
 import { ECollisionType, UpdatableMisc } from "./types";
 import { Vector } from "./vector";
 
@@ -84,16 +86,28 @@ export class Behavior implements UpdatableMisc {
         if (!this.owner?.sprite) {
             return;
         }
+        // maybe we dont need this
         if (this.target) {
-            const dir = this.target!.position!.x - this.owner!.position!.x;
-            const scaleX = this.owner!.sprite?.scale.x;
-            if (dir > 0) {
-                if (scaleX && scaleX < 0) {
-                    this.owner!.sprite?.scale.set(-scaleX, this.owner!.sprite?.scale.y);
+            if ('direct' in this.owner) {
+                const bodySprite = (this.owner as Enemy).bodySprite;
+                const dir = this.target!.position!.x - this.owner!.position!.x;
+                const scaleX = this.owner!.sprite?.scale.x;
+                if (dir > 0) {
+                    bodySprite.scale.set(-1, bodySprite.scale.y);
+                } else {
+                    bodySprite.scale.set(1, bodySprite.scale.y);
                 }
             } else {
-                if (scaleX && scaleX > 0) {
-                    this.owner!.sprite?.scale.set(-scaleX, this.owner!.sprite?.scale.y);
+                const dir = this.target!.position!.x - this.owner!.position!.x;
+                const scaleX = this.owner!.sprite?.scale.x;
+                if (dir > 0) {
+                    if (scaleX && scaleX < 0) {
+                        this.owner!.sprite?.scale.set(-scaleX, this.owner!.sprite?.scale.y);
+                    }
+                } else {
+                    if (scaleX && scaleX > 0) {
+                        this.owner!.sprite?.scale.set(-scaleX, this.owner!.sprite?.scale.y);
+                    }
                 }
             }
         }
@@ -120,13 +134,13 @@ export function findEnemy(currentCenter: Vector, radius: number, count: number =
         position: currentCenter,
         distance: radius,
         handler(item) {
-            (item as Enemy).debugInfo.text.text = 'checked ! : ' + currentCenter.distanceToSq(item.position);
+            (item as Enemy).debugInfo.text = 'checked ! : ' + currentCenter.distanceToSq(item.position);
             if (excludes && excludes(item as Enemy)) {
                 return;
             }
             const dist = currentCenter.distanceToSq(item.position);
             if (dist < disSq) {
-                (item as Enemy).debugInfo.text.text = 'selected ! : ' + currentCenter.distanceToSq(item.position);
+                (item as Enemy).debugInfo.text = 'selected ! : ' + currentCenter.distanceToSq(item.position);
                 branchingTarget.push(item as Enemy);
                 if (branchingTarget.length > count) {
                     return true;
@@ -139,7 +153,9 @@ export function findEnemy(currentCenter: Vector, radius: number, count: number =
 
 
 export class WormlingBehavior extends Behavior {
+    owner?: TimedSummoned;
     update(): void {
         super.update();
+        this.owner!.shoot_position = this.owner!.position.clone().add((this.owner!.sprite as Wormling).endPoint);
     }
 }

@@ -21,10 +21,6 @@ export class ForestLevel extends Level {
 
     init(gameView: Viewport) {
         const app = this.app
-        const ammoG = new Graphics();
-        ammoG.beginFill(0xffffff);
-        ammoG.drawCircle(0, 5, 5);
-        ammoG.endFill();
 
         const triangle = new Graphics();
         triangle.beginFill(0xffffff);
@@ -37,7 +33,7 @@ export class ForestLevel extends Level {
 
         const triangleT = app.renderer.generateTexture(triangle);
         const newResources = this.getResources();
-        const ammoA = new AnimatedSprite([app.renderer.generateTexture(ammoG)]);
+
         const playerAnimateMap = newResources.playerAnimateMap;
         const bowAnimateMap = newResources.bowAnimateMap;
         const gunAnimateMap = newResources.gunAnimateMap;
@@ -46,9 +42,6 @@ export class ForestLevel extends Level {
         const hitEffect = newResources.hitEffectAnimateMap;
         const resources = newResources.resources;
 
-        playerAnimateMap.ammo = ammoA;
-
-        ammoG.destroy();
         triangle.destroy();
 
 
@@ -162,7 +155,9 @@ export class ForestLevel extends Level {
             }
         });
 
-        this.session.pickUpgrade(pet);
+        enemys.emit( new Vector(300, 300), 5);
+
+        // this.session.pickUpgrade(pet);
 
         this.ui = new PlayerStatusMenu(gameView, (gameView as any).worldWidth, (gameView as any).worldHeight);
         this.ui.init();

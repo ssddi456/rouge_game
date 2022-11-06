@@ -39,7 +39,7 @@ export const pet: Upgrade = {
                     ],
                     600)
                 );
-            
+            wormling.sprite.parentGroup = app.getGroups().overGroundGroup;
             app.addMisc(wormling);
         }));
     }

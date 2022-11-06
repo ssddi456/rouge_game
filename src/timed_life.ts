@@ -1,6 +1,6 @@
 import { Container } from "pixi.js";
 import { Behavior } from "./behavior";
-import { DebugInfo, debugInfo } from "./debug_info";
+import { DebugInfo, } from "./debug_info";
 import { getRunnerApp } from "./runnerApp";
 import { Disposible, Updatable, UpdatableObject } from "./types";
 import { Vector } from "./vector";
@@ -11,6 +11,8 @@ export class TimedSummoned extends UpdatableObject implements Disposible {
     dead: boolean = false;
     fadeSpeed: number = 1 / 60; // in 1 sec
     debugInfo: Container;
+    shoot_position: Vector = new Vector(0, 0);
+
     constructor(
         public duration: number,
         public position: Vector,

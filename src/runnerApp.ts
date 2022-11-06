@@ -13,13 +13,13 @@ import { LevelManager } from "./level";
 import { createGroups } from "./groups";
 import { GameSession } from "./game_session";
 import { checkCollision } from "./collision_helper";
-import { AmmoPool } from "./ammo";
+import { Ammo, AmmoPool } from "./ammo";
 import { CurrentResourceMapFunc } from "./loadAnimation";
 
 let timeElipsed = 0;
 let app: Application;
 let player: Player;
-let enemys: EnemyPool;
+export let enemys: EnemyPool;
 let droplets: DropletPool;
 let camera: Camera;
 let particles: Particle[] = [];
@@ -35,125 +35,9 @@ let misc: UpdatableMisc[] = [];
 let ammoPool: AmmoPool;
 let enemyAmmoPool: AmmoPool;
 
-let entityTypeCache: Record<string, ICollisionable[]> = {};
-let entityGrid: Record<string, ICollisionable[]> | null = null;
-function clearEntityTypeCache() {
+export let entityTypeCache: Record<string, ICollisionable[]> = {};
+export function clearEntityTypeCache() {
     entityTypeCache = {};
-    entityGrid = null;
-}
-const collisionCellSize = 40;
-function getPositionKey(position: Vector) {
-    return Math.floor(position.x / collisionCellSize) + '_' + Math.floor(position.y / collisionCellSize);
-}
-function getNearbyPositionKey(position: Vector) {
-    const x = Math.floor(position.x / collisionCellSize);
-    const y = Math.floor(position.y / collisionCellSize);
-    return [
-        String(x) + '_' + String(y - 0),
-
-        String(x - 1) + '_' + String(y - 1),
-        String(x) + '_' + String(y - 1),
-        String(x + 1) + '_' + String(y - 1),
-
-        String(x - 1) + '_' + String(y - 0),
-        String(x + 1) + '_' + String(y - 0),
-
-        String(x - 1) + '_' + String(y + 1),
-        String(x) + '_' + String(y + 1),
-        String(x + 1) + '_' + String(y + 1),
-    ];
-}
-
-function getNearbyPositionKeyInDistance(position: Vector, distance: number) {
-    if (distance <= collisionCellSize) {
-        return getNearbyPositionKey(position);
-    }
-    const x = Math.floor(position.x / collisionCellSize);
-    const y = Math.floor(position.y / collisionCellSize);
-
-    const ret = [];
-    const k = Math.ceil(distance / collisionCellSize);
-    let m, n, s;
-    for (m = 1; m < k + 1; m++) {
-        for (n = - m; n < m + 1; n++) {
-            ret.unshift(String(x + n) + '_' + String(y - m));
-            ret.push(String(x + n) + '_' + String(y + m));
-        }
-
-        for (s = - m + 1; s < m; s++) {
-            ret.push(String(x - m) + '_' + String(y + s));
-            ret.push(String(x + m) + '_' + String(y + s));
-        }
-    }
-    ret.unshift(String(x) + '_' + String(y));
-
-    return ret;
-}
-
-function initEntityGrid() {
-    if (!entityGrid) {
-        entityGrid = {};
-        // 每帧初始化
-        const allItem = (enemys?.pool || []).filter(e => !e.dead);
-        for (let index = 0; index < allItem.length; index++) {
-            const element = allItem[index];
-            const key = getPositionKey(element.position);
-            entityGrid[key] = entityGrid[key] || [];
-            entityGrid[key].push(element);
-        }
-    }
-}
-
-function getEntitiesNearby(position: Vector): ICollisionable[] {
-    initEntityGrid();
-    // 
-
-    const keys = getNearbyPositionKey(position);
-    const ret: ICollisionable[] = [];
-    // consts in loop are much slower than declare in upper scope
-    // maybe native const are better
-    let k;
-    let pack;
-    let index;
-
-    for (let jndex = 0; jndex < keys.length; jndex++) {
-        k = keys[jndex];
-        if (entityGrid!.hasOwnProperty(k)) {
-            pack = entityGrid![k];
-            for (index = 0; index < pack.length; index++) {
-                ret.push(pack[index]);
-            }
-        }
-    }
-
-    return ret;
-}
-
-function walkEntitiesNearbyInDistance(position: Vector, distance: number, handler: (item: ICollisionable) => boolean | void): void {
-    initEntityGrid();
-    // 
-
-    const keys = getNearbyPositionKeyInDistance(position, distance);
-    const ret: ICollisionable[] = [];
-    // consts in loop are much slower than declare in upper scope
-    // maybe native const are better
-    let k;
-    let pack;
-    let index;
-
-    out:
-    for (let jndex = 0; jndex < keys.length; jndex++) {
-        k = keys[jndex];
-        if (entityGrid!.hasOwnProperty(k)) {
-            pack = entityGrid![k];
-            for (index = 0; index < pack.length; index++) {
-                const ifStop = handler(pack[index]);
-                if (ifStop) {
-                    break out;
-                }
-            }
-        }
-    }
 }
 
 const runnerApp: EntityManager = {
@@ -187,8 +71,7 @@ const runnerApp: EntityManager = {
         collisionTypes,
         position
     }) => {
-        const entities = getEntitiesNearby(position);
-
+        const entities = enemys.lookupHelper.getEntitiesNearby(position);
 
         const ret = collisionTypes.reduce((acc, type) => {
             switch (type) {
@@ -215,7 +98,7 @@ const runnerApp: EntityManager = {
         handler
     }) => {
 
-        walkEntitiesNearbyInDistance(
+        enemys.lookupHelper.walkEntitiesNearbyInDistance(
             position,
             distance,
             function (item) {
@@ -511,6 +394,8 @@ const runnerApp: EntityManager = {
     updateAmmoPool() {
         if (ammoPool && camera) {
             ammoPool.update();
+            ammoPool.updateHit();
+
             for (let index = 0; index < ammoPool.pool.length; index++) {
                 const element = ammoPool.pool[index];
                 element.sprite.parentGroup = groups?.ammoGroup;
@@ -532,7 +417,19 @@ const runnerApp: EntityManager = {
 
     updateEnemyAmmoPool() {
         if (enemyAmmoPool && camera) {
-            enemyAmmoPool.pool.forEach(x => x.update());
+            enemyAmmoPool.update();
+            if (player) {
+                const ammos = enemyAmmoPool.lookupHelper.getEntitiesNearby(player.position);
+                for (let index = 0; index < ammos.length; index++) {
+                    const ammo = ammos[index];
+                    
+                    const ifCollision = checkCollision(ammo, player);
+                    if (ifCollision) {
+                        enemyAmmoPool.ammoHitTarget(ammo as Ammo, player, ifCollision);
+                    }
+                }
+            }
+
             for (let index = 0; index < enemyAmmoPool.pool.length; index++) {
                 const element = enemyAmmoPool.pool[index];
                 element.sprite.parentGroup = groups?.ammoGroup;
@@ -542,6 +439,29 @@ const runnerApp: EntityManager = {
                 }
             }
         }
+    },
+
+    disposeStage() {
+        for (let index = 0; index < misc.length; index++) {
+            const element = misc[index];
+            element.dispose();
+        }
+        misc.length = 0;
+        if (ammoPool) {
+            for (let index = 0; index < ammoPool.pool.length; index++) {
+                const element = ammoPool.pool[index];
+                element.container.removeChild(element.sprite);
+            }
+            ammoPool.pool.length = 0
+        }
+        if (enemyAmmoPool) {
+            for (let index = 0; index < enemyAmmoPool.pool.length; index++) {
+                const element = enemyAmmoPool.pool[index];
+                element.container.removeChild(element.sprite);
+            }
+            enemyAmmoPool.pool.length = 0
+        }
+        this.disposeGameView();
     }
 };
 

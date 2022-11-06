@@ -65,7 +65,10 @@ export function createKnockBack(direct: Vector, duration: number) {
         id: KNOCKBACK_ID,
         properties: {
             direct,
-        }
+        },
+        afterEffect(target) {
+            (target.direct as Vector).set(0, 0);
+        },
     })
 }
 

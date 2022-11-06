@@ -1,6 +1,6 @@
 import { ICollisionable } from "./types";
 
-export function checkCollision ( a: ICollisionable, b: ICollisionable){
+export function checkCollision ( a: ICollisionable, b: ICollisionable) {
     const distSq = a.position.distanceToSq(b.position);
     const sizeSq = Math.pow(a.size + b.size, 2);
 

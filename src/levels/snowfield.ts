@@ -21,10 +21,6 @@ export class SnowFieldLevel extends Level {
 
     init(gameView: Viewport) {
         const app = this.app
-        const ammoG = new Graphics();
-        ammoG.beginFill(0xffffff);
-        ammoG.drawCircle(0, 5, 5);
-        ammoG.endFill();
 
         const triangle = new Graphics();
         triangle.beginFill(0xffffff);
@@ -37,7 +33,6 @@ export class SnowFieldLevel extends Level {
 
         const triangleT = app.renderer.generateTexture(triangle);
 
-        const ammoA = new AnimatedSprite([app.renderer.generateTexture(ammoG)]);
         const newResources = this.getResources();
 
         const playerAnimateMap = newResources.playerAnimateMap;
@@ -48,9 +43,6 @@ export class SnowFieldLevel extends Level {
         const hitEffect = newResources.hitEffectAnimateMap;
         const resources = newResources.resources;
 
-        playerAnimateMap.ammo = ammoA;
-
-        ammoG.destroy();
         triangle.destroy();
 
 

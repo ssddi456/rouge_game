@@ -18,20 +18,26 @@ export class Shooter extends ActiveSkill {
     castCheck(): boolean {
         return !!this.owner && !!this.target;
     }
+
+    range = 600;
+    damage = 1;
+    speed = 10;
+
     cast(): void {
         const pool = getRunnerApp()[('get' + this.poolType as 'getAmmoPool' | 'getEnemyAmmoPool')]();
 
         const ammo = pool.emit(
             this.target!.position!.clone().sub(this.owner!.position!)!.normalize(),
-            this.owner?.position!,
-            600,
-            10,
+            (this.owner as any).shoot_position || this.owner?.position!,
+            this.range,
+            this.damage,
             this.projectile,
             this.tail,
             this.hitEffect,
         );
         ammo.max_piecing_count = 0;
         ammo.max_bouncing_count = 0;
+        ammo.speed = this.speed;
     }
 }
 
@@ -57,5 +63,6 @@ export class EnemyShooter extends Shooter {
         public hitEffect: AnimatedSprite,
     ) {
         super(autoCast, countdown, immediately, 'EnemyAmmoPool', projectile, tail, hitEffect);
+        this.damage = 1;
     }
 }

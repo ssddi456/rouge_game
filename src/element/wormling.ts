@@ -36,7 +36,7 @@ export class Wormling extends Container implements Updatable, Disposible {
     
     frame = 0;
     totalFrame = 100;
-    debugInfo: Graphics;
+    debugInfoGraphic: Graphics;
 
     debug = false;
 
@@ -75,8 +75,8 @@ export class Wormling extends Container implements Updatable, Disposible {
         this.head.position.set(this.endPoint.x, this.endPoint.y);
 
 
-        this.debugInfo = this.addChild(new Graphics());
-        this.debugInfo.visible = this.debug;
+        this.debugInfoGraphic = this.addChild(new Graphics());
+        this.debugInfoGraphic.visible = this.debug;
 
     }
 
@@ -151,8 +151,8 @@ export class Wormling extends Container implements Updatable, Disposible {
     }
 
     updateDebugInfo() {
-        this.debugInfo.clear();
-        const geometry = this.debugInfo;
+        this.debugInfoGraphic.clear();
+        const geometry = this.debugInfoGraphic;
         geometry.lineStyle({
             width: 3,
             color: 0xff0000

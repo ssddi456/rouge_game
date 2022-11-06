@@ -186,6 +186,8 @@ export interface EntityManager {
     getEnemyAmmoPool(): AmmoPool;
     setEnemyAmmoPool(ammoPool: AmmoPool): void;
     updateEnemyAmmoPool(): void;
+
+    disposeStage(): void;
 }
 
 export enum AreaOfEffectType {
