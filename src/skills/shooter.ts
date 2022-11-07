@@ -1,5 +1,6 @@
 import { AnimatedSprite, Texture } from "pixi.js";
 import { getRunnerApp } from "../runnerApp";
+import { Vector } from "../vector";
 import { ActiveSkill } from "./activeskill";
 
 export class Shooter extends ActiveSkill {
@@ -19,16 +20,35 @@ export class Shooter extends ActiveSkill {
         return !!this.owner && !!this.target;
     }
 
-    range = 600;
+    _distance: number = 600;
+    set distance(val: number) {
+        this._distance = val;
+    }
+    get distance() {
+        return this._distance;
+    }
+
+    get range() {
+        return this._distance * 1000 / 60 / this._speed;
+    }
+
     damage = 1;
-    speed = 10;
+
+    _speed: number = 10;
+    set speed(val: number) {
+        this._speed = val;
+    };
+
+    get speed() {
+        return this._speed;
+    }
 
     cast(): void {
         const pool = getRunnerApp()[('get' + this.poolType as 'getAmmoPool' | 'getEnemyAmmoPool')]();
-
+        const castPos = (this.owner as any).shoot_position || this.owner?.position!;
         const ammo = pool.emit(
-            this.target!.position!.clone().sub(this.owner!.position!)!.normalize(),
-            (this.owner as any).shoot_position || this.owner?.position!,
+            Vector.AB(castPos, this.target!.position!).normalize(),
+            castPos,
             this.range,
             this.damage,
             this.projectile,

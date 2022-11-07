@@ -13,6 +13,7 @@ import { PlayerStatusMenu } from "../menu/playerStatus";
 import { Player } from "../player";
 import { getRunnerApp } from "../runnerApp";
 import { Forest, Tree } from "../tree";
+import { arrow_brancing } from "../upgrades/ice_arrow";
 import { pet } from "../upgrades/pet";
 import { Vector } from "../vector";
 
@@ -157,7 +158,7 @@ export class ForestLevel extends Level {
 
         // enemys.emit( new Vector(300, 300), 5);
 
-        // this.session.pickUpgrade(pet);
+        // this.session.pickUpgrade(arrow_brancing);
 
         this.ui = new PlayerStatusMenu(gameView, (gameView as any).worldWidth, (gameView as any).worldHeight);
         this.ui.init();

@@ -156,7 +156,8 @@ export const EnemyControllerMap: Record<string, EnemyController<any>> = {
             // distance = frame * range * 60 / 1000;
             // range = distance * 1000 / 60 / frame;
             shootSkill.speed = 5;
-            shootSkill.range = 700 * 1000 / 60 / shootSkill.speed; // ms;
+            shootSkill.distance = 700; // ms;
+
             const ret = {
                 behavior: new Behavior(
                     'player',

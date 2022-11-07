@@ -15,20 +15,35 @@ export class Behavior implements UpdatableMisc {
     target?: Player | Enemy | UpdatableMisc;
     owner?: Player | Enemy | UpdatableMisc;
 
+    _searchRadiusSq: number;
+    _resetRadiusSq: number;
+
     constructor(
         public targetType: 'player' | 'enemy',
         public skills: ActiveSkill[],
         public searchRadius: number,
-    ) {}
+        public resetRadius?: number,
+    ) {
+        if (resetRadius == undefined) {
+            this.resetRadius = 2 * searchRadius;
+        }
+
+        this._resetRadiusSq = this.resetRadius! * this.resetRadius!;
+        this._searchRadiusSq = searchRadius * searchRadius;
+    }
 
 
     update() {
         this.skills.forEach(skill => skill.update());
         if (this.targetAlive()) {
-            // donothing
-            for (let index = 0; index < this.skills.length; index++) {
-                const skill = this.skills[index];
-                skill.doCast();
+            if (this.owner!.position?.distanceToSq(this.target!.position!)! > this._resetRadiusSq ) {
+                this.target = undefined;
+            } else {
+                // donothing
+                for (let index = 0; index < this.skills.length; index++) {
+                    const skill = this.skills[index];
+                    skill.doCast();
+                }
             }
         } else {
             this.findTarget();
@@ -65,7 +80,7 @@ export class Behavior implements UpdatableMisc {
     findTarget() {
         if (this.targetType == 'player') {
             const player = getRunnerApp().getPlayer();
-            if (this.owner!.position?.distanceToSq(player.position)! <= this.searchRadius * this.searchRadius) {
+            if (this.owner!.position?.distanceToSq(player.position)! <= this._searchRadiusSq) {
                 this.target = player;
             }
         } else if (this.targetType == 'enemy') {

@@ -84,24 +84,31 @@ export const arrow_brancing: Upgrade = {
                 const resource = runnerApp.getGetResourceMap()();
                 const ammoPool = runnerApp.getAmmoPool();
                 const currentCenter = enemy.position.clone();
-                const branchingTarget = findEnemy(enemy.position.clone(), 300, 1, (target) => target !== enemy);
-                if (branchingTarget.length) {
-                    for (let index = 0; index < branchingTarget.length; index++) {
-                        const element = branchingTarget[index];
-                        const newAmmo = ammoPool.emit(
-                            Vector.AB(enemy.position, element.position).normalize().multiplyScalar(ammo.direct.length),
-                            currentCenter,
-                            3000,
-                            10,
-                            resource.iceAnimateMap.projectile,
-                            null,
-                            resource.ice_hitAnimateMap.hit_effect,
-                        );
-                        newAmmo.max_piecing_count = 0;
-                        newAmmo.max_bouncing_count = 0;
-                        newAmmo.current_hitting_items = [enemy];
-                        newAmmo.bufferList.push(getAmmoIceSlow());
-                    }
+                const branchingTarget = findEnemy(enemy.position.clone(), 300, 1, (target) => target === enemy);
+
+                const createNewAmmo = (target: Vector) => {
+                    const newAmmo = ammoPool.emit(
+                        Vector.AB(enemy.position, target).normalize(),
+                        currentCenter,
+                        3000,
+                        10,
+                        resource.iceAnimateMap.projectile,
+                        null,
+                        resource.ice_hitAnimateMap.hit_effect,
+                    );
+                    newAmmo.max_piecing_count = 0;
+                    newAmmo.max_bouncing_count = 0;
+                    newAmmo.current_hitting_items = [enemy];
+                    newAmmo.bufferList.push(getAmmoIceSlow());
+                }
+
+                for (let index = 0; index < branchingTarget.length; index++) {
+                    const element = branchingTarget[index];
+                    createNewAmmo(element.position);
+                }
+
+                for (let index = 0; index < 2 - branchingTarget.length; index++) {
+                    createNewAmmo(new Vector(index * 100, 0));
                 }
             },
         })
