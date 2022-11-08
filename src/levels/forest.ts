@@ -2,7 +2,7 @@ import { Viewport } from "pixi-viewport";
 import { AnimatedSprite, Graphics, Point, Sprite, TilingSprite } from "pixi.js";
 import { AmmoPool } from "../ammo";
 import { createBlockContext } from "../block_context";
-import { BUFFER_EVENTNAME_HEALTH_CHANGE } from "../buffer";
+import { BUFFER_EVENTNAME_DEAD, BUFFER_EVENTNAME_HEALTH_CHANGE } from "../buffer";
 import { Camera } from "../camara";
 import { DropletPool } from "../droplet";
 import { EnemyPool } from "../enemy";
@@ -47,6 +47,7 @@ export class ForestLevel extends Level {
 
 
         const grass = new TilingSprite(resources.grass.texture!, app.view.width, app.view.height);
+        grass.tint = 0x667766;
         gameView.addChildAt(grass, 0);
         this.ground = grass;
 
@@ -156,7 +157,30 @@ export class ForestLevel extends Level {
             }
         });
 
-        // enemys.emit( new Vector(300, 300), 5);
+        enemys.spawnTimer.pause();
+        enemys.simpleEnemyTypes = [{
+            sprite_names: {
+                idle: 'idle',
+                die: 'die',
+            },
+            speed: 1,
+            health: 50,
+            controller: ['stub'],
+        }];
+        const stubPos = new Vector(300, 300);
+        function createStub(){
+            const stub = enemys.emit( stubPos, 0);
+            stub.bufferList.push({
+                eventName: BUFFER_EVENTNAME_DEAD,
+                id: 'respawn',
+                type: 'event',
+                properties: {},
+                takeEffect(target, percent, ...rest) {
+                    createStub();
+                },
+            });
+        }
+        createStub();
 
         // this.session.pickUpgrade(arrow_brancing);
 

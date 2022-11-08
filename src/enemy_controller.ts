@@ -18,6 +18,18 @@ export interface EnemyController<T extends Updatable & Disposible> {
 const EnemyControllerDataMap = new WeakMap();
 
 export const EnemyControllerMap: Record<string, EnemyController<any>> = {
+    stub: {
+        init(enemy) {
+            return {
+                update() { },
+                dispose() { }
+            };
+        },
+
+        update(enemy: Enemy, enemyData, player: Player = getRunnerApp().getPlayer()) {
+            // just do nothing;
+        }
+    },
     tracer: {
         init(enemy) {
             return {

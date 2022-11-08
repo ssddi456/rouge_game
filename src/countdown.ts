@@ -14,8 +14,20 @@ export class CountDown implements Updatable, Disposible {
     dispose(): void {
         this.exec_times = 0;
     }
-
+    paused = false;
+    pause() {
+        this.paused = true;
+        // if running ? 
+        // if not running ?
+    }
+    resume() {
+        this.paused = false;
+    }
     update() {
+        if (this.paused) {
+            return;
+        }
+
         const app = getRunnerApp();
         const now = app.now();
 

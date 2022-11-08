@@ -291,7 +291,7 @@ export class Enemy extends UpdatableObject implements IMovable, ICollisionable, 
 @HotClass({ module })
 export class EnemyPool extends UpdatableObject implements IObjectPools {
     pool: Enemy[] = [];
-    spawnTimer: Updatable;
+    spawnTimer: CountDown;
     livenodes: Enemy[] = [];
     lookupHelper = createFastLookup(this.pool);
     
