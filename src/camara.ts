@@ -17,8 +17,8 @@ export class Camera {
         this.prevPlayerPos.setV(player.position);
     }
 
-    paddingX = 200;
-    paddingY = 200;
+    paddingX = 400;
+    paddingY = 400;
 
     update(player: Player) {
         const screenPos = this.worldPosToScreenPos(player.position);

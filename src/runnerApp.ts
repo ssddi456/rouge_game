@@ -123,7 +123,7 @@ const runnerApp: EntityManager = {
             gameView,
             updateFunc,
             duration,
-        )
+        );
         particles.push(particle);
         return particle;
     },
@@ -278,7 +278,7 @@ const runnerApp: EntityManager = {
             const particle = particles[index];
             particle.update();
             if (!particle.dead) {
-                particle.sprite.parentGroup = groups?.overGroundGroup;
+                particle.sprite.parentGroup = groups?.ammoGroup;
                 camera.updateItemPos(particle);
                 newParticals.push(particle);
             }
