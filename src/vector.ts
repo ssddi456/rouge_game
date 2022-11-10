@@ -219,6 +219,7 @@ export class VectorCircle {
         if (this.center.distanceToLine(orth) > maxDistOrth) {
             return false;
         }
+        // position?
         return true;
     }
 }
@@ -233,7 +234,7 @@ export class VectorSegment extends VectorLine {
     }
 
     direction() {
-        return this.point2.clone().sub(this.point1);
+        return Vector.AB(this.point1, this.point2);
     }
 
     points() {
@@ -273,8 +274,14 @@ export class VectorSegment extends VectorLine {
         const center = this.center();
         const orth = this.direction().orthogonal().normalize().multiplyScalar(this.width);
         return new VectorSegment(
-            center.clone().sub(orth),
-            center.clone().add(orth),
+            new Vector(
+                center.x - orth.x,
+                center.y - orth.y,
+            ),
+            new Vector(
+                center.x + orth.x,
+                center.y + orth.y,
+            ),
             this.length / 2
         );
     }

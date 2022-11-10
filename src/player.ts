@@ -1,6 +1,6 @@
 import * as PIXI from "pixi.js";
 import { AnimatedSprite, Container, DisplayObject, Graphics, Text } from "pixi.js";
-import { Vector } from "./vector";
+import { Vector, VectorCircle } from "./vector";
 import { keypressed, mouse } from "./user_input";
 import { AmmoPool } from "./ammo";
 import { ECollisionType, EFacing, ICollisionable, IMovable, Buffer, LivingObject, UpdatableObject } from "./types";
@@ -29,8 +29,9 @@ export class Player extends UpdatableObject
     dead: boolean = false;
     prev_dead: boolean = false;
     prev_position: Vector = new Vector(0, 0);
-    position: Vector = new Vector(0, 0);
+    readonly position: Vector = new Vector(0, 0);
     size = 30;
+    collideBody = new VectorCircle(this.position, this.size);
     effects: Record<string, DisplayObject> = {};
 
     collisison_type: ECollisionType = ECollisionType.player;

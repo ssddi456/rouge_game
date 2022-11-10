@@ -8,6 +8,7 @@ import { Enemy } from "./enemy";
 import { Disposible, Updatable } from "./types";
 import { Behavior } from "./behavior";
 import { EnemyShooter } from "./skills/shooter";
+import { LaserShooter } from "./skills/laserShooter";
 
 export type controllerKey = (keyof (typeof EnemyControllerMap));
 export interface EnemyController<T extends Updatable & Disposible> {
@@ -194,6 +195,45 @@ export const EnemyControllerMap: Record<string, EnemyController<any>> = {
             } else {
                 enemy.direct.set(0, 0);
             }
+        }
+    },
+
+    laser_shooter: {
+        init(enemy) {
+            const shootSkill = new LaserShooter(
+                true,
+                3000,
+                true,
+            );
+            // distance = frame * range * 60 / 1000;
+            // range = distance * 1000 / 60 / frame;
+            shootSkill.speed = 5;
+            shootSkill.distance = 700; // ms;
+
+            const ret = {
+                behavior: new Behavior(
+                    'player',
+                    [shootSkill],
+                    500,
+                ),
+                update() {
+                    this.behavior.update();
+                },
+                dispose() {
+                    this.behavior.dispose();
+                }
+            };
+            ret.behavior.setOwner(enemy);
+            return ret;
+        },
+        update(enemy, enemyData, player: Player = getRunnerApp().getPlayer()) {
+            // if (enemy.distSqToPlayer > 400 * 400) {
+            //     EnemyControllerMap.tracer.update(enemy, enemyData, player);
+            // } else if (enemy.distSqToPlayer < 300 * 300) {
+            //     EnemyControllerMap.escaper.update(enemy, enemyData, player);
+            // } else {
+            // }
+            enemy.direct.set(0, 0);
         }
     }
 };
