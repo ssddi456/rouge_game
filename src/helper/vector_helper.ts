@@ -1,4 +1,4 @@
-import { Container, Graphics } from 'pixi.js';
+import { Container, Graphics, ILineStyleOptions, } from 'pixi.js';
 import { Vector, VectorCircle, VectorSegment } from '../vector';
 
 export class VectorElement extends Container {
@@ -117,5 +117,42 @@ export class VectorSegmentElement extends Container {
         points.forEach((x, index) => this._points[index].vector = x);
 
         this.position.set(segment.point1.x, segment.point1.y);
+    }
+}
+
+export class DashedLine extends Graphics {
+    constructor(
+        length: number,
+        start_offset: number,
+    ) {
+        super();
+
+        this.draw(length, start_offset);
+    }
+    style: ILineStyleOptions = {
+        color: 0xff0000,
+        width: 4,
+    };
+    draw(length: number, start_offset = 0) {
+        
+        this.clear()
+            .lineStyle(this.style)
+            .moveTo(0,  - start_offset)
+        const seg_fill = 20;
+        const seg_empty = 20;
+        let len = start_offset;
+        let index = 0;
+        let _len
+        while (len < length) {
+            if ((index % 2) == 0) {
+                _len = Math.min(seg_fill, length - len)
+                this.lineTo(0, - len - _len);
+            } else {
+                _len = Math.min(seg_empty, length - len)
+                this.moveTo(0, - len - _len);
+            }
+            len += _len;
+            index += 1;
+        }
     }
 }

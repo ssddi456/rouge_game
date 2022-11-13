@@ -1,16 +1,18 @@
 import { CountDown } from "../countdown";
+import { Enemy } from "../enemy";
+import { Player } from "../player";
 import { UpdatableMisc } from "../types";
 
 export abstract class ActiveSkill implements UpdatableMisc {
     dead: boolean = false;
     canCast: boolean = true;
     casting: boolean = false;
-    owner: UpdatableMisc | null = null;
+    owner: UpdatableMisc | Enemy | null = null;
 
     countDownController = new CountDown(this.countdown, () => {
         this.canCast = true;
     });
-    target: UpdatableMisc | null = null;
+    target: UpdatableMisc | Enemy | Player | null = null;
 
     constructor(
         public autoCast: boolean,

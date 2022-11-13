@@ -1,4 +1,4 @@
-import { AnimatedSprite, Container, Mesh, MeshMaterial, PlaneGeometry, Texture } from "pixi.js";
+import { AnimatedSprite, Container, DisplayObject, Mesh, MeshMaterial, PlaneGeometry, Texture } from "pixi.js";
 import { getRunnerApp } from "../runnerApp";
 
 export class Laser extends Container {
@@ -11,13 +11,13 @@ export class Laser extends Container {
 
         const laserAnimateMap = getRunnerApp().getGetResourceMap()().laserAnimateMap;
 
-        this.laserCenter = this.addChild(laserAnimateMap.hit_1);
         this.laserBeamTextures = laserAnimateMap.hit_0;
-
+        
         const beam = new Beam(length);
         beam.position.x = -16;
-        beam.position.y = -32;
+        beam.position.y = 0;
         this.beam = this.addChild(beam);
+        this.laserCenter = this.addChild(laserAnimateMap.hit_1);
 
     }
 
@@ -30,7 +30,7 @@ export class Laser extends Container {
 export class Beam extends Mesh {
     constructor(length: number) {
         var planeGeometry = new PlaneGeometry(32, -length, 2, 2);
-        var meshMaterial = new MeshMaterial(Texture.WHITE);
+        var meshMaterial = new MeshMaterial(Texture.EMPTY);
         super(planeGeometry, meshMaterial);
         // lets call the setter to ensure all necessary updates are performed
     }
@@ -40,59 +40,89 @@ export class Beam extends Mesh {
     }
 };
 
+enum LaserState {
+    idle,
+    charging,
+    firing,
+    ending
+}
+
 export class LaserController {
     currentFrame = -1;
-    firing: boolean = false;
-    ending: boolean = false;
-    idle: boolean = true;
+    state:  LaserState = LaserState.idle;
 
     maxFiringFrame = 1;
     maxFrame = 5;
 
     constructor(
+        public indicator: DisplayObject,
         public laser: Laser
     ) {
 
     }
 
-    end() {
-        this.firing = false;
-        this.idle = false;
-        this.ending = true;
+    get idle () {
+        return this.state == LaserState.idle;
+    }
+    get charging () {
+        return this.state == LaserState.charging;
+    }
+    get firing () {
+        return this.state == LaserState.firing;
+    }
+    get ending () {
+        return this.state == LaserState.ending;
+    }
+
+    charge() {
+        if (!this.idle) {
+            return;
+        }
+        this.state = LaserState.charging;
     }
 
     fire() {
         if(this.firing) {
             return;
         }
-        this.firing = true;
-        this.idle = false;
+        this.state = LaserState.firing;
     }
-
+    
+    end() {
+        this.state = LaserState.ending;
+    }
     update() {
         if (this.idle) {
+            this.indicator.visible = false;
             this.laser.visible = false;
         } else {
-            this.laser.visible = true;
-            if (this.firing) {
-                if (this.currentFrame > this.maxFiringFrame) {
-                    this.currentFrame = -1
-                } else if (this.currentFrame < this.maxFiringFrame) {
-                    this.currentFrame += 1;
+            if (this.charging) {
+                this.indicator.visible = true;
+                this.laser.visible = false;
+            } else {
+                this.indicator.visible = false;
+                this.laser.visible = true;
+                if (this.firing) {
+                    if (this.currentFrame > this.maxFiringFrame) {
+                        this.currentFrame = -1
+                    } else if (this.currentFrame < this.maxFiringFrame) {
+                        this.currentFrame += 1;
+                    }
+                } else if (this.ending) {
+                    if (this.currentFrame < 0) {
+                        // pass
+                        this.state = LaserState.idle;
+                    } else if (this.currentFrame < this.maxFiringFrame) {
+                        this.currentFrame = 2;
+                    } else if (this.currentFrame > this.maxFrame) {
+                        this.state = LaserState.idle;
+                    } else {
+                        this.currentFrame +=  1 / 6;
+                    }
                 }
-            } else if (this.ending) {
-                if (this.currentFrame < 0) {
-                    // pass
-                    this.idle = true;
-                } else if (this.currentFrame < this.maxFiringFrame) {
-                    this.currentFrame = 2;
-                } else if (this.currentFrame > this.maxFrame) {
-                    this.idle = true;
-                } else {
-                    this.currentFrame += 1;
-                }
+    
+                this.laser.index = Math.floor(this.currentFrame) as 0 | 1 | 2 | 3 | 4 | 5;
             }
-            this.laser.index = this.currentFrame as 0 | 1 | 2 | 3 | 4 | 5;
         }
     }
 }

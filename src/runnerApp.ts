@@ -223,6 +223,7 @@ const runnerApp: EntityManager = {
     addMisc(item) {
         misc.push(item);
         if (item.sprite) {
+            camera.updateItemPos(item as { position: Vector, sprite: DisplayObject });
             gameView.addChild(item.sprite);
         }
     },

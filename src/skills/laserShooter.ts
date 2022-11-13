@@ -1,6 +1,6 @@
-import { DisplayObject } from "pixi.js";
-import { Laser } from "../element/laser";
-import { VectorSegmentElement } from "../helper/vector_helper";
+import { Container, DisplayObject, Graphics } from "pixi.js";
+import { Laser, LaserController } from "../element/laser";
+import { DashedLine, VectorSegmentElement } from "../helper/vector_helper";
 import { getRunnerApp } from "../runnerApp";
 import { ECollisionType, UpdatableMisc } from "../types";
 import { Vector, VectorSegment } from "../vector";
@@ -44,38 +44,106 @@ export class LaserShooter extends ActiveSkill {
 
     cast(): void {
         const app = getRunnerApp();
-        app.addMisc(new DamageLaser(this.owner!.position!, 300));
+        app.addMisc(new DamageLaser(
+            this.owner!.position!,
+            this.owner!.size! * 2,
+            this.target!.position!
+        ));
     }
 }
 
-class DamageLaser implements  UpdatableMisc {
+class DamageLaser implements UpdatableMisc {
     dead: boolean = false;
     // sprite = new Laser(300);
-    sprite: DisplayObject;
+    sprite = new Container();
     segment: VectorSegment;
     last: number = 0;
+    aim: number = 60;
+    charge: number = 40;
+    duration: number = 30;
+    width = 6;
+    length = 600;
+
+    laserIndicator: Graphics;
+    laser: Laser;
+    laserController: LaserController;
+    segmentEl: VectorSegmentElement;
 
     constructor(
         public position: Vector,
-        public duration: number,
+        public radius: number,
+        public targetPosition: Vector,
     ) {
-        this.segment = new VectorSegment(this.position, this.position.clone().add({x: 300, y: 0}), 10);
-        this.sprite  = new VectorSegmentElement(this.segment);
+        const direction = Vector.AB(position, targetPosition);
+        const nDir = direction.normalize();
+
+        const real_length = this.length - this.radius;
+        const localStart = nDir.clone().multiplyScalar(this.radius);
+        const target = nDir.clone().multiplyScalar(this.length);
+        this.segment = new VectorSegment(
+            this.position.clone().add(localStart),
+            this.position.clone().add(target),
+            this.width
+        );
+
+        this.sprite.parentGroup = getRunnerApp().getGroups().ammoGroup;
+        this.laserIndicator = this.sprite.addChild(new DashedLine(real_length, this.radius));
+        this.laser = this.sprite.addChild(new Laser(real_length));
+        this.laser.position.set(localStart.x, localStart.y);
+        this.laserIndicator.rotation =
+            this.laser.rotation = - target.rad() - Math.PI;
+        this.segmentEl = this.sprite.addChild(
+            new VectorSegmentElement(new VectorSegment(localStart, target, this.width))
+        );
+        this.laserController = new LaserController(this.laserIndicator, this.laser);
+        this.laserController.charge();
     }
+
+    updateRotation() {
+        const direction = Vector.AB(this.position, this.targetPosition);
+        const nDir = direction.normalize();
+
+        const localStart = nDir.clone().multiplyScalar(this.radius);
+        const target = nDir.clone().multiplyScalar(this.length);
+
+        this.segment.point1.set(this.position.x + localStart.x, this.position.y + localStart.y);
+        this.segment.point2.set(this.position.x + target.x, this.position.y + target.y);
+        this.segmentEl.segment = new VectorSegment(localStart, target, this.width);
+
+        this.laser.position.set(localStart.x, localStart.y);
+        this.laserIndicator.rotation =
+            this.laser.rotation = - nDir.rad() - Math.PI;
+    }
+
     update(...args: any[]): void {
+
         const app = getRunnerApp();
         const player = app.getPlayer();
-        if (player) {
-            if (player.collisison_type == ECollisionType.player 
+        if (this.laserController.firing && player) {
+            if (player.collisison_type == ECollisionType.player
                 && player.collideBody.collidesWithSegment(this.segment)
             ) {
                 player.recieveDamage(1, player.position);
             }
         }
-        this.last ++;
-        if (this.last > this.duration) {
+        if (this.laserController.idle) {
             this.dead = true;
+            return;
         }
+
+        this.last++;
+        if (this.last > (this.aim + this.charge + this.duration)) {
+            this.laserController.end();
+        } else if (this.last > (this.aim + this.charge)) {
+            this.laserController.fire();
+        }
+
+        if (this.last < this.aim) {
+            this.updateRotation();
+        }
+
+        this.laserController.update();
+
     }
     disposed: boolean = false;
     dispose(): void {

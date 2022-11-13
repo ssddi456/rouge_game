@@ -62,6 +62,7 @@ export abstract class UpdatableObject implements Updatable, Disposible {
 
 export interface UpdatableMisc extends Updatable, Disposible {
     dead: boolean,
+    size?: number,
     sprite?: DisplayObject,
     position?: Vector
 }

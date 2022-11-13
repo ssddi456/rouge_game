@@ -238,7 +238,7 @@ export class VectorSegment extends VectorLine {
     }
 
     points() {
-        const orth = this.direction().orthogonal().normalize().multiplyScalar(this.width);
+        const orth = this.direction().orthogonal().normalize().multiplyScalar(this.width / 2);
 
         return [
             this.point1.clone().sub(orth),
@@ -272,7 +272,7 @@ export class VectorSegment extends VectorLine {
 
     orthogonalForm() {
         const center = this.center();
-        const orth = this.direction().orthogonal().normalize().multiplyScalar(this.width);
+        const orth = this.direction().orthogonal().normalize().multiplyScalar(this.width / 2);
         return new VectorSegment(
             new Vector(
                 center.x - orth.x,
