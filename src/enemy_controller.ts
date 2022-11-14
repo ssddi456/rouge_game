@@ -8,7 +8,7 @@ import { Enemy } from "./enemy";
 import { Disposible, Updatable } from "./types";
 import { Behavior } from "./behavior";
 import { EnemyShooter } from "./skills/shooter";
-import { LaserShooter } from "./skills/laserShooter";
+import { LaserCrossShooter, LaserShooter } from "./skills/laserShooter";
 
 export type controllerKey = (keyof (typeof EnemyControllerMap));
 export interface EnemyController<T extends Updatable & Disposible> {
@@ -200,20 +200,14 @@ export const EnemyControllerMap: Record<string, EnemyController<any>> = {
 
     laser_shooter: {
         init(enemy) {
-            const shootSkill = new LaserShooter(
-                true,
-                3000,
-                true,
-            );
-            // distance = frame * range * 60 / 1000;
-            // range = distance * 1000 / 60 / frame;
-            shootSkill.speed = 5;
-            shootSkill.distance = 700; // ms;
+            const shootSkill = new LaserShooter(3000,);
+            const laserShootSkill = new LaserCrossShooter(5000, 4);
+            const laserShootSkill2 = new LaserCrossShooter(7000, 8);
 
             const ret = {
                 behavior: new Behavior(
                     'player',
-                    [shootSkill],
+                    [shootSkill, laserShootSkill, laserShootSkill2],
                     500,
                 ),
                 update() {

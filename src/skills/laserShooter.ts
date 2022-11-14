@@ -8,38 +8,13 @@ import { ActiveSkill } from "./activeskill";
 
 export class LaserShooter extends ActiveSkill {
     constructor(
-        public autoCast: boolean,
         public countdown: number,
-        public immediately: boolean,
     ) {
-        super(autoCast, countdown, immediately);
+        super(true, countdown, true);
     }
 
     castCheck(): boolean {
         return !!this.owner && !!this.target;
-    }
-
-    _distance: number = 600;
-    set distance(val: number) {
-        this._distance = val;
-    }
-    get distance() {
-        return this._distance;
-    }
-
-    get range() {
-        return this._distance * 1000 / 60 / this._speed;
-    }
-
-    damage = 1;
-
-    _speed: number = 10;
-    set speed(val: number) {
-        this._speed = val;
-    };
-
-    get speed() {
-        return this._speed;
     }
 
     cast(): void {
@@ -52,6 +27,31 @@ export class LaserShooter extends ActiveSkill {
     }
 }
 
+export class LaserCrossShooter extends ActiveSkill {
+    constructor(
+        public countdown: number,
+        public dirSplit: number
+    ) {
+        super(true, countdown, true);
+    }
+
+    castCheck(): boolean {
+        return !!this.owner && !!this.target;
+    }
+
+    cast(): void {
+        const app = getRunnerApp();
+        for (let index = 0; index < this.dirSplit; index++) {
+            const v = new Vector(1, 0).rotate(2 * Math.PI * index / this.dirSplit);
+            app.addMisc(new DamageLaser(
+                this.owner!.position!,
+                this.owner!.size! * 3,
+                this.owner!.position!.clone().add(v),
+            ));
+        }
+    }
+}
+
 class DamageLaser implements UpdatableMisc {
     dead: boolean = false;
     // sprite = new Laser(300);
@@ -59,10 +59,10 @@ class DamageLaser implements UpdatableMisc {
     segment: VectorSegment;
     last: number = 0;
     aim: number = 60;
-    charge: number = 40;
+    charge: number = 60;
     duration: number = 30;
     width = 6;
-    length = 600;
+    length = 1000;
 
     laserIndicator: Graphics;
     laser: Laser;
@@ -87,7 +87,7 @@ class DamageLaser implements UpdatableMisc {
         );
 
         this.sprite.parentGroup = getRunnerApp().getGroups().ammoGroup;
-        this.laserIndicator = this.sprite.addChild(new DashedLine(real_length, this.radius));
+        this.laserIndicator = this.sprite.addChild(new DashedLine(this.length, this.radius));
         this.laser = this.sprite.addChild(new Laser(real_length));
         this.laser.position.set(localStart.x, localStart.y);
         this.laserIndicator.rotation =
@@ -140,7 +140,15 @@ class DamageLaser implements UpdatableMisc {
 
         if (this.last < this.aim) {
             this.updateRotation();
+            if (Math.floor(this.last / 10) % 2) {
+                this.laserIndicator.alpha = 1;
+            } else {
+                this.laserIndicator.alpha = 0;
+            }
+        } else {
+            this.laserIndicator.alpha = 1;
         }
+
 
         this.laserController.update();
 

@@ -180,8 +180,6 @@ export function createBlockContext<T>({
             currentBlock.loaded = true;
         }
 
-        console.log(getBlockInfoByPos(currentPosInfo), currentPosInfo, currentBlockInfo.updateInfo);
-        
         for (const key in currentBlockInfo.updateInfo) {
             if (Object.prototype.hasOwnProperty.call(currentBlockInfo.updateInfo, key)) {
                 const element = currentBlockInfo.updateInfo[key as GridKey]!;

@@ -131,7 +131,7 @@ export class DashedLine extends Graphics {
     }
     style: ILineStyleOptions = {
         color: 0xff0000,
-        width: 4,
+        width: 2,
     };
     draw(length: number, start_offset = 0) {
         
@@ -146,10 +146,10 @@ export class DashedLine extends Graphics {
         while (len < length) {
             if ((index % 2) == 0) {
                 _len = Math.min(seg_fill, length - len)
-                this.lineTo(0, - len - _len);
+                this.lineTo(0, - (len + _len));
             } else {
                 _len = Math.min(seg_empty, length - len)
-                this.moveTo(0, - len - _len);
+                this.moveTo(0, - (len + _len));
             }
             len += _len;
             index += 1;

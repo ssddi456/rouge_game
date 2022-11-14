@@ -37,9 +37,6 @@ const app = new PIXI.Application({
 // The application will create a canvas element for you that you
 // can then insert into the DOM
 document.body.appendChild(app.view);
-setTimeout(() => {
-    console.log(window.innerWidth, document.documentElement.clientWidth, document.body.clientWidth, document.body.offsetWidth);
-}, 1000);
 
 app.stage = new Stage();
 app.stage.sortableChildren = true;
