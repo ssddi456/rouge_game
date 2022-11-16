@@ -8,7 +8,9 @@ import { Enemy } from "./enemy";
 import { Disposible, Updatable } from "./types";
 import { Behavior } from "./behavior";
 import { EnemyShooter } from "./skills/shooter";
-import { LaserCrossShooter, LaserShooter } from "./skills/laserShooter";
+import { LaserShooter } from "./skills/laserShooter";
+import { LaserCrossShooter } from "./skills/LaserCrossShooter";
+import { SequenceBehavior } from "./sequance_behavior";
 
 export type controllerKey = (keyof (typeof EnemyControllerMap));
 export interface EnemyController<T extends Updatable & Disposible> {
@@ -202,12 +204,24 @@ export const EnemyControllerMap: Record<string, EnemyController<any>> = {
         init(enemy) {
             const shootSkill = new LaserShooter(3000,);
             const laserShootSkill = new LaserCrossShooter(5000, 4);
-            const laserShootSkill2 = new LaserCrossShooter(7000, 8);
+            const laserShootSkill2 = new LaserCrossShooter(7000, 16);
 
             const ret = {
-                behavior: new Behavior(
-                    'player',
-                    [shootSkill, laserShootSkill, laserShootSkill2],
+                behavior: new SequenceBehavior(
+                    {
+                        singleShoot: shootSkill,
+                        laserShootSkill,
+                        laserShootSkill2,
+                    },
+                    [
+                        { skill: 'singleShoot', wait: 3000, },
+                        { skill: 'singleShoot', wait: 5000, },
+                        { skill: 'singleShoot', wait: 7000, },
+                        { skill: 'laserShootSkill', wait: 12000, },
+                        { skill: 'laserShootSkill', wait: 16000, },
+                        { skill: 'laserShootSkill2', wait: 20000, },
+                        { skill: 'laserShootSkill2', wait: 24000, },
+                    ],
                     500,
                 ),
                 update() {

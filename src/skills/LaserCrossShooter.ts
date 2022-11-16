@@ -1,14 +1,16 @@
-import { Container, DisplayObject, Graphics } from "pixi.js";
+import { Container, Graphics } from "pixi.js";
 import { Laser, LaserController } from "../element/laser";
-import { DashedLine, VectorSegmentElement } from "../helper/vector_helper";
+import { VectorSegmentElement, DashedLine } from "../helper/vector_helper";
 import { getRunnerApp } from "../runnerApp";
-import { ECollisionType, UpdatableMisc } from "../types";
+import { UpdatableMisc, ECollisionType } from "../types";
 import { Vector, VectorSegment } from "../vector";
 import { ActiveSkill } from "./activeskill";
 
-export class LaserShooter extends ActiveSkill {
+
+export class LaserCrossShooter extends ActiveSkill {
     constructor(
         public countdown: number,
+        public dirSplit: number
     ) {
         super(true, countdown, true);
     }
@@ -19,15 +21,18 @@ export class LaserShooter extends ActiveSkill {
 
     cast(): void {
         const app = getRunnerApp();
-        app.addMisc(new DamageLaser(
-            this.owner!.position!,
-            this.owner!.size! * 2,
-            this.target!.position!
-        ));
+        for (let index = 0; index < this.dirSplit; index++) {
+            const v = new Vector(1, 0).rotate(2 * Math.PI * index / this.dirSplit);
+            app.addMisc(new DamageLaserSimple(
+                this.owner!.position!,
+                this.owner!.size! * 3,
+                this.owner!.position!.clone().add(v)
+            ));
+        }
     }
 }
 
-export class DamageLaser implements UpdatableMisc {
+class DamageLaserSimple implements UpdatableMisc {
     dead: boolean = false;
     // sprite = new Laser(300);
     sprite = new Container();
@@ -39,7 +44,6 @@ export class DamageLaser implements UpdatableMisc {
     width = 6;
     length = 1000;
 
-    laserIndicator: Graphics;
     laser: Laser;
     laserController: LaserController;
     segmentEl: VectorSegmentElement;
@@ -50,16 +54,15 @@ export class DamageLaser implements UpdatableMisc {
         public targetPosition: Vector,
     ) {
         const real_length = this.length - this.radius;
-        this.segment = new VectorSegment(new Vector(0, 0), new Vector(0, 0), this.width);
+        this.segment = new VectorSegment( new Vector(0, 0), new Vector(0, 0), this.width);
 
         this.sprite.parentGroup = getRunnerApp().getGroups().ammoGroup;
-        this.laserIndicator = this.sprite.addChild(new DashedLine(this.length, this.radius));
         this.laser = this.sprite.addChild(new Laser(real_length));
-        this.segmentEl = this.sprite.addChild(
-            new VectorSegmentElement(new VectorSegment(new Vector(0, 0), new Vector(0, 0), this.width))
-        );
+        this.segmentEl = this.sprite.addChild(new VectorSegmentElement(new VectorSegment(new Vector(0, 0), new Vector(0, 0), this.width)));
+
         this.updateRotation();
-        this.laserController = new LaserController(this.laserIndicator, this.laser);
+
+        this.laserController = new LaserController(this.laser, this.laser);
         this.laserController.charge();
     }
 
@@ -75,8 +78,7 @@ export class DamageLaser implements UpdatableMisc {
         this.segmentEl.segment = new VectorSegment(localStart, target, this.width);
 
         this.laser.position.set(localStart.x, localStart.y);
-        this.laserIndicator.rotation =
-            this.laser.rotation = - nDir.rad() - Math.PI;
+        this.laser.rotation = - nDir.rad() - Math.PI;
     }
 
     update(...args: any[]): void {
@@ -103,14 +105,7 @@ export class DamageLaser implements UpdatableMisc {
         }
 
         if (this.last < this.aim) {
-            this.updateRotation();
-            if (Math.floor(this.last / 10) % 2) {
-                this.laserIndicator.alpha = 1;
-            } else {
-                this.laserIndicator.alpha = 0;
-            }
-        } else {
-            this.laserIndicator.alpha = 1;
+            this.laser.index = 0;
         }
 
 

@@ -17,10 +17,12 @@ export class Behavior implements UpdatableMisc {
 
     _searchRadiusSq: number;
     _resetRadiusSq: number;
+    everySkill: ActiveSkill[];
+    onLoseTarget?(): void;
 
     constructor(
         public targetType: 'player' | 'enemy',
-        public skills: ActiveSkill[],
+        public skills: ActiveSkill[] | Record<string, ActiveSkill>,
         public searchRadius: number,
         public resetRadius?: number,
     ) {
@@ -30,18 +32,24 @@ export class Behavior implements UpdatableMisc {
 
         this._resetRadiusSq = this.resetRadius! * this.resetRadius!;
         this._searchRadiusSq = searchRadius * searchRadius;
+
+        if (Array.isArray(skills)) {
+            this.everySkill = skills;
+        } else {
+            this.everySkill = Object.values(skills);
+        }
     }
 
-
     update() {
-        this.skills.forEach(skill => skill.update());
+        this.everySkill.forEach(skill => skill.update());
         if (this.targetAlive()) {
             if (this.owner!.position?.distanceToSq(this.target!.position!)! > this._resetRadiusSq ) {
                 this.target = undefined;
+                this.onLoseTarget?.();
             } else {
                 // donothing
-                for (let index = 0; index < this.skills.length; index++) {
-                    const skill = this.skills[index];
+                for (let index = 0; index < this.everySkill.length; index++) {
+                    const skill = this.everySkill[index];
                     skill.doCast();
                 }
             }
@@ -58,8 +66,8 @@ export class Behavior implements UpdatableMisc {
 
     setOwner(owner: Player | Enemy | UpdatableMisc) {
         this.owner = owner;
-        for (let index = 0; index < this.skills.length; index++) {
-            const element = this.skills[index];
+        for (let index = 0; index < this.everySkill.length; index++) {
+            const element = this.everySkill[index];
             element.setOwner(this.owner);
         }
         const debugInfo: DebugInfo = (this.owner as any)?.debugInfo;
@@ -89,8 +97,8 @@ export class Behavior implements UpdatableMisc {
         if (!this.target) {
             return false;
         } else {
-            for (let index = 0; index < this.skills.length; index++) {
-                const element = this.skills[index];
+            for (let index = 0; index < this.everySkill.length; index++) {
+                const element = this.everySkill[index];
                 element.setTarget(this.target);
             }
         }
@@ -132,8 +140,8 @@ export class Behavior implements UpdatableMisc {
     dispose(): void {
         this.target = undefined;
         this.owner = undefined
-        for (let index = 0; index < this.skills.length; index++) {
-            const element = this.skills[index];
+        for (let index = 0; index < this.everySkill.length; index++) {
+            const element = this.everySkill[index];
             element.dispose();
         }
     }

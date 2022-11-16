@@ -1,6 +1,7 @@
 import { CountDown } from "../countdown";
 import { Enemy } from "../enemy";
 import { Player } from "../player";
+import { getRunnerApp } from "../runnerApp";
 import { UpdatableMisc } from "../types";
 
 export abstract class ActiveSkill implements UpdatableMisc {
@@ -18,8 +19,9 @@ export abstract class ActiveSkill implements UpdatableMisc {
         public autoCast: boolean,
         public countdown: number,
         public immediately: boolean,
+        initialCountdownTime: number = 0
     ) {
-
+        this.countDownController.last_update_time = getRunnerApp().now() + initialCountdownTime;
     }
 
     setOwner(owner: UpdatableMisc) {
