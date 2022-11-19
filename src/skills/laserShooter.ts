@@ -42,7 +42,7 @@ export class DamageLaser implements UpdatableMisc {
     laserIndicator: Graphics;
     laser: Laser;
     laserController: LaserController;
-    segmentEl: VectorSegmentElement;
+    segmentEl?: VectorSegmentElement;
 
     constructor(
         public position: Vector,
@@ -55,9 +55,9 @@ export class DamageLaser implements UpdatableMisc {
         this.sprite.parentGroup = getRunnerApp().getGroups().ammoGroup;
         this.laserIndicator = this.sprite.addChild(new DashedLine(this.length, this.radius));
         this.laser = this.sprite.addChild(new Laser(real_length));
-        this.segmentEl = this.sprite.addChild(
-            new VectorSegmentElement(new VectorSegment(new Vector(0, 0), new Vector(0, 0), this.width))
-        );
+        // this.segmentEl = this.sprite.addChild(
+        //     new VectorSegmentElement(new VectorSegment(new Vector(0, 0), new Vector(0, 0), this.width))
+        // );
         this.updateRotation();
         this.laserController = new LaserController(this.laserIndicator, this.laser);
         this.laserController.charge();
@@ -72,7 +72,10 @@ export class DamageLaser implements UpdatableMisc {
 
         this.segment.point1.set(this.position.x + localStart.x, this.position.y + localStart.y);
         this.segment.point2.set(this.position.x + target.x, this.position.y + target.y);
-        this.segmentEl.segment = new VectorSegment(localStart, target, this.width);
+
+        if (this.segmentEl) {
+            this.segmentEl.segment = new VectorSegment(localStart, target, this.width);
+        }
 
         this.laser.position.set(localStart.x, localStart.y);
         this.laserIndicator.rotation =

@@ -21,11 +21,15 @@ export class SequenceBehavior extends Behavior {
 
     constructor(
         public skills: Record<string, ActiveSkill>,
-        public sequance: { skill: string, wait: number }[],
+        public sequance: { skill: string, wait: number, after: number }[],
         public searchRadius: number,
         public resetRadius?: number,
     ) {
-        super('enemy', skills, searchRadius, resetRadius);
+        super('player', skills, searchRadius, resetRadius);
+        for (let index = 0; index < this.everySkill.length; index++) {
+            const element = this.everySkill[index];
+            element.autoCast = false;
+        }
     }
 
     onLoseTarget() {
@@ -34,14 +38,19 @@ export class SequenceBehavior extends Behavior {
     }
 
     updateSequance() {
-        this.activeCount += 1;
         const currentItem = this.sequance[this.sequanceIndex];
-        if (this.activeCount > currentItem.wait) {
+        if (this.activeCount == currentItem.wait) {
             this.skills[currentItem.skill]!.doCast();
+        } 
+
+        if (this.activeCount == (currentItem.wait + currentItem.after)) {
             this.sequanceIndex += 1;
-            if (this.sequanceIndex > this.sequance.length) {
+            this.activeCount = 0;
+            if (this.sequanceIndex >= this.sequance.length) {
                 this.sequanceIndex = 0;
             }
+        } else {
+            this.activeCount += 1;
         }
     }
 

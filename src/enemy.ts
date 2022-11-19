@@ -471,7 +471,7 @@ export class EnemyPool extends UpdatableObject implements IObjectPools {
         const gameView = app.getGameView();
         const radius = 1.2 * Math.max(gameView.width, gameView.height);
 
-        const n = Math.floor(app.getSession().now() / 20e3) + 4;
+        const n = Math.floor(app.now() / 20e3) + 4;
 
         const points = pointsCircleAround(player.position, radius, n);
         for (let index = 0; index < points.length; index++) {

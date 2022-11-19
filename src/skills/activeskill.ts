@@ -55,7 +55,7 @@ export abstract class ActiveSkill implements UpdatableMisc {
                 this.countDownController.start();
             } else {
                 this.casting = true;
-                this.castCountroller?.start!();
+                this.castCountroller?.start!(this);
             }
         }
     }

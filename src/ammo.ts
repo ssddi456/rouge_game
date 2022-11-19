@@ -98,7 +98,7 @@ export class Ammo implements IMovable, ICollisionable, Buffable {
         trail?: Texture | null,
         hitEffect?: AnimatedSprite
     ) {
-        this.shootedTime = getRunnerApp().getSession().now();
+        this.shootedTime = getRunnerApp().now();
         this.direct.setV(direct);
         for (let index = 0; index < this.points.length; index++) {
             const p = this.points[index];
@@ -188,7 +188,7 @@ export class Ammo implements IMovable, ICollisionable, Buffable {
     }
 
     updateRange() {
-        if (this.range + this.shootedTime < getRunnerApp().getSession().now()) {
+        if (this.range + this.shootedTime < getRunnerApp().now()) {
             this.die();
         }
     }

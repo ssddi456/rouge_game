@@ -203,8 +203,36 @@ export const EnemyControllerMap: Record<string, EnemyController<any>> = {
     laser_shooter: {
         init(enemy) {
             const shootSkill = new LaserShooter(3000,);
-            const laserShootSkill = new LaserCrossShooter(5000, 4);
-            const laserShootSkill2 = new LaserCrossShooter(7000, 16);
+            const laserShootSkill = new LaserCrossShooter(5000, {
+                beamCount: 4, 
+                rotatePerFrame: Math.PI / 6 / 60
+            });
+            const laserShootSkill2 = new LaserCrossShooter(5000, {
+                beamCount: 4, 
+                rotatePerFrame: -Math.PI / 6 / 60
+            });
+            const laserShootSkill3 = new LaserCrossShooter(7000, {
+                beamCount: 6,
+            });
+            const laserShootSkill4 = new LaserCrossShooter(7000, {
+                beamCount: 6,
+                initialRotate: Math.PI / 6,
+                endRotate: Math.PI * ( 2 + 1/6)
+            });
+
+            const startRad = Math.PI / 24;
+            const laserShootSkill5 = new LaserCrossShooter(7000, {
+                beamCount: 12,
+                initialRotate: Math.PI / 2 - startRad,
+                endRotate: - Math.PI / 2 - startRad,
+                initialDelayFramePerBeam: 10,
+            });
+            const laserShootSkill6 = new LaserCrossShooter(7000, {
+                beamCount: 12,
+                initialRotate: Math.PI / 2 + startRad,
+                endRotate: Math.PI * 3 / 2 + startRad,
+                initialDelayFramePerBeam: 10,
+            });
 
             const ret = {
                 behavior: new SequenceBehavior(
@@ -212,15 +240,27 @@ export const EnemyControllerMap: Record<string, EnemyController<any>> = {
                         singleShoot: shootSkill,
                         laserShootSkill,
                         laserShootSkill2,
+                        laserShootSkill3,
+                        laserShootSkill4,
+
+                        laserShootSkill5,
+                        laserShootSkill6
                     },
                     [
-                        { skill: 'singleShoot', wait: 3000, },
-                        { skill: 'singleShoot', wait: 5000, },
-                        { skill: 'singleShoot', wait: 7000, },
-                        { skill: 'laserShootSkill', wait: 12000, },
-                        { skill: 'laserShootSkill', wait: 16000, },
-                        { skill: 'laserShootSkill2', wait: 20000, },
-                        { skill: 'laserShootSkill2', wait: 24000, },
+                        { skill: 'singleShoot', wait: 0, after: 240 },
+                        { skill: 'singleShoot', wait: 0, after: 240, },
+                        { skill: 'singleShoot', wait: 0, after: 240, },
+                        { skill: 'laserShootSkill', wait: 0, after: 240, },
+                        { skill: 'laserShootSkill2', wait: 0, after: 240, },
+
+                        { skill: 'laserShootSkill3', wait: 0, after: 30, },
+                        { skill: 'laserShootSkill4', wait: 0, after: 480, },
+
+                        { skill: 'laserShootSkill5', wait: 0, after: 0, },
+                        { skill: 'laserShootSkill6', wait: 0, after: 480, },
+
+                        { skill: 'laserShootSkill5', wait: 0, after: 120, },
+                        { skill: 'laserShootSkill6', wait: 0, after: 480, },
                     ],
                     500,
                 ),

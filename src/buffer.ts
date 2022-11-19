@@ -17,7 +17,7 @@ export function execBuffer(buffer: Buffer, target: Buffable, app = getRunnerApp(
     if (buffer.takeEffect) {
 
         const percent = buffer.type == 'timer'
-            ? (app.getSession().now() - buffer.initialTime) / buffer.duration
+            ? (app.now() - buffer.initialTime) / buffer.duration
             : (buffer.type == 'counter'
                 ? buffer.currentCount / buffer.maxCount
                 : 1);
@@ -54,7 +54,7 @@ export function createTimerBuffer(buffer: Omit<TimerBuffer, 'type' | 'initialTim
     return {
         ...buffer,
         type: 'timer',
-        initialTime: getRunnerApp().getSession().now(),
+        initialTime: getRunnerApp().now(),
     } as TimerBuffer;
 }
 
