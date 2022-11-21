@@ -9,6 +9,14 @@ import { TimedSummoned } from "./timed_life";
 import { ECollisionType, UpdatableMisc } from "./types";
 import { Vector } from "./vector";
 
+type SkillSequenceItem = { wait: number, after: number, } & (
+    {
+        skill: string, params?: any 
+    } 
+    | {
+        skills: { skill: string, params?: any }[]
+    }
+);
 
 export class SequenceBehavior extends Behavior {
     dead: boolean = false;
@@ -21,7 +29,7 @@ export class SequenceBehavior extends Behavior {
 
     constructor(
         public skills: Record<string, ActiveSkill>,
-        public sequance: { skill: string, wait: number, after: number }[],
+        public sequance: SkillSequenceItem[],
         public searchRadius: number,
         public resetRadius?: number,
     ) {
@@ -40,8 +48,17 @@ export class SequenceBehavior extends Behavior {
     updateSequance() {
         const currentItem = this.sequance[this.sequanceIndex];
         if (this.activeCount == currentItem.wait) {
-            this.skills[currentItem.skill]!.doCast();
-        } 
+            if ('skill' in currentItem) {
+                const skill = this.skills[currentItem.skill]!;
+                skill.cast(currentItem.params);
+            } else if (currentItem.skills) {
+                for (let index = 0; index < currentItem.skills.length; index++) {
+                    const element = currentItem.skills[index];
+                    const skill = this.skills[element.skill]!;
+                    skill.cast(element.params);
+                }
+            }
+        }
 
         if (this.activeCount == (currentItem.wait + currentItem.after)) {
             this.sequanceIndex += 1;

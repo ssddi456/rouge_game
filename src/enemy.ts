@@ -360,6 +360,16 @@ export class EnemyPool extends UpdatableObject implements IObjectPools {
             health: 120,
             controller: ['shooter'],
         },
+        {
+            sprite_names: {
+                idle: 'idle',
+                die: 'die',
+            },
+            scale: 5,
+            speed: 1,
+            health: 500,
+            controller: ['laser_shooter'],
+        }
     ];
 
     constructor(

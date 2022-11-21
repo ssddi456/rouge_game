@@ -164,7 +164,7 @@ export class ForestLevel extends Level {
                 die: 'die',
             },
             speed: 1,
-            health: 50,
+            health: 500,
             controller: ['laser_shooter'],
         }];
         const stubPos = new Vector(300, 300);

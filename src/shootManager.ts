@@ -20,6 +20,8 @@ import { Vector } from "./vector";
 export interface ShootInfo {
     frameDelay: number;
     dir?: Vector;
+    range?: number;
+    from?: Vector;
     target?: Vector;
     shooted: boolean;
     damage: number;

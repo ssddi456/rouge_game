@@ -135,6 +135,9 @@ export class Vector {
     }
 
     rotate(/** in rad */theta: number) {
+        if (!theta) {
+            return this;
+        }
         var xtemp = this.x;
         var cosR = Math.cos(theta);
         var sinR = Math.sin(theta);

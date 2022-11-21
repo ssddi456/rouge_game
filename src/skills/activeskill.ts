@@ -44,13 +44,13 @@ export abstract class ActiveSkill implements UpdatableMisc {
         this.countDownController.update();
     }
 
-    doCast() {
+    doCast(params?:any) {
         if (!this.canCast) {
             return;
         }
         if (this.castCheck()) {
             if (this.immediately) {
-                this.cast();
+                this.cast(params);
                 this.canCast = false;
                 this.countDownController.start();
             } else {
@@ -66,7 +66,7 @@ export abstract class ActiveSkill implements UpdatableMisc {
     }
 
     abstract castCheck(): boolean;
-    abstract cast(): void;
+    abstract cast(params?: any): void;
     castCountroller?: UpdatableMisc;
 
     disposed: boolean = false;

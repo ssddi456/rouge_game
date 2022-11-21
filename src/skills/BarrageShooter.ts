@@ -65,8 +65,8 @@ export class BarrageShooter extends ActiveSkill {
         const pool = getRunnerApp().getEnemyAmmoPool();
         const ammo = pool.emit(
             element.dir!,
-            this.castPos,
-            this.range,
+            element.from || this.castPos,
+            element.range || this.range,
             this.damage,
             this.projectile,
             this.tail,
@@ -78,21 +78,33 @@ export class BarrageShooter extends ActiveSkill {
         element.shooted = true;
     }
 
-    cast(): void {
+    cast(_params: Partial<BarrageShooterCastParams> = {}): void {
+        const {
+            startRad,
+            endRad,
+            emitCount,
+            speed,
+            waves,
+            distance,
+            delayFramePerWave,
+            deltaRadPerWave
+        } = {
+            ...defaultBarrageShooterCastParams,
+            ..._params
+        }
 
-        const endRad = Math.PI / 3;
-        const emitCount = 6; // block count
-        const delta = endRad / (emitCount - 1);
-        const initialVector = Vector.AB(this.castPos, this.target!.position!).normalize().rotate(-endRad / 2);
-        const waves = 9;
-        const delayPerWave = 15;
+        const delta = (endRad - startRad) / (emitCount - 1);
+        const initialVector = Vector.AB(this.castPos, this.target!.position!).normalize().multiplyScalar(speed / 10).rotate(startRad);
 
         for (let index = 0; index < emitCount; index++) {
             for (let jndex = 0; jndex < waves; jndex++) {
+                const newDir = initialVector.clone().rotate(deltaRadPerWave * jndex);
                 this.shootQueue.push({
-                    frameDelay: jndex * delayPerWave,
-                    dir: initialVector.clone(),
+                    frameDelay: jndex * delayFramePerWave,
+                    from: this.castPos.clone().add(newDir.clone().normalize().multiplyScalar(this.owner?.size || 10)),
+                    dir: newDir,
                     shooted: false,
+                    range: distance ? (distance * 1000 / 60 / speed) : 0,
                     damage: 1,
                     hitEffects: [],
                     ammoDieEffects: []
@@ -102,3 +114,15 @@ export class BarrageShooter extends ActiveSkill {
         }
     }
 }
+
+const defaultBarrageShooterCastParams = {
+    startRad: -Math.PI / 3,
+    endRad: Math.PI / 3,
+    emitCount: 6,
+    speed: 10,
+    distance: 0,
+    waves: 9,
+    delayFramePerWave: 15,
+    deltaRadPerWave: 0
+};
+export type BarrageShooterCastParams = typeof defaultBarrageShooterCastParams;

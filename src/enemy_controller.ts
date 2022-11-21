@@ -11,7 +11,8 @@ import { EnemyShooter } from "./skills/shooter";
 import { LaserShooter } from "./skills/laserShooter";
 import { LaserCrossShooter } from "./skills/LaserCrossShooter";
 import { SequenceBehavior } from "./sequance_behavior";
-import { BarrageShooter } from "./skills/BarrageShooter";
+import { BarrageShooter, BarrageShooterCastParams } from "./skills/BarrageShooter";
+import { ContinualShooter } from "./skills/continualShooter";
 
 export type controllerKey = (keyof (typeof EnemyControllerMap));
 export interface EnemyController<T extends Updatable & Disposible> {
@@ -207,11 +208,11 @@ export const EnemyControllerMap: Record<string, EnemyController<any>> = {
 
             const shootSkill = new LaserShooter(3000,);
             const laserShootSkill = new LaserCrossShooter(5000, {
-                beamCount: 4, 
+                beamCount: 4,
                 rotatePerFrame: Math.PI / 6 / 60
             });
             const laserShootSkill2 = new LaserCrossShooter(5000, {
-                beamCount: 4, 
+                beamCount: 4,
                 rotatePerFrame: -Math.PI / 6 / 60
             });
             const laserShootSkill3 = new LaserCrossShooter(7000, {
@@ -221,7 +222,7 @@ export const EnemyControllerMap: Record<string, EnemyController<any>> = {
             const laserShootSkill4 = new LaserCrossShooter(7000, {
                 beamCount: 6,
                 initialRotate: Math.PI / 6,
-                endRotate: Math.PI * ( 2 + 1/6),
+                endRotate: Math.PI * (2 + 1 / 6),
                 beamScale: 2,
             });
 
@@ -245,6 +246,12 @@ export const EnemyControllerMap: Record<string, EnemyController<any>> = {
                 resource.thunder_hitAnimateMap.hit_effect
             );
 
+            const continualShooter = new ContinualShooter(
+                resource.thunderAnimateMap.projectile,
+                null,
+                resource.thunder_hitAnimateMap.hit_effect
+            );
+
             const ret = {
                 behavior: new SequenceBehavior(
                     {
@@ -256,23 +263,110 @@ export const EnemyControllerMap: Record<string, EnemyController<any>> = {
                         laserShootSkill5,
                         laserShootSkill6,
 
-                        barrageShooter
+                        barrageShooter,
+                        continualShooter
                     },
                     [
-                        { skill: 'barrageShooter', wait: 0, after: 240 },
-                        { skill: 'singleShoot', wait: 0, after: 240, },
-                        { skill: 'barrageShooter', wait: 0, after: 240, },
-                        { skill: 'laserShootSkill', wait: 0, after: 240, },
-                        { skill: 'laserShootSkill2', wait: 0, after: 240, },
+                        {
+                            wait: 0, after: 240,
+                            skill: 'continualShooter',
+                        },
+                        {
+                            wait: 0, after: 240,
+                            skills: [
+                                {
+                                    skill: 'continualShooter',
+                                    params: {
+                                        count: 30,
+                                        delayFramePerWave: 5,
+                                        deltaPositonPerWave(index: number, pos: Vector) {
+                                            const orth = pos.orthogonal().normalize();
+                                            return orth.multiplyScalar(80 + 20 * Math.sin(2 * Math.PI * index / 12));
+                                        }
+                                    }
+                                },
+                                {
+                                    skill: 'continualShooter',
+                                    params: {
+                                        count: 30,
+                                        delayFramePerWave: 5,
+                                        deltaPositonPerWave(index: number, pos: Vector) {
+                                            const orth = pos.orthogonal().normalize();
+                                            return orth.multiplyScalar(-(80 + 20 * Math.sin(2 * Math.PI * index / 12)));
+                                        }
+                                    }
+                                },
+                                {
+                                    skill: 'barrageShooter',
+                                    params: {
+                                        count: 30,
+                                        delayFramePerWave: 30,
+                                        startRad: 0,
+                                        endRad: Math.PI * 0.15,
+                                        speed: 5,
+                                        distance: 2000, 
+                                        emitCount: 6,
+                                        waves: 3,
+                                    }
+                                },
+                            ]
+                        },
+                        // {
+                        //     skill: 'barrageShooter', wait: 0, after: 240,
+                        //     params: { speed: 3, distance: 2000, delayFramePerWave: 30, wave: 10, startRad: -Math.PI * 0.3, endRad: Math.PI * 0.3, emitCount: 5 },
+                        // },
+                        // { skill: 'singleShoot', wait: 0, after: 240, },
+                        // { skill: 'barrageShooter', wait: 0, after: 240, },
+                        // { skill: 'laserShootSkill', wait: 0, after: 240, },
+                        // { skill: 'laserShootSkill2', wait: 0, after: 240, },
 
-                        { skill: 'laserShootSkill3', wait: 0, after: 30, },
-                        { skill: 'laserShootSkill4', wait: 0, after: 480, },
+                        // { skill: 'singleShoot', wait: 0, after: 240, },
+                        // { skill: 'singleShoot', wait: 0, after: 240, },
 
-                        { skill: 'laserShootSkill5', wait: 0, after: 0, },
-                        { skill: 'laserShootSkill6', wait: 0, after: 480, },
+                        // { skill: 'laserShootSkill3', wait: 0, after: 60, },
+                        // { skill: 'laserShootSkill4', wait: 0, after: 480, },
 
-                        { skill: 'laserShootSkill5', wait: 0, after: 120, },
-                        { skill: 'laserShootSkill6', wait: 0, after: 480, },
+                        // { skill: 'singleShoot', wait: 0, after: 240, },
+                        // { skill: 'singleShoot', wait: 0, after: 240, },
+
+                        {
+                            wait: 0, after: 480,
+                            skills: [
+                                { skill: 'laserShootSkill5' },
+                                { skill: 'laserShootSkill6' },
+                            ]
+                        },
+
+                        // { skill: 'singleShoot', wait: 0, after: 240, },
+                        // { skill: 'singleShoot', wait: 0, after: 240, },
+                        // { skill: 'singleShoot', wait: 0, after: 240, },
+
+                        // { skill: 'laserShootSkill5', wait: 0, after: 120, },
+                        // { skill: 'laserShootSkill6', wait: 0, after: 480, },
+
+                        // { skill: 'singleShoot', wait: 0, after: 240, },
+                        // { skill: 'singleShoot', wait: 0, after: 240, },
+                        // { skill: 'singleShoot', wait: 0, after: 240, },
+                        {
+
+                            wait: 0, after: 480,
+                            skills: [
+                                {
+                                    skill: 'barrageShooter',
+                                    params: {
+                                        speed: 4, distance: 1500, delayFramePerWave: 15, waves: 30, endRad: 2 * Math.PI, emitCount: 12,
+                                        deltaRadPerWave: Math.PI / 48
+                                    },
+                                },
+                                {
+                                    skill: 'barrageShooter',
+                                    params: {
+                                        speed: 4, distance: 1500, delayFramePerWave: 15, waves: 30, endRad: - 2 * Math.PI, emitCount: 12,
+                                        deltaRadPerWave: - Math.PI / 48
+                                    },
+                                },
+                            ]
+                        },
                     ],
                     500,
                 ),
