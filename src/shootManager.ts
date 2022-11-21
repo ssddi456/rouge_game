@@ -17,7 +17,7 @@ import { Buffer, EventBuffer } from "./types";
 import { keypressed, mouse } from "./user_input";
 import { Vector } from "./vector";
 
-interface ShootInfo {
+export interface ShootInfo {
     frameDelay: number;
     dir?: Vector;
     target?: Vector;

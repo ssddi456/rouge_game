@@ -11,7 +11,8 @@ const defaultGenerateConfig = {
     initialRotate: 0,
     endRotate: Math.PI * 2,
     rotatePerFrame: 0,
-    initialDelayFramePerBeam: 0
+    initialDelayFramePerBeam: 0,
+    beamScale: 1,
 };
 
 type GenerateConfig = typeof defaultGenerateConfig;
@@ -40,6 +41,7 @@ export class LaserCrossShooter extends ActiveSkill {
             endRotate,
             rotatePerFrame,
             initialDelayFramePerBeam,
+            beamScale,
         } = this.generateConfig;
 
         const initialVector = new Vector(1, 0).rotate(initialRotate);
@@ -49,6 +51,7 @@ export class LaserCrossShooter extends ActiveSkill {
                 this.owner!.position!,
                 this.owner!.size! * 3,
                 this.owner!.position!.clone().add(initialVector),
+                beamScale,
                 rotatePerFrame,
             );
             app.addMisc(item);
@@ -68,7 +71,8 @@ class DamageLaserSimple implements UpdatableMisc {
     last: number = 0;
     aim: number = 60;
     charge: number = 60;
-    duration: number = 30;
+    duration: number = 90;
+    basicWidth = 6;
     width = 6;
     length = 1000;
 
@@ -82,13 +86,15 @@ class DamageLaserSimple implements UpdatableMisc {
         public position: Vector,
         public radius: number,
         public targetPosition: Vector,
-        public rotatePerFrame: number = 0
+        public scale: number = 1,
+        public rotatePerFrame: number = 0,
     ) {
         const real_length = this.length - this.radius;
+        this.width = this.basicWidth * scale;
         this.segment = new VectorSegment( new Vector(0, 0), new Vector(0, 0), this.width);
 
         this.sprite.parentGroup = getRunnerApp().getGroups().ammoGroup;
-        this.laser = this.sprite.addChild(new Laser(real_length));
+        this.laser = this.sprite.addChild(new Laser(real_length, scale));
         this.laserIndicator = this.sprite.addChild(new Graphics());
         this.laserIndicator
             .beginFill(0xff0000)

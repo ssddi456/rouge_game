@@ -11,6 +11,7 @@ import { EnemyShooter } from "./skills/shooter";
 import { LaserShooter } from "./skills/laserShooter";
 import { LaserCrossShooter } from "./skills/LaserCrossShooter";
 import { SequenceBehavior } from "./sequance_behavior";
+import { BarrageShooter } from "./skills/BarrageShooter";
 
 export type controllerKey = (keyof (typeof EnemyControllerMap));
 export interface EnemyController<T extends Updatable & Disposible> {
@@ -202,6 +203,8 @@ export const EnemyControllerMap: Record<string, EnemyController<any>> = {
 
     laser_shooter: {
         init(enemy) {
+            const resource = getRunnerApp().getGetResourceMap()();
+
             const shootSkill = new LaserShooter(3000,);
             const laserShootSkill = new LaserCrossShooter(5000, {
                 beamCount: 4, 
@@ -213,11 +216,13 @@ export const EnemyControllerMap: Record<string, EnemyController<any>> = {
             });
             const laserShootSkill3 = new LaserCrossShooter(7000, {
                 beamCount: 6,
+                beamScale: 2,
             });
             const laserShootSkill4 = new LaserCrossShooter(7000, {
                 beamCount: 6,
                 initialRotate: Math.PI / 6,
-                endRotate: Math.PI * ( 2 + 1/6)
+                endRotate: Math.PI * ( 2 + 1/6),
+                beamScale: 2,
             });
 
             const startRad = Math.PI / 24;
@@ -234,6 +239,12 @@ export const EnemyControllerMap: Record<string, EnemyController<any>> = {
                 initialDelayFramePerBeam: 10,
             });
 
+            const barrageShooter = new BarrageShooter(
+                resource.thunderAnimateMap.projectile,
+                null,
+                resource.thunder_hitAnimateMap.hit_effect
+            );
+
             const ret = {
                 behavior: new SequenceBehavior(
                     {
@@ -242,14 +253,15 @@ export const EnemyControllerMap: Record<string, EnemyController<any>> = {
                         laserShootSkill2,
                         laserShootSkill3,
                         laserShootSkill4,
-
                         laserShootSkill5,
-                        laserShootSkill6
+                        laserShootSkill6,
+
+                        barrageShooter
                     },
                     [
-                        { skill: 'singleShoot', wait: 0, after: 240 },
+                        { skill: 'barrageShooter', wait: 0, after: 240 },
                         { skill: 'singleShoot', wait: 0, after: 240, },
-                        { skill: 'singleShoot', wait: 0, after: 240, },
+                        { skill: 'barrageShooter', wait: 0, after: 240, },
                         { skill: 'laserShootSkill', wait: 0, after: 240, },
                         { skill: 'laserShootSkill2', wait: 0, after: 240, },
 

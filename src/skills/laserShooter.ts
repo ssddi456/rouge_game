@@ -9,6 +9,7 @@ import { ActiveSkill } from "./activeskill";
 export class LaserShooter extends ActiveSkill {
     constructor(
         public countdown: number,
+        public scale: number = 1
     ) {
         super(true, countdown, true);
     }
@@ -22,7 +23,8 @@ export class LaserShooter extends ActiveSkill {
         app.addMisc(new DamageLaser(
             this.owner!.position!,
             this.owner!.size! * 2,
-            this.target!.position!
+            this.target!.position!,
+            this.scale
         ));
     }
 }
@@ -36,6 +38,7 @@ export class DamageLaser implements UpdatableMisc {
     aim: number = 60;
     charge: number = 60;
     duration: number = 30;
+    baseWidth = 6;
     width = 6;
     length = 1000;
 
@@ -48,7 +51,9 @@ export class DamageLaser implements UpdatableMisc {
         public position: Vector,
         public radius: number,
         public targetPosition: Vector,
+        public scale: number = 1,
     ) {
+        this.width = this.baseWidth * scale;
         const real_length = this.length - this.radius;
         this.segment = new VectorSegment(new Vector(0, 0), new Vector(0, 0), this.width);
 

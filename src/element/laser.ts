@@ -6,18 +6,19 @@ export class Laser extends Container {
     laserCenter: AnimatedSprite;
     laserBeamTextures: AnimatedSprite;
 
-    constructor(length: number) {
+    constructor(length: number, widthScale: number = 1) {
         super();
 
         const laserAnimateMap = getRunnerApp().getGetResourceMap()().laserAnimateMap;
 
         this.laserBeamTextures = laserAnimateMap.hit_0;
         
-        const beam = new Beam(length);
-        beam.position.x = -16;
+        const beam = new Beam(length, widthScale);
+        beam.position.x = -16 * widthScale;
         beam.position.y = 0;
         this.beam = this.addChild(beam);
         this.laserCenter = this.addChild(laserAnimateMap.hit_1);
+        this.laserCenter.scale.set(widthScale, widthScale);
 
     }
 
@@ -27,16 +28,20 @@ export class Laser extends Container {
     }
 }
 
+const beamBaseWidth = 32;
 export class Beam extends Mesh {
-    constructor(length: number) {
-        var planeGeometry = new PlaneGeometry(32, -length, 2, 2);
+    widthScale: number;
+    constructor(length: number, widthScale: number) {
+
+        var planeGeometry = new PlaneGeometry(beamBaseWidth * widthScale, -length, 2, 2);
         var meshMaterial = new MeshMaterial(Texture.EMPTY);
         super(planeGeometry, meshMaterial);
+        this.widthScale = widthScale;
         // lets call the setter to ensure all necessary updates are performed
     }
 
     set length(length: number) {
-        this.geometry = new PlaneGeometry(32, -length, 2, 2);
+        this.geometry = new PlaneGeometry(beamBaseWidth * this.widthScale, -length, 2, 2);
     }
 };
 
