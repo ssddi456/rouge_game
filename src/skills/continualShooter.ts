@@ -21,6 +21,8 @@ export class ContinualShooter extends BarrageShooter {
             delayFramePerWave,
             deltaRadPerWave,
             deltaPositonPerWave,
+            ammoController,
+            ammoControllerParams,
         } = {
             ...defaultContinualShooterCastParams,
             ...params
@@ -41,7 +43,9 @@ export class ContinualShooter extends BarrageShooter {
                 range: distance ? (distance * 1000 / 60 / speed) : 0,
                 damage: 1,
                 hitEffects: [],
-                ammoDieEffects: []
+                ammoDieEffects: [],
+                controller: ammoController,
+                controllerParams: ammoControllerParams,
             })
         }
     }
@@ -54,5 +58,7 @@ const defaultContinualShooterCastParams = {
     delayFramePerWave: 15,
     deltaRadPerWave: 0 as (number | ((c: number) => number)),
     deltaPositonPerWave: undefined as (undefined | Vector | ((c: number, iv: Vector) => Vector)),
+    ammoController: undefined as undefined | string,
+    ammoControllerParams: undefined as any
 };
 export type ContinualShooterCastParams = typeof defaultContinualShooterCastParams;

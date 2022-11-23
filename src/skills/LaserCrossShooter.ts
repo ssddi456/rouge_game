@@ -129,7 +129,7 @@ class DamageLaserSimple implements UpdatableMisc {
 
         this.laserIndicator.position.set(localStart.x, localStart.y);
         this.laser.position.set(localStart.x, localStart.y);
-        this.laser.rotation = - nDir.rad() - Math.PI;
+        this.laser.rotation = nDir.rad() + Math.PI / 2;
     }
 
     update(init: boolean): void {

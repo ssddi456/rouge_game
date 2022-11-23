@@ -267,57 +267,72 @@ export const EnemyControllerMap: Record<string, EnemyController<any>> = {
                         continualShooter
                     },
                     [
-                        {
-                            wait: 0, after: 240,
-                            skill: 'continualShooter',
-                        },
-                        {
-                            wait: 0, after: 240,
-                            skills: [
-                                {
-                                    skill: 'continualShooter',
-                                    params: {
-                                        count: 30,
-                                        delayFramePerWave: 5,
-                                        deltaPositonPerWave(index: number, pos: Vector) {
-                                            const orth = pos.orthogonal().normalize();
-                                            return orth.multiplyScalar(80 + 20 * Math.sin(2 * Math.PI * index / 12));
-                                        }
-                                    }
-                                },
-                                {
-                                    skill: 'continualShooter',
-                                    params: {
-                                        count: 30,
-                                        delayFramePerWave: 5,
-                                        deltaPositonPerWave(index: number, pos: Vector) {
-                                            const orth = pos.orthogonal().normalize();
-                                            return orth.multiplyScalar(-(80 + 20 * Math.sin(2 * Math.PI * index / 12)));
-                                        }
-                                    }
-                                },
-                                {
-                                    skill: 'barrageShooter',
-                                    params: {
-                                        count: 30,
-                                        delayFramePerWave: 30,
-                                        startRad: 0,
-                                        endRad: Math.PI * 0.15,
-                                        speed: 5,
-                                        distance: 2000, 
-                                        emitCount: 6,
-                                        waves: 3,
-                                    }
-                                },
-                            ]
-                        },
+                        // {
+                        //     wait: 0, after: 240,
+                        //     skill: 'continualShooter',
+                        //     params: {
+                        //         count: 3,
+                        //         speed: 3,
+                        //         distance: 2000,
+                        //         ammoController: 'continual_track',
+                        //         ammoControllerParams: {
+                        //             prepare: 30,
+                        //             maxTurnRad: Math.PI / 48
+                        //         }
+                        //     }
+                        // },
+                        // {
+                        //     wait: 0, after: 240,
+                        //     skills: [
+                        //         {
+                        //             skill: 'continualShooter',
+                        //             params: {
+                        //                 count: 30,
+                        //                 delayFramePerWave: 5,
+                        //                 deltaPositonPerWave(index: number, pos: Vector) {
+                        //                     const orth = pos.orthogonal().normalize();
+                        //                     return orth.multiplyScalar(80 + 20 * Math.sin(2 * Math.PI * index / 12));
+                        //                 }
+                        //             }
+                        //         },
+                        //         {
+                        //             skill: 'continualShooter',
+                        //             params: {
+                        //                 count: 30,
+                        //                 delayFramePerWave: 5,
+                        //                 deltaPositonPerWave(index: number, pos: Vector) {
+                        //                     const orth = pos.orthogonal().normalize();
+                        //                     return orth.multiplyScalar(-(80 + 20 * Math.sin(2 * Math.PI * index / 12)));
+                        //                 }
+                        //             }
+                        //         },
+                        //         {
+                        //             skill: 'barrageShooter',
+                        //             params: {
+                        //                 count: 30,
+                        //                 delayFramePerWave: 30,
+                        //                 startRad: Math.PI * ( 1 - 0.15),
+                        //                 endRad: Math.PI * (1 + .15),
+                        //                 speed: 5,
+                        //                 distance: 2000, 
+                        //                 emitCount: 6,
+                        //                 waves: 3,
+                        //                 ammoController: 'continual_track',
+                        //                 ammoControllerParams: {
+                        //                     prepare: 30,
+                        //                     maxTurnRad: Math.PI / 24
+                        //                 }
+                        //             }
+                        //         },
+                        //     ]
+                        // },
                         // {
                         //     skill: 'barrageShooter', wait: 0, after: 240,
                         //     params: { speed: 3, distance: 2000, delayFramePerWave: 30, wave: 10, startRad: -Math.PI * 0.3, endRad: Math.PI * 0.3, emitCount: 5 },
                         // },
                         // { skill: 'singleShoot', wait: 0, after: 240, },
                         // { skill: 'barrageShooter', wait: 0, after: 240, },
-                        // { skill: 'laserShootSkill', wait: 0, after: 240, },
+                        { skill: 'laserShootSkill', wait: 0, after: 240, },
                         // { skill: 'laserShootSkill2', wait: 0, after: 240, },
 
                         // { skill: 'singleShoot', wait: 0, after: 240, },
@@ -329,13 +344,13 @@ export const EnemyControllerMap: Record<string, EnemyController<any>> = {
                         // { skill: 'singleShoot', wait: 0, after: 240, },
                         // { skill: 'singleShoot', wait: 0, after: 240, },
 
-                        {
-                            wait: 0, after: 480,
-                            skills: [
-                                { skill: 'laserShootSkill5' },
-                                { skill: 'laserShootSkill6' },
-                            ]
-                        },
+                        // {
+                        //     wait: 0, after: 480,
+                        //     skills: [
+                        //         { skill: 'laserShootSkill5' },
+                        //         { skill: 'laserShootSkill6' },
+                        //     ]
+                        // },
 
                         // { skill: 'singleShoot', wait: 0, after: 240, },
                         // { skill: 'singleShoot', wait: 0, after: 240, },
@@ -347,26 +362,26 @@ export const EnemyControllerMap: Record<string, EnemyController<any>> = {
                         // { skill: 'singleShoot', wait: 0, after: 240, },
                         // { skill: 'singleShoot', wait: 0, after: 240, },
                         // { skill: 'singleShoot', wait: 0, after: 240, },
-                        {
+                        // {
 
-                            wait: 0, after: 480,
-                            skills: [
-                                {
-                                    skill: 'barrageShooter',
-                                    params: {
-                                        speed: 4, distance: 1500, delayFramePerWave: 15, waves: 30, endRad: 2 * Math.PI, emitCount: 12,
-                                        deltaRadPerWave: Math.PI / 48
-                                    },
-                                },
-                                {
-                                    skill: 'barrageShooter',
-                                    params: {
-                                        speed: 4, distance: 1500, delayFramePerWave: 15, waves: 30, endRad: - 2 * Math.PI, emitCount: 12,
-                                        deltaRadPerWave: - Math.PI / 48
-                                    },
-                                },
-                            ]
-                        },
+                        //     wait: 0, after: 480,
+                        //     skills: [
+                        //         {
+                        //             skill: 'barrageShooter',
+                        //             params: {
+                        //                 speed: 4, distance: 1500, delayFramePerWave: 15, waves: 30, endRad: 2 * Math.PI, emitCount: 12,
+                        //                 deltaRadPerWave: Math.PI / 48
+                        //             },
+                        //         },
+                        //         {
+                        //             skill: 'barrageShooter',
+                        //             params: {
+                        //                 speed: 4, distance: 1500, delayFramePerWave: 15, waves: 30, endRad: - 2 * Math.PI, emitCount: 12,
+                        //                 deltaRadPerWave: - Math.PI / 48
+                        //             },
+                        //         },
+                        //     ]
+                        // },
                     ],
                     500,
                 ),

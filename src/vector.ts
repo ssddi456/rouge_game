@@ -123,7 +123,23 @@ export class Vector {
     }
 
     rad() {
-        return Math.atan2(this.x, this.y);
+        return Math.atan2(this.y, this.x);
+    }
+
+    radTo(b: Vector) {
+        const dotVal = this.dot(b);
+        const cosTheta = dotVal / (this.length * b.length);
+        return Math.acos(cosTheta);
+    }
+
+    radTo2(b: Vector) {
+        const rad1 = this.radTo(b);
+        if (rad1 == 0 || rad1 == Math.PI) {
+            return rad1;
+        }
+        const { x: x1, y: y1} = this;
+        const { x: x2, y: y2} = b;
+        return Math.atan2(x1 * y2 - y1 * x2, x1 * x2 + y1 * y2);
     }
 
     deg() {

@@ -71,6 +71,8 @@ export class BarrageShooter extends ActiveSkill {
             this.projectile,
             this.tail,
             this.hitEffect,
+            element.controller,
+            element.controllerParams
         );
         ammo.max_piecing_count = 0;
         ammo.max_bouncing_count = 0;
@@ -87,7 +89,9 @@ export class BarrageShooter extends ActiveSkill {
             waves,
             distance,
             delayFramePerWave,
-            deltaRadPerWave
+            deltaRadPerWave,
+            ammoController,
+            ammoControllerParams,
         } = {
             ...defaultBarrageShooterCastParams,
             ..._params
@@ -107,7 +111,9 @@ export class BarrageShooter extends ActiveSkill {
                     range: distance ? (distance * 1000 / 60 / speed) : 0,
                     damage: 1,
                     hitEffects: [],
-                    ammoDieEffects: []
+                    ammoDieEffects: [],
+                    controller: ammoController,
+                    controllerParams: ammoControllerParams,
                 });
             }
             initialVector.rotate(delta);
@@ -123,6 +129,8 @@ const defaultBarrageShooterCastParams = {
     distance: 0,
     waves: 9,
     delayFramePerWave: 15,
-    deltaRadPerWave: 0
+    deltaRadPerWave: 0,
+    ammoController: undefined as undefined | string,
+    ammoControllerParams: undefined as any
 };
 export type BarrageShooterCastParams = typeof defaultBarrageShooterCastParams;

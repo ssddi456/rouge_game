@@ -84,7 +84,7 @@ export class DamageLaser implements UpdatableMisc {
 
         this.laser.position.set(localStart.x, localStart.y);
         this.laserIndicator.rotation =
-            this.laser.rotation = - nDir.rad() - Math.PI;
+            this.laser.rotation = nDir.rad() + Math.PI / 2;
     }
 
     update(...args: any[]): void {

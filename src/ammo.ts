@@ -1,5 +1,6 @@
 import * as PIXI from "pixi.js";
 import { AnimatedSprite, Container, DisplayObject, Point, SimpleRope, Texture } from "pixi.js";
+import { ammoControllerDispose, ammoControllerInit, AmmoControllerKey, ammoControllerUpdate } from "./ammo_controller";
 import { execEventBuffer, applyKnockback, Buffable, BUFFER_EVENTNAME_DEAD, BUFFER_EVENTNAME_HIT, BUFFER_EVENTNAME_HITTED } from "./buffer";
 import { checkCollision } from "./collision_helper";
 import { Enemy } from "./enemy";
@@ -18,6 +19,17 @@ export interface DamageInfo {
     damage: number
 }
 
+interface AmmoInitProps {
+    direct: Vector,
+    position: Vector,
+    range: number,
+    damage: number,
+    head?: AnimatedSprite,
+    trail?: Texture | null,
+    hitEffect?: AnimatedSprite,
+    controller?: AmmoControllerKey;
+    controllerParams?: any
+}
 @HotClass({ module })
 export class Ammo implements IMovable, ICollisionable, Buffable {
     start_position = new Vector(0, 0);
@@ -39,6 +51,7 @@ export class Ammo implements IMovable, ICollisionable, Buffable {
     shootedTime = 0;
     damage = 1;
     trail: SimpleRope;
+    controller?: string;
 
     constructor(
         public head: AnimatedSprite,
@@ -89,15 +102,18 @@ export class Ammo implements IMovable, ICollisionable, Buffable {
 
     current_hitting_items: ICollisionable[] = [];
 
-    init(
-        direct: Vector,
-        position: Vector,
-        range: number,
-        damage: number,
-        head?: AnimatedSprite,
-        trail?: Texture | null,
-        hitEffect?: AnimatedSprite
-    ) {
+    init(props: AmmoInitProps) {
+        const {
+            direct,
+            position,
+            range,
+            damage,
+            head,
+            trail,
+            hitEffect,
+            controller,
+            controllerParams
+        } = props;
         this.shootedTime = getRunnerApp().now();
         this.direct.setV(direct);
         for (let index = 0; index < this.points.length; index++) {
@@ -122,7 +138,7 @@ export class Ammo implements IMovable, ICollisionable, Buffable {
             this.head.play();
         }
 
-        this.head.rotation = Math.PI/2 - direct.rad();
+        this.head.rotation = direct.rad();
 
         if (trail && trail !== PIXI.Texture.WHITE) {
             this.trail.texture = trail;
@@ -150,6 +166,8 @@ export class Ammo implements IMovable, ICollisionable, Buffable {
         this.assets = [];
         this.ground_assets = [];
         this.damage = damage;
+        this.controller = controller;
+        ammoControllerInit(this, controllerParams);
     }
 
     cacheProperty() {
@@ -172,6 +190,7 @@ export class Ammo implements IMovable, ICollisionable, Buffable {
     
     die() {
         execEventBuffer(this, BUFFER_EVENTNAME_DEAD);
+        ammoControllerDispose(this);
         this.dead = true;
         this.container.removeChild(this.sprite);
     }
@@ -181,6 +200,8 @@ export class Ammo implements IMovable, ICollisionable, Buffable {
     }
 
     updateSprite() {
+        this.head.rotation = this.direct.rad();
+
         const last = this.history.pop()!;
         this.history.unshift(last);
         last.x = this.position.x;
@@ -198,6 +219,7 @@ export class Ammo implements IMovable, ICollisionable, Buffable {
             return;
         }
         this.cacheProperty();
+        ammoControllerUpdate(this);
         this.updatePosition();
         this.updateSprite();
         this.updateRange();
@@ -236,6 +258,8 @@ export class AmmoPool implements IObjectPools {
         head: AnimatedSprite,
         trail: Texture | null,
         hitEffect: AnimatedSprite,
+        controller?: AmmoControllerKey,
+        controllerParams?: any
     ) {
         const makeNewAmmo =  () => {
             const headSpirt = cloneAnimationSprite(head);
@@ -246,12 +270,15 @@ export class AmmoPool implements IObjectPools {
                 this.container);
             ammo.hit_effect = hitEffect;
             this.pool.push(ammo);
-            ammo.init(
+            
+            ammo.init({
                 direct,
                 position,
                 range,
                 damage,
-            );
+                controller,
+                controllerParams,
+            });
             return ammo;
         }
         if (this.pool.length < 100) {
@@ -259,15 +286,17 @@ export class AmmoPool implements IObjectPools {
         } else {
             const found = this.pool.find(ammo => ammo.dead);
             if (found) {
-                found.init(
+                found.init({
                     direct,
                     position,
                     range,
                     damage,
-                    cloneAnimationSprite(head),
+                    head: cloneAnimationSprite(head),
                     trail,
                     hitEffect,
-                );
+                    controller,
+                    controllerParams,
+                });
                 return found;
             }
             return makeNewAmmo();

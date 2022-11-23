@@ -28,6 +28,8 @@ export interface ShootInfo {
     whenShoot?: () => void;
     hitEffects: EventBuffer[];
     ammoDieEffects: EventBuffer[];
+    controller?: string,
+    controllerParams?: any,
 }
 @HotClass({ module })
 export class ShootManager implements Buffable {
