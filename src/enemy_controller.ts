@@ -267,20 +267,126 @@ export const EnemyControllerMap: Record<string, EnemyController<any>> = {
                         continualShooter
                     },
                     [
-                        // {
-                        //     wait: 0, after: 240,
-                        //     skill: 'continualShooter',
-                        //     params: {
-                        //         count: 3,
-                        //         speed: 3,
-                        //         distance: 2000,
-                        //         ammoController: 'continual_track',
-                        //         ammoControllerParams: {
-                        //             prepare: 30,
-                        //             maxTurnRad: Math.PI / 48
-                        //         }
-                        //     }
-                        // },
+                        {
+                            wait: 0, after: 240,
+                            skill: 'continualShooter',
+                            params: {
+                                count: 3,
+                                speed: 3,
+                                distance: 2000,
+                                delayFramePerWave: 30,
+                                ammoController: 'continual_track',
+                                ammoControllerParams: {
+                                    prepare: 30,
+                                    aim: 90,
+                                    maxTurnRad: Math.PI / 48
+                                }
+                            }
+                        },
+                        {
+                            wait: 0, after: 240,
+                            skill: 'continualShooter',
+                            params: {
+                                count: 1,
+                                speed: 3,
+                                distance: 2000,
+                                ammoController: 'ice_ball',
+                                ammoControllerParams: {
+                                    subAmmoRange: 700
+                                }
+                            }
+                        },
+                        {
+                            wait: 0, after: 240,
+                            skills: [
+                                {
+                                    skill: 'continualShooter',
+                                    params: {
+                                        count: 10,
+                                        speed: 5,
+                                        distance: 2000,
+                                        delayFramePerWave: 5,
+                                        ammoController: 'continual_track',
+                                        deltaPositonPerWave(index: number, pos: Vector) {
+                                            const dir = pos.clone().normalize().multiplyScalar(- 120);
+                                            return pos.normalize().multiplyScalar((index + 1) * 50).rotate(- Math.PI * 2 / 5)
+                                                .add(dir);
+                                        },
+                                        ammoControllerParams: {
+                                            prepare: 10,
+                                            aim: 120,
+                                            maxTurnRad: 0,
+                                            origin_speed: 10 / 10
+                                        }
+                                    }
+                                },
+                                {
+                                    skill: 'continualShooter',
+                                    params: {
+                                        count: 10,
+                                        speed: 5,
+                                        distance: 2000,
+                                        delayFramePerWave: 5,
+                                        ammoController: 'continual_track',
+                                        deltaPositonPerWave(index: number, pos: Vector) {
+                                            const dir = pos.clone().normalize().multiplyScalar(- 120);
+                                            return pos.normalize().multiplyScalar((index + 1) * 50).rotate(Math.PI * 2 / 5)
+                                                .add(dir);
+                                        },
+                                        ammoControllerParams: {
+                                            prepare: 10,
+                                            aim: 120,
+                                            maxTurnRad: 0,
+                                            origin_speed: 10 / 10
+                                        }
+                                    }
+                                },
+                                {
+                                    skill: 'continualShooter',
+                                    params: {
+                                        count: 10,
+                                        speed: 5,
+                                        distance: 2000,
+                                        initialDelay: 30,
+                                        delayFramePerWave: 5,
+                                        ammoController: 'continual_track',
+                                        deltaPositonPerWave(index: number, pos: Vector) {
+                                            const dir = pos.clone().normalize().multiplyScalar(- 150);
+                                            return pos.normalize().multiplyScalar((index + 1) * 60).rotate(- Math.PI * 3 / 5)
+                                                .add(dir);
+                                        },
+                                        ammoControllerParams: {
+                                            prepare: 10,
+                                            aim: 120,
+                                            maxTurnRad: 0,
+                                            origin_speed: 10 / 10
+                                        }
+                                    }
+                                },
+                                {
+                                    skill: 'continualShooter',
+                                    params: {
+                                        count: 10,
+                                        speed: 5,
+                                        distance: 2000,
+                                        initialDelay: 30,
+                                        delayFramePerWave: 5,
+                                        ammoController: 'continual_track',
+                                        deltaPositonPerWave(index: number, pos: Vector) {
+                                            const dir = pos.clone().normalize().multiplyScalar(- 150);
+                                            return pos.normalize().multiplyScalar((index + 1) * 60).rotate(Math.PI * 3 / 5)
+                                                .add(dir);
+                                        },
+                                        ammoControllerParams: {
+                                            prepare: 10,
+                                            aim: 120,
+                                            maxTurnRad: 0,
+                                            origin_speed: 10 / 10
+                                        }
+                                    }
+                                },
+                            ]
+                        },
                         // {
                         //     wait: 0, after: 240,
                         //     skills: [

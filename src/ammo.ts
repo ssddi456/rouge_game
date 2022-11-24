@@ -26,7 +26,7 @@ interface AmmoInitProps {
     damage: number,
     head?: AnimatedSprite,
     trail?: Texture | null,
-    hitEffect?: AnimatedSprite,
+    hitEffect?: AnimatedSprite | null,
     controller?: AmmoControllerKey;
     controllerParams?: any
 }
@@ -257,7 +257,7 @@ export class AmmoPool implements IObjectPools {
         damage: number,
         head: AnimatedSprite,
         trail: Texture | null,
-        hitEffect: AnimatedSprite,
+        hitEffect: AnimatedSprite | null,
         controller?: AmmoControllerKey,
         controllerParams?: any
     ) {

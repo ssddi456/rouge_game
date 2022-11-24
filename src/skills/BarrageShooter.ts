@@ -88,6 +88,7 @@ export class BarrageShooter extends ActiveSkill {
             speed,
             waves,
             distance,
+            initialDelay,
             delayFramePerWave,
             deltaRadPerWave,
             ammoController,
@@ -104,7 +105,7 @@ export class BarrageShooter extends ActiveSkill {
             for (let jndex = 0; jndex < waves; jndex++) {
                 const newDir = initialVector.clone().rotate(deltaRadPerWave * jndex);
                 this.shootQueue.push({
-                    frameDelay: jndex * delayFramePerWave,
+                    frameDelay: initialDelay + jndex * delayFramePerWave,
                     from: this.castPos.clone().add(newDir.clone().normalize().multiplyScalar(this.owner?.size || 10)),
                     dir: newDir,
                     shooted: false,
@@ -128,6 +129,7 @@ const defaultBarrageShooterCastParams = {
     speed: 10,
     distance: 0,
     waves: 9,
+    initialDelay: 0,
     delayFramePerWave: 15,
     deltaRadPerWave: 0,
     ammoController: undefined as undefined | string,

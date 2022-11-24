@@ -18,6 +18,7 @@ export class ContinualShooter extends BarrageShooter {
             count,
             speed,
             distance,
+            initialDelay,
             delayFramePerWave,
             deltaRadPerWave,
             deltaPositonPerWave,
@@ -33,10 +34,10 @@ export class ContinualShooter extends BarrageShooter {
         for (let index = 0; index < count; index++) {
             const from = this.castPos.clone().add(initialVector.clone().normalize().multiplyScalar(this.owner?.size || 10));
             if (deltaPositonPerWave) {
-                from.add(deltaPositonPerWave instanceof Vector ? deltaPositonPerWave : deltaPositonPerWave(index, initialVector))
+                from.add(deltaPositonPerWave instanceof Vector ? deltaPositonPerWave : deltaPositonPerWave(index, initialVector.clone()))
             }
             this.shootQueue.push({
-                frameDelay: index * delayFramePerWave,
+                frameDelay: initialDelay + index * delayFramePerWave,
                 from,
                 dir: initialVector.clone().rotate(typeof deltaRadPerWave === 'number' ? deltaRadPerWave : deltaRadPerWave(index)),
                 shooted: false,
@@ -55,6 +56,7 @@ const defaultContinualShooterCastParams = {
     count: 6,
     speed: 10,
     distance: 0,
+    initialDelay: 0,
     delayFramePerWave: 15,
     deltaRadPerWave: 0 as (number | ((c: number) => number)),
     deltaPositonPerWave: undefined as (undefined | Vector | ((c: number, iv: Vector) => Vector)),
