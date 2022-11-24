@@ -43,8 +43,6 @@ export class ContinualShooter extends BarrageShooter {
                 shooted: false,
                 range: distance ? (distance * 1000 / 60 / speed) : 0,
                 damage: 1,
-                hitEffects: [],
-                ammoDieEffects: [],
                 controller: ammoController,
                 controllerParams: ammoControllerParams,
             })

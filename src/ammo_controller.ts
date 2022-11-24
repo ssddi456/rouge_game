@@ -4,6 +4,7 @@ import { getRunnerApp } from "./runnerApp";
 import { Disposible, Updatable } from "./types";
 import { SequenceBehavior } from "./sequance_behavior";
 import { Ammo } from "./ammo";
+import { BUFFER_EVENTNAME_DEAD } from "./buffer";
 
 export type AmmoControllerKey = (keyof (typeof AmmoControllerMap));
 export interface AmmoController<T extends { last: number}> {
@@ -88,21 +89,60 @@ export interface IceBallAmmoParams {
     subAmmoController?: AmmoControllerKey,
     subAmmoControllerParams?: any,
     radius: number,
-    last: 0,
+    emitCount: number,
+    last: number,
 }
 
 const ice_ball: AmmoController<IceBallAmmoParams> = {
     init(ammo, params) {
-        return {
+        const ammoData = {
             currentDir: ammo.direct.clone().normalize(),
-            subAmmoSpeed: 0.5,
-            radBetween: Math.PI / 9,
-            delayFramePerWave: 5,
+            subAmmoSpeed: 5,
+            radBetween: Math.PI * 2 / 7,
+            delayFramePerWave: 3,
             subAmmoRange: 500,
             radius: ammo.size,
             ...params,
-            last: 0
-        }
+            emitCount: 0,
+            bustCount: 12,
+            last: 0,
+        };
+        ammo.bufferList.push({
+            type: 'event',
+            eventName: BUFFER_EVENTNAME_DEAD,
+            id: 'ice_ball_bust',
+            properties: {},
+            takeEffect(ammo: Ammo) {
+                const {
+                    subAmmoSpeed,
+                    subAmmoRange,
+                    subAmmoController,
+                    subAmmoControllerParams,
+                    radius,
+                    bustCount,
+                } = ammoData;
+
+                const ammoPool = getRunnerApp().getEnemyAmmoPool();
+                const initDir = ammo.direct.clone();
+                const delta = Math.PI / 6;
+
+                for (let index = 0; index < bustCount; index++) {
+                    ammoPool.emit(
+                        initDir.clone().multiplyScalar(subAmmoSpeed / 10),
+                        ammo.position.clone().add(initDir.clone().normalize().multiplyScalar(radius)),
+                        subAmmoRange * 1.5 * 1000 / 60 / subAmmoSpeed,
+                        1,
+                        ammo.head,
+                        null,
+                        ammo.hit_effect,
+                        subAmmoController,
+                        subAmmoControllerParams,
+                    );
+                    initDir.rotate(delta);
+                }
+            },
+        })
+        return ammoData;
     },
     update(ammo, ammoData, player?) {
         const {
@@ -115,22 +155,26 @@ const ice_ball: AmmoController<IceBallAmmoParams> = {
             subAmmoController,
             subAmmoControllerParams,
             radius,
+            emitCount,
         } = ammoData;
 
         const ammoPool = getRunnerApp().getEnemyAmmoPool();
         if ((last % delayFramePerWave) == 0) {
-            ammoPool.emit(
-                currentDir.clone().multiplyScalar(subAmmoSpeed),
-                ammo.position.clone().add(currentDir.clone().multiplyScalar(radius)),
-                subAmmoRange,
-                1,
-                ammo.head,
-                null,
-                ammo.hit_effect,
-                subAmmoController,
-                subAmmoControllerParams,
-            );
+            if (emitCount % Math.floor(2 * Math.PI / radBetween) !== 0) {
+                ammoPool.emit(
+                    currentDir.clone().multiplyScalar(subAmmoSpeed / 10),
+                    ammo.position.clone().add(currentDir.orthogonal().normalize().multiplyScalar(radius)),
+                    subAmmoRange * 1000 / 60 / subAmmoSpeed,
+                    1,
+                    ammo.head,
+                    null,
+                    ammo.hit_effect,
+                    subAmmoController,
+                    subAmmoControllerParams,
+                );
+            }
             currentDir.rotate(radBetween);
+            ammoData.emitCount ++;
         }
     },
 };

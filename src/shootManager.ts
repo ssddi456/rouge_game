@@ -26,8 +26,8 @@ export interface ShootInfo {
     shooted: boolean;
     damage: number;
     whenShoot?: () => void;
-    hitEffects: EventBuffer[];
-    ammoDieEffects: EventBuffer[];
+    hitEffects?: EventBuffer[];
+    ammoDieEffects?: EventBuffer[];
     controller?: string,
     controllerParams?: any,
 }
@@ -150,7 +150,7 @@ export class ShootManager implements Buffable {
             }
         })();
 
-        ammo?.bufferList.push(...shootInfo.hitEffects, ...shootInfo.ammoDieEffects);
+        ammo?.bufferList.push(...(shootInfo.hitEffects || []), ...(shootInfo.ammoDieEffects || []));
 
         if (this.lastShootTime < app.now() - this.shootInterval) {
             this.shooting = true;

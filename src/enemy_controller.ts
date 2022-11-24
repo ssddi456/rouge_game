@@ -267,32 +267,33 @@ export const EnemyControllerMap: Record<string, EnemyController<any>> = {
                         continualShooter
                     },
                     [
-                        {
-                            wait: 0, after: 240,
-                            skill: 'continualShooter',
-                            params: {
-                                count: 3,
-                                speed: 3,
-                                distance: 2000,
-                                delayFramePerWave: 30,
-                                ammoController: 'continual_track',
-                                ammoControllerParams: {
-                                    prepare: 30,
-                                    aim: 90,
-                                    maxTurnRad: Math.PI / 48
-                                }
-                            }
-                        },
+                        // {
+                        //     wait: 0, after: 240,
+                        //     skill: 'continualShooter',
+                        //     params: {
+                        //         count: 3,
+                        //         speed: 3,
+                        //         distance: 2000,
+                        //         delayFramePerWave: 30,
+                        //         ammoController: 'continual_track',
+                        //         ammoControllerParams: {
+                        //             prepare: 30,
+                        //             aim: 90,
+                        //             maxTurnRad: Math.PI / 48
+                        //         }
+                        //     }
+                        // },
                         {
                             wait: 0, after: 240,
                             skill: 'continualShooter',
                             params: {
                                 count: 1,
                                 speed: 3,
-                                distance: 2000,
+                                distance: 600,
                                 ammoController: 'ice_ball',
                                 ammoControllerParams: {
-                                    subAmmoRange: 700
+                                    subAmmoRange: 500,
+                                    radius: 30
                                 }
                             }
                         },
@@ -438,7 +439,7 @@ export const EnemyControllerMap: Record<string, EnemyController<any>> = {
                         // },
                         // { skill: 'singleShoot', wait: 0, after: 240, },
                         // { skill: 'barrageShooter', wait: 0, after: 240, },
-                        { skill: 'laserShootSkill', wait: 0, after: 240, },
+                        // { skill: 'laserShootSkill', wait: 0, after: 240, },
                         // { skill: 'laserShootSkill2', wait: 0, after: 240, },
 
                         // { skill: 'singleShoot', wait: 0, after: 240, },
