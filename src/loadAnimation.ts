@@ -4,6 +4,7 @@ import { initUpgradeSprites } from './upgrades/base';
 import { cloneAnimationSprites } from './sprite_utils';
 import { getRunnerApp } from './runnerApp';
 import { Coords, GetResourceFunc, TextureConfig } from './types';
+import { Vector } from './vector';
 
 export function createTextureFromConfig(base: BaseTexture, config: TextureConfig) {
     if (Array.isArray(config)) {
@@ -187,6 +188,7 @@ export async function loadSpriteSheet(loader: PIXI.Loader, name: string) {
     const url = getImageUrl(`${name}.rgba.png`);
     return await loadAnimation(loader, name, url, spriteSheet, animateIndexMap);
 }
+
 export async function loadSprites(loader: PIXI.Loader, name: string): Promise<Record<string, Sprite>> {
     const [
         spriteSheet,
@@ -240,8 +242,26 @@ export async function loadSprites(loader: PIXI.Loader, name: string): Promise<Re
         }
     });
 }
+
 export function getImageUrl(name: string) {
     return `http://localhost:7001/public/${name}`
+}
+
+export async function loadShapes(loader: PIXI.Loader, name: string): Promise<Record<string, VectorGroup>> {
+    const [
+        shapeConfig,
+    ] = await Promise.all([
+        fetch(
+            `http://localhost:7001/get_shape?name=${encodeURIComponent(name)}`
+        )
+            .then((res) => res.json())
+            .then(({ data: { config } }) => config),
+    ]);
+    return shapeConfig;
+}
+
+interface VectorGroup {
+    vectors: { x: number, y: number }[];
 }
 
 const animations = {
@@ -269,6 +289,9 @@ const sprites = {
     freezeFXSmall: '20m2d_FreezeFXSmall',
     powerupPanel: '20m2d_PowerupPanel',
     heartAnimation: '20m2d_HeartAnimation',
+};
+
+const shapes = {
 };
 
 /** not config start */
@@ -328,7 +351,7 @@ export async function setupResource(app: Application,) {
     const freezeFXSmallSpriteMap = await loadSprites(loader, '20m2d_FreezeFXSmall');
     const powerupPanelSpriteMap = await loadSprites(loader, '20m2d_PowerupPanel');
     const heartAnimationSpriteMap = await loadSprites(loader, '20m2d_HeartAnimation');
-/** load resource end */
+    /** load resource end */
 
     await new Promise<void>(r => {
         const name1 = 'magicCircle1';
@@ -365,25 +388,25 @@ export async function setupResource(app: Application,) {
             resources,
 
             /** declare resource start */
-        playerAnimateMap: cloneAnimationSprites(playerAnimateMap) as Record<"idle" | "idle_back" | "attack" | "attack_back" | "heavy_attack" | "heavy_attack_back" | "laugh" | "laugh_back" | "buff_left" | "buff_left_back" | "buff_right" | "buff_right_back" | "circle" | "sword" | "whip" | "wormling", AnimatedSprite>,
-        bowAnimateMap: cloneAnimationSprites(bowAnimateMap) as Record<"idle" | "idle_back" | "bow1" | "bow2" | "bow3" | "bow4" | "bow5", AnimatedSprite>,
-        gunAnimateMap: cloneAnimationSprites(gunAnimateMap) as Record<"idle" | "idle_back" | "gun1" | "gun2" | "gun3" | "gun4" | "gun5", AnimatedSprite>,
-        enemyAnimateMap: cloneAnimationSprites(enemyAnimateMap) as Record<"idle" | "idle_back" | "run" | "die" | "die_back" | "run_back" | "bunny_idle" | "bunny_idle_back" | "bunny_die" | "bunny_die_back", AnimatedSprite>,
-        succubusAnimateMap: cloneAnimationSprites(succubusAnimateMap) as Record<"succubus_idle" | "succubus_cast", AnimatedSprite>,
-        heartAnimationAnimateMap: cloneAnimationSprites(heartAnimationAnimateMap) as Record<"hit_0", AnimatedSprite>,
-        hitEffectAnimateMap: cloneAnimationSprites(hitEffectAnimateMap) as Record<"hit_0" | "hit_1" | "hit_2" | "hit_3" | "hit_4" | "hit_5" | "hit_6" | "hit_7" | "hit_8" | "hit_9" | "hit_10" | "hit_11" | "hit_12" | "hit_13" | "hit_14" | "hit_15", AnimatedSprite>,
-        laserAnimateMap: cloneAnimationSprites(laserAnimateMap) as Record<"hit_0" | "hit_1", AnimatedSprite>,
-        treeAnimateMap: cloneAnimationSprites(treeAnimateMap) as Record<"0" | "1" | "2" | "3", AnimatedSprite>,
-        iceAnimateMap: cloneAnimationSprites(iceAnimateMap) as Record<"projectile", AnimatedSprite>,
-        ice_hitAnimateMap: cloneAnimationSprites(ice_hitAnimateMap) as Record<"hit_effect", AnimatedSprite>,
-        thunderAnimateMap: cloneAnimationSprites(thunderAnimateMap) as Record<"projectile", AnimatedSprite>,
-        thunder_hitAnimateMap: cloneAnimationSprites(thunder_hitAnimateMap) as Record<"hit_effect", AnimatedSprite>,
+            playerAnimateMap: cloneAnimationSprites(playerAnimateMap) as Record<"idle" | "idle_back" | "attack" | "attack_back" | "heavy_attack" | "heavy_attack_back" | "laugh" | "laugh_back" | "buff_left" | "buff_left_back" | "buff_right" | "buff_right_back" | "circle" | "sword" | "whip" | "wormling", AnimatedSprite>,
+            bowAnimateMap: cloneAnimationSprites(bowAnimateMap) as Record<"idle" | "idle_back" | "bow1" | "bow2" | "bow3" | "bow4" | "bow5", AnimatedSprite>,
+            gunAnimateMap: cloneAnimationSprites(gunAnimateMap) as Record<"idle" | "idle_back" | "gun1" | "gun2" | "gun3" | "gun4" | "gun5", AnimatedSprite>,
+            enemyAnimateMap: cloneAnimationSprites(enemyAnimateMap) as Record<"idle" | "idle_back" | "run" | "die" | "die_back" | "run_back" | "bunny_idle" | "bunny_idle_back" | "bunny_die" | "bunny_die_back", AnimatedSprite>,
+            succubusAnimateMap: cloneAnimationSprites(succubusAnimateMap) as Record<"succubus_idle" | "succubus_cast", AnimatedSprite>,
+            heartAnimationAnimateMap: cloneAnimationSprites(heartAnimationAnimateMap) as Record<"hit_0", AnimatedSprite>,
+            hitEffectAnimateMap: cloneAnimationSprites(hitEffectAnimateMap) as Record<"hit_0" | "hit_1" | "hit_2" | "hit_3" | "hit_4" | "hit_5" | "hit_6" | "hit_7" | "hit_8" | "hit_9" | "hit_10" | "hit_11" | "hit_12" | "hit_13" | "hit_14" | "hit_15", AnimatedSprite>,
+            laserAnimateMap: cloneAnimationSprites(laserAnimateMap) as Record<"hit_0" | "hit_1", AnimatedSprite>,
+            treeAnimateMap: cloneAnimationSprites(treeAnimateMap) as Record<"0" | "1" | "2" | "3", AnimatedSprite>,
+            iceAnimateMap: cloneAnimationSprites(iceAnimateMap) as Record<"projectile", AnimatedSprite>,
+            ice_hitAnimateMap: cloneAnimationSprites(ice_hitAnimateMap) as Record<"hit_effect", AnimatedSprite>,
+            thunderAnimateMap: cloneAnimationSprites(thunderAnimateMap) as Record<"projectile", AnimatedSprite>,
+            thunder_hitAnimateMap: cloneAnimationSprites(thunder_hitAnimateMap) as Record<"hit_effect", AnimatedSprite>,
 
-        upgradeSpriteMap: upgradeSpriteMap as Record<"0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "10" | "11" | "12" | "13" | "14" | "15" | "16" | "17" | "18" | "19" | "20" | "21" | "22" | "23" | "24" | "25" | "26" | "27" | "28" | "29" | "30" | "31" | "32" | "33" | "34" | "35" | "36" | "37" | "38" | "39" | "40" | "41" | "42" | "43" | "44" | "45" | "46" | "47" | "48" | "49" | "50" | "51" | "52" | "53" | "54" | "55" | "56" | "57" | "58" | "59" | "60" | "61" | "62" | "63" | "64" | "65" | "66" | "67" | "68" | "69" | "70" | "71" | "72" | "73" | "74" | "75" | "76" | "77" | "78" | "79" | "80" | "81" | "82" | "83" | "84" | "85" | "86" | "87" | "88" | "89" | "90" | "91" | "92" | "93" | "94" | "95" | "96" | "97" | "98" | "99" | "100" | "101" | "102" | "103" | "104" | "105" | "106" | "107" | "108" | "109" | "110" | "111" | "112" | "113" | "114" | "115" | "116" | "117" | "118" | "119" | "120" | "121" | "122" | "123" | "124" | "125" | "126" | "127" | "128" | "129" | "130" | "131" | "132" | "133" | "134" | "135" | "136" | "137" | "138" | "139" | "140" | "141" | "142" | "143" | "144" | "145" | "146" | "147" | "148" | "149" | "150" | "151" | "152" | "153" | "154" | "155", Sprite>,
-        freezeFXSmallSpriteMap: freezeFXSmallSpriteMap as Record<"0" | "1" | "2" | "3" | "4", Sprite>,
-        powerupPanelSpriteMap: powerupPanelSpriteMap as Record<"0" | "1" | "2" | "3", Sprite>,
-        heartAnimationSpriteMap: heartAnimationSpriteMap as Record<"0" | "1" | "2" | "3", Sprite>,
-/** declare resource end */
+            upgradeSpriteMap: upgradeSpriteMap as Record<"0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "10" | "11" | "12" | "13" | "14" | "15" | "16" | "17" | "18" | "19" | "20" | "21" | "22" | "23" | "24" | "25" | "26" | "27" | "28" | "29" | "30" | "31" | "32" | "33" | "34" | "35" | "36" | "37" | "38" | "39" | "40" | "41" | "42" | "43" | "44" | "45" | "46" | "47" | "48" | "49" | "50" | "51" | "52" | "53" | "54" | "55" | "56" | "57" | "58" | "59" | "60" | "61" | "62" | "63" | "64" | "65" | "66" | "67" | "68" | "69" | "70" | "71" | "72" | "73" | "74" | "75" | "76" | "77" | "78" | "79" | "80" | "81" | "82" | "83" | "84" | "85" | "86" | "87" | "88" | "89" | "90" | "91" | "92" | "93" | "94" | "95" | "96" | "97" | "98" | "99" | "100" | "101" | "102" | "103" | "104" | "105" | "106" | "107" | "108" | "109" | "110" | "111" | "112" | "113" | "114" | "115" | "116" | "117" | "118" | "119" | "120" | "121" | "122" | "123" | "124" | "125" | "126" | "127" | "128" | "129" | "130" | "131" | "132" | "133" | "134" | "135" | "136" | "137" | "138" | "139" | "140" | "141" | "142" | "143" | "144" | "145" | "146" | "147" | "148" | "149" | "150" | "151" | "152" | "153" | "154" | "155", Sprite>,
+            freezeFXSmallSpriteMap: freezeFXSmallSpriteMap as Record<"0" | "1" | "2" | "3" | "4", Sprite>,
+            powerupPanelSpriteMap: powerupPanelSpriteMap as Record<"0" | "1" | "2" | "3", Sprite>,
+            heartAnimationSpriteMap: heartAnimationSpriteMap as Record<"0" | "1" | "2" | "3", Sprite>,
+            /** declare resource end */
         });
 
         map.enemyAnimateMap = {

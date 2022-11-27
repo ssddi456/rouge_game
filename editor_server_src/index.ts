@@ -8,6 +8,7 @@ const configRoot = path.join(__dirname, '../src/assets/');
 const animationConfig = (name: string) => path.join(configRoot, `${name}.animation.json`);
 const markedConfig = (name: string) => path.join(configRoot, `${name}.marked.json`);
 const rgbaImage = (name: string) => path.join(configRoot, `${name}.rgba.png`);
+const shapeConfig = () => path.join(configRoot, `all.shape.json`);
 
 const resOk = (data: any) => {
     return {
@@ -102,6 +103,24 @@ app.post('/save_animation', (req, res, next) => {
         throw new Error('name or config is not found');
     }
     fs.writeJSONSync(animationConfig(req.body.name), req.body.config);
+    updateResource();
+    res.json(resOk({}));
+});
+
+
+app.get('/get_shape', (req, res) => {
+    const fileName = shapeConfig();
+    if (fs.existsSync(fileName)) {
+        const config = fs.readJSONSync(shapeConfig());
+        res.json(resOk({ config }));
+    } else {
+        fs.writeJSONSync(fileName, {});
+        res.json(resOk({ config: {} }));
+    }
+});
+
+app.post('/save_shape', (req, res) => {
+    fs.writeJSONSync(shapeConfig(), req.body.config);
     updateResource();
     res.json(resOk({}));
 });

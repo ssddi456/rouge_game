@@ -26,6 +26,7 @@ async function loadResourceMap() {
             console.log(files);
             const animationExt = '.animation.json';
             const spritsExt = '.marked.json';
+            const shapeExt = '.shape.json';
             const animations = files.filter(x => x.endsWith(animationExt)).map(x => path.basename(x, animationExt));
             const sprites = files.filter(x => x.endsWith(spritsExt)).map(x => path.basename(x, spritsExt));
 
@@ -80,9 +81,21 @@ async function loadConfig(source: string) {
     const spritesAlias: Record<string, string> = eval(`(${spritesConfig![0].declarationList!.declarations![0]!.initializer?.getFullText()})`);
     console.log('spritesAlias', spritesAlias);
 
+    const shapesConfig = sourceFile.statements.filter(x => (
+        ts.isVariableStatement(x)
+        && ts.isVariableDeclarationList(x.declarationList)
+        && ts.isIdentifier(x.declarationList.declarations[0].name)
+        && x.declarationList.declarations[0].name.text == 'shapes'
+    )) as ts.VariableStatement[];
+
+    console.assert(ts.isObjectLiteralExpression(shapesConfig![0].declarationList!.declarations![0]!.initializer!));
+    const shapesAlias: Record<string, string> = eval(`(${shapesConfig![0].declarationList!.declarations![0]!.initializer?.getFullText()})`);
+    console.log('shapesAlias', shapesAlias);
+
     return {
         animationsAlias,
         spritesAlias,
+        shapesAlias,
     };
 }
 
@@ -95,6 +108,7 @@ async function updateResource() {
 
     const loadAnimateCodeTpl = (alias: string, resource: string) => `    const ${alias}AnimateMap = await loadSpriteSheet(loader, '${resource}');`;
     const loadSpriteCodeTpl = (alias: string, resource: string) => `    const ${alias}SpriteMap = await loadSprites(loader, '${resource}');`;
+    const loadShapeCodeTpl = (alias: string, resource: string) => `    const ${alias}ShapeMap = await loadShapes('${resource}');`;
 
     const declareAnimateCodeTpl = (alias: string, origin: string) => `        ${alias}AnimateMap: cloneAnimationSprites(${alias}AnimateMap) as Record<${
         resourceContent.animationsNames[origin].map(x => JSON.stringify(x)).join(' | ')
@@ -102,6 +116,9 @@ async function updateResource() {
     const declareSpriteCodeTpl = (alias: string, origin: string) => `        ${alias}SpriteMap: ${alias}SpriteMap as Record<${
         resourceContent.spritesNames[origin].map(x => JSON.stringify(x)).join(' | ')
     }, Sprite>,`;
+    const declareShapeCodeTpl = (alias: string, origin: string) => `        ${alias}ShapeMap: ${alias}ShapeMap as Record<${
+        resourceContent.spritesNames[origin].map(x => JSON.stringify(x)).join(' | ')
+    }, VectorGroup>,`;
 
     console.log(
         resourceContent.animations,
@@ -133,10 +150,16 @@ async function updateResource() {
         Object.entries(codeConfig.animationsAlias).map((entry) => loadAnimateCodeTpl(...entry)).join('\n'),
         '',
         Object.entries(codeConfig.spritesAlias).map((entry) => loadSpriteCodeTpl(...entry)).join('\n'),
+        '',
+        Object.entries(codeConfig.shapesAlias).map((entry) => loadShapeCodeTpl(...entry)).join('\n'),
+        '',
         sourceCode.slice(indexLoaderCodeRange[1], indexDeclareCodeRange[0]),
         Object.keys(codeConfig.animationsAlias).map(alias => declareAnimateCodeTpl(alias, codeConfig.animationsAlias[alias])).join('\n'),
         '',
         Object.keys(codeConfig.spritesAlias).map(alias => declareSpriteCodeTpl(alias, codeConfig.spritesAlias[alias])).join('\n'),
+        '',
+        Object.keys(codeConfig.shapesAlias).map(alias => declareShapeCodeTpl(alias, codeConfig.shapesAlias[alias])).join('\n'),
+        '',
         sourceCode.slice(indexDeclareCodeRange[1]),
     ].join('\n'))
 }

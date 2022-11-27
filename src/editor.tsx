@@ -11,6 +11,7 @@ import "antd/dist/antd.css";
 import ButtonGroup from "antd/lib/button/button-group";
 import { AnimationEditor } from "./components/AnimationEditor";
 import { SpriteEditor } from "./components/SpriteEditor";
+import { ShapeEditor } from "./components/ShapeEditor";
 
 export interface SheetInfo {
     name: string;
@@ -35,6 +36,7 @@ class App extends React.Component {
                 <Routes>
                     <Route path="/animation" element={<AnimationEditor />} />
                     <Route path="/sprite" element={<SpriteEditor />} />
+                    <Route path="/shape" element={<ShapeEditor />} />
                 </Routes>
             </BrowserRouter>
         );
