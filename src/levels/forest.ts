@@ -10,6 +10,7 @@ import { GameSession } from "../game_session";
 import { HotClass } from "../helper/class_reloader";
 import { Level } from "../level";
 import { PlayerStatusMenu } from "../menu/playerStatus";
+import { Pet } from "../pet";
 import { Player } from "../player";
 import { getRunnerApp } from "../runnerApp";
 import { Forest, Tree } from "../tree";
@@ -182,6 +183,9 @@ export class ForestLevel extends Level {
         }
         createStub();
 
+        runnerApp.addMisc(
+            new Pet(player, new Vector(30, 30))
+        );
         // this.session.pickUpgrade(arrow_brancing);
 
         this.ui = new PlayerStatusMenu(gameView, (gameView as any).worldWidth, (gameView as any).worldHeight);
