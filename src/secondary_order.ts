@@ -36,10 +36,11 @@ export class SecondaryDynamics extends UpdatableObject {
         const t: number = 1;
         const xp = this.x.clone();
         const xd = new Vector(
-            (xp.x - this.x.x) / t,
-            (xp.y - this.x.y) / t,
+            (xp.x - this.xp.x) / t,
+            (xp.y - this.xp.y) / t,
         );
         this.xp = xp;
+
         let k1_stable, k2_stable;
         if (this.w * t < this.z) {
             k1_stable = this.k1;

@@ -25,6 +25,9 @@ export class Vector {
     add(v: { x: number, y: number }) {
         this.x += v.x;
         this.y += v.y;
+        if (isNaN(this.x) || isNaN(this.y) || !isFinite(this.x) || !isFinite(this.y)) {
+            debugger;
+        }
         return this;
     }
 
