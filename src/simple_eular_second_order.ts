@@ -1,36 +1,23 @@
+import { SecondOrder } from "./secondary_order";
 import { UpdatableObject } from "./types";
 import { Vector } from "./vector";
 
-export class EularSecondaryDynamics extends UpdatableObject {
-    x: Vector;
-    xp: Vector;
-    y: Vector;
-    yd: Vector;
+export class EularSecondaryDynamics extends SecondOrder {
 
     k1: number;
     k2: number;
 
     constructor(/** for max leading */f: number, /** for leading speed */z: number, xe: Vector) {
-        super();
+        super(xe);
 
         this.k1 = f;
         this.k2 = z;
-
-        this.x = xe;
-        this.xp = xe.clone();
-        this.y = xe.clone();
-        this.yd = new Vector(0, 0);
     }
 
 
     update(): void {
-        const t: number = 1;
-        const xp = this.x.clone();
-        const xd = new Vector(
-            (xp.x - this.xp.x) / t,
-            (xp.y - this.xp.y) / t,
-        );
-        this.xp = xp;
+        const t: number = this.getT();
+        const xd = this.updateXd();
 
         this.y.setV({
             x: this.x.x + this.yd.x,
@@ -48,5 +35,61 @@ export class EularSecondaryDynamics extends UpdatableObject {
             x: this.k1 * xd.x + decx,
             y: this.k1 * xd.y + decy,
         })
+    }
+}
+
+enum LegSecondaryDynamicsState {
+    onGround = 1,
+    inAir = 2
+}
+
+export class LegSecondaryDynamics extends SecondOrder {
+    k1: number;
+    last = 0;
+    state = LegSecondaryDynamicsState.onGround;
+
+    constructor(
+        /** for leading p */f: number,
+        public frameCountOnGround: number, public frameCountInAir: number, startOffSet: number,
+        xe: Vector
+    ) {
+        super(xe);
+
+        this.k1 = f;
+        this.last = startOffSet
+    }
+
+    update(): void {
+        const xd = this.updateXd();
+
+        if (this.state == LegSecondaryDynamicsState.onGround) {
+            // do nothing
+        } else {
+            this.y.setV({
+                x: this.x.x + this.yd.x,
+                y: this.x.y + this.yd.y,
+            });
+            // wip
+            // dacc
+            
+            this.yd.add({
+                x: this.k1 * xd.x,
+                y: this.k1 * xd.y,
+            });
+        }
+
+        if (this.state == LegSecondaryDynamicsState.onGround) {
+            if (this.last > this.frameCountOnGround) {
+                this.last = 0;
+                this.state = LegSecondaryDynamicsState.inAir;
+            }
+        } else if (this.state == LegSecondaryDynamicsState.inAir) {
+            if (this.last > this.frameCountInAir) {
+                this.last = 0;
+                this.state = LegSecondaryDynamicsState.inAir;
+            }
+        }
+
+        this.last++;
     }
 }
