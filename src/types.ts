@@ -40,6 +40,13 @@ export abstract class UpdatableObject implements Updatable, Disposible {
         return obj;
     }
 
+    removeChidlren<T extends Updatable & Disposible>(obj: T) {
+        const indexUpdate = this.updations.indexOf(obj);
+        this.updations.splice(indexUpdate, 1,);
+        const indexDispositions = this.dispositions.indexOf(obj);
+        this.dispositions.splice(indexDispositions, 1,);
+    }
+
     update() {
         this.cacheProperty?.();
 

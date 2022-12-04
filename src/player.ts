@@ -144,7 +144,7 @@ export class Player extends UpdatableObject
         pointer.drawCircle(0, 0, 10);
         pointer.endFill();
         this.sprite.addChild(pointer);
-        applyFireAura(this);
+        // applyFireAura(this);
     }
     assets: PIXI.DisplayObject[] = [];
     ground_assets: PIXI.DisplayObject[] = [];

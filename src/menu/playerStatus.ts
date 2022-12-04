@@ -6,6 +6,11 @@ import { HealthProgressbar } from "../uicomponents/healthProcessbar";
 import { Progressbar } from "../uicomponents/processbar";
 import { BaseMenu } from "./base";
 
+
+const ammoHeight = 32;
+const healthHeight = 80;
+const expBarHeight = 30;
+
 export class PlayerStatusMenu extends BaseMenu {
     sprite!: Container | null;
 
@@ -24,6 +29,7 @@ export class PlayerStatusMenu extends BaseMenu {
     ammoMax: Text | undefined;
     ammoProgress: Progressbar | undefined;
     padding = 30;
+    innerPadding = 10;
 
     init() {
         this.initSprite();
@@ -48,24 +54,24 @@ export class PlayerStatusMenu extends BaseMenu {
 
     initHealth() {
         const healthContainer = this.sprite!.addChild(new Container);
-        healthContainer.position.set(this.padding, this.height - this.padding - 80 - 20 - 80);
+        healthContainer.position.set(this.padding, this.height - this.padding - healthHeight - this.innerPadding - expBarHeight);
 
         this.healthProgressBar = this.sprite!.addChild(new HealthProgressbar);
-        this.healthProgressBar.height = 80;
-        this.healthProgressBar.position.y = this.height - this.padding - 80 - 20 - 80;
+        this.healthProgressBar.height = healthHeight;
+        this.healthProgressBar.position.y = this.height - this.padding - healthHeight - this.innerPadding - expBarHeight;
 
     }
 
     initExp() {
         const expContainer = this.sprite!.addChild(new Container);
-        expContainer.position.set(this.padding, this.height - this.padding - 80);
+        expContainer.position.set(this.padding, this.height - this.padding - expBarHeight);
 
         this.expProgress =  expContainer.addChild(new Progressbar(0xbb1111));
         this.expProgress.position.x = -3;
-        this.expProgress.height = 85;
+        this.expProgress.height = expBarHeight;
         this.expProgress.width = this.width - 2 * this.padding + 6;
 
-        const timeFont: Partial<ITextStyle> = { fill: 0xffffff, fontSize: 80 };
+        const timeFont: Partial<ITextStyle> = { fill: 0xffffff, fontSize: 26 };
         this.expCurrent = expContainer.addChild(new Text('0', timeFont));
         const spliter = expContainer.addChild(new Text('/', timeFont));
         spliter.position.x = 140;
@@ -78,13 +84,13 @@ export class PlayerStatusMenu extends BaseMenu {
 
     initAmmos() {
         const ammoContainer = this.sprite!.addChild(new Container);
-        ammoContainer.position.set(this.padding, this.height - this.padding - 80 - 20 - 80 - 10 - 40);
+        ammoContainer.position.set(this.padding, this.height - this.padding - ammoHeight - this.innerPadding - healthHeight - this.innerPadding - expBarHeight);
         this.ammoProgress = ammoContainer.addChild(new Progressbar(0x332299))
-        this.ammoProgress.height = 42;
+        this.ammoProgress.height = ammoHeight;
         this.ammoProgress.width = 120 + 6;
         this.ammoProgress.position.x = -3;
 
-        const timeFont: Partial<ITextStyle> = { fill: 0xffffff, fontSize: 40 };
+        const timeFont: Partial<ITextStyle> = { fill: 0xffffff, fontSize: ammoHeight - 4 };
         this.ammoCurrent = ammoContainer.addChild(new Text('0', timeFont));
         const spliter = ammoContainer.addChild(new Text('/', timeFont));
         spliter.position.x = 40 / 2 * 2.5;

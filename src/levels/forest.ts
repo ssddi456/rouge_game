@@ -8,6 +8,7 @@ import { DropletPool } from "../droplet";
 import { EnemyPool } from "../enemy";
 import { GameSession } from "../game_session";
 import { HotClass } from "../helper/class_reloader";
+import { FollowLeg, LeadingLeg } from "../leg";
 import { Level } from "../level";
 import { PlayerStatusMenu } from "../menu/playerStatus";
 import { FollowPet, GuidingPet,} from "../pet";
@@ -183,8 +184,23 @@ export class ForestLevel extends Level {
         }
         createStub();
 
-        runnerApp.addMisc(new FollowPet(player, new Vector(30, 30)));
-        runnerApp.addMisc(new GuidingPet(player, new Vector(-30, 30)));
+        // runnerApp.addMisc(new FollowPet(player, new Vector(30, 30)));
+        // runnerApp.addMisc(new GuidingPet(player, new Vector(-30, 30)));
+
+        // spider legs
+        // so what?
+        runnerApp.addMisc(new LeadingLeg(player, new Vector(-50, -60), new Vector(-10, -20), [50, 80] ));
+        runnerApp.addMisc(new FollowLeg(player, new Vector(50, -60), new Vector(10, -20), [50, 80]));
+
+        runnerApp.addMisc(new FollowLeg(player, new Vector(-90, -20), new Vector(-20, -10), [70, 90]));
+        runnerApp.addMisc(new LeadingLeg(player, new Vector(90, -20), new Vector(20, -10), [70, 90]));
+
+        runnerApp.addMisc(new LeadingLeg(player, new Vector(-100, 40), new Vector(-25, 10), [80, 90]));
+        runnerApp.addMisc(new FollowLeg(player, new Vector(100, 40), new Vector(25, 10), [80, 90]));
+
+        runnerApp.addMisc(new FollowLeg(player, new Vector(-60, 80), new Vector(-10, 20), [80, 70]));
+        runnerApp.addMisc(new LeadingLeg(player, new Vector(60, 80), new Vector(10, 20), [80, 70]));
+
         // this.session.pickUpgrade(arrow_brancing);
 
         this.ui = new PlayerStatusMenu(gameView, (gameView as any).worldWidth, (gameView as any).worldHeight);
