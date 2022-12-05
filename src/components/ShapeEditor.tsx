@@ -1,13 +1,13 @@
 import { Row, Col, Select, message, Form, Input, Button, FormInstance } from "antd";
 import { Viewport } from "pixi-viewport";
-import { Application, Container, Texture } from "pixi.js";
-import { Component } from "react";
+import { Application, Container, Graphics, Texture } from "pixi.js";
+import React, { Component } from "react";
 import { PointXY, TextureConfig } from "../types";
 import { applyEditorMixin, editorProps, withEditorMixin } from "./editorUtils";
 
 type ShapeEditorState = typeof defaultShapeEditorState;
 const defaultShapeEditorState = {
-    shapes: {} as Record<string, PointXY>,
+    shapes: {} as Record<string, PointXY[]>,
     newShapeName: '',
     currentShapeName: '',
     selectedSpriteSheet: {} as Record<string | number, TextureConfig>,
@@ -25,21 +25,19 @@ export class ShapeEditor extends Component<ShapeEditorState> implements editorPr
     }
 
     initPixi(this: editorProps): void { }
-    bindCreateEmptySprite(this: editorProps): void { }
-    bindMoveSprite(this: editorProps): void { }
     initGrid(this: editorProps, width: number, height: number): void { }
 
     canvasContainerRef: HTMLDivElement | null = null;
     canvasApp: Application | null = null;
     gameview: Viewport | null = null;
-
+    shapeView: Graphics | null = null;
 
     componentWillMount() {
         this.loadShapeConfig();
     }
 
     loadShapeConfig() {
-        fetch('/get_shape')
+        fetch('http://localhost:7001/get_shape')
             .then(x => x.json())
             .then(x => {
                 this.setState({ shapes: x.data.config }, () => {
@@ -48,8 +46,57 @@ export class ShapeEditor extends Component<ShapeEditorState> implements editorPr
             });
     }
 
+    bindEvents(): void {
+        const gameview = this.gameview!;
+
+        // add point to shape
+        gameview.on('pointerdown', (e) => {
+            if (e.data.originalEvent.ctrlKey) {
+                const globalPos = e.data.global as PointXY;
+                const currentShape = this.getCurrentShape();
+                currentShape.push({ x: globalPos.x, y: globalPos.y });
+                this.drawCurrentShape();
+            }
+            if (e.data.originalEvent.shiftKey) {
+                const globalPos = e.data.global as PointXY;
+                const currentShape = this.getCurrentShape();
+                const filtered =currentShape.filter((p, i) => {
+                    const dx = p.x - globalPos.x;
+                    const dy = p.y - globalPos.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    return dist > 10;
+                });
+                this.setState({
+                    shapes: {
+                        ...this.state.shapes,
+                        [this.state.currentShapeName]: filtered
+                    }
+                }, () => {
+                    this.drawCurrentShape();
+                });
+
+            }
+        });
+    }
+
+    drawCurrentShape() {
+        const currentShape = this.getCurrentShape();
+        const gameview = this.gameview!;
+        if (this.shapeView) {
+            this.shapeView.clear()
+        } else {
+            this.shapeView = gameview.addChild(new Graphics());
+        }
+        currentShape.forEach((p, i) => {
+            this.shapeView!
+                .beginFill(0xFF0000)
+                .drawCircle(p.x, p.y, 10)
+                .endFill();
+        });
+    }
+
     saveShapeConfig() {
-        fetch('/save_shape', {
+        fetch('http://localhost:7001/save_shape', {
             method: 'post',
             headers: {
                 "Content-Type": "application/json",
@@ -71,10 +118,12 @@ export class ShapeEditor extends Component<ShapeEditorState> implements editorPr
         this.setState({
             shapes: {
                 ...this.state.shapes,
-                [this.state.newShapeName]: [],
-                currentShapeName: newShapeName,
+                [newShapeName]: [],
             },
+            currentShapeName: newShapeName,
             newShapeName: ''
+        }, () => {
+            this.drawCurrentShape();
         });
     }
 
@@ -88,11 +137,15 @@ export class ShapeEditor extends Component<ShapeEditorState> implements editorPr
             <div>
                 <h1>Animation sheet Editor</h1>
                 <Row>
-                    <Col span="8">
+                    <Col span="8" style={{ padding: 20 }}>
                         <Form.Item label={`Sheet: ${this.state.currentShapeName}`}>
                             <Select
                                 value={this.state.currentShapeName}
-                                onChange={(value) => this.setState({ currentShapeName: value })}
+                                onChange={(value) => {
+                                    this.setState({ currentShapeName: value }, () => {
+                                        this.drawCurrentShape();
+                                    });
+                                }}
                                 style={{ width: "100%" }}
                             >
                                 {
@@ -106,7 +159,8 @@ export class ShapeEditor extends Component<ShapeEditorState> implements editorPr
                             <Input value={this.state.newShapeName} onChange={(e) => this.setState({ newShapeName: e.target.value })} />
                         </Form.Item>
                         <Form.Item>
-                            <Button onClick={() => this.addShape()}>Add</Button>
+                            <Button size='small' onClick={() => this.addShape()}>Add</Button>
+                            <Button size='small' onClick={() => this.saveShapeConfig()}>Save</Button>
                         </Form.Item>
                     </Col>
                     <Col span="16">

@@ -3,9 +3,9 @@ import { Application, Container, Graphics, ImageSource, LoaderResource, Sprite, 
 import React from "react";
 import { SheetInfo } from "../editor";
 import { Viewport } from 'pixi-viewport'
-import { Coords, TextureConfig } from "../types";
+import { CoordControll, Coords, PointXY, TextureConfig } from "../types";
 import { copyTextureConfig, getCoordFromTextureConfig, getOffsetFromTextureConfig, updateOffset } from "../loadAnimation";
-import { applyEditorMixin, editorProps, getCoordsControll, getNextKey, withEditorMixin } from "./editorUtils";
+import { applyEditorMixin, editorProps, getCoordsControll, getNextKey, normalizeCoord, pointInCoordsControll, withEditorMixin } from "./editorUtils";
 
 interface EditorState {
     list: SheetInfo[];
@@ -31,8 +31,6 @@ export class SpriteEditor extends React.Component<{}, EditorState> implements ed
     }
 
     initPixi(this: editorProps): void {}
-    bindCreateEmptySprite(this: editorProps): void {}
-    bindMoveSprite(this: editorProps): void {}
     initGrid(this: editorProps, width: number, height: number): void {}
 
     canvasContainerRef: HTMLDivElement | null = null;
@@ -49,6 +47,173 @@ export class SpriteEditor extends React.Component<{}, EditorState> implements ed
             .then((res) => res.json())
             .then(({ data: { list } }) => this.setState({ list }));
         this.initPixi();
+    }
+
+    bindEvents(): void {
+        this.bindCreateEmptySprite();
+        this.bindMoveSprite();
+    }
+
+    bindCreateEmptySprite(this: editorProps) {
+        const gameview = this.gameview!;
+        let tempBox: Graphics;
+        let startPos: PointXY;
+        let delta: { w: number, h: number };
+        gameview.on('pointerdown', (e) => {
+            const globalPos = e.data.global as Point; // screen?
+            const transform = e.currentTarget.transform as Transform;
+            startPos = transform.worldTransform.applyInverse(globalPos);
+            // not selet a sprite
+            if (!Object.values(this.state.selectedSpriteSheet).some(x => pointInCoordsControll(startPos, getCoordFromTextureConfig(x)))) {
+                delta = { w: 0, h: 0 };
+            }
+        });
+
+        gameview.on('pointermove', (e) => {
+            if (e.currentTarget && delta) {
+                const globalPos = e.data.global as Point;
+                const transform = e.currentTarget.transform as Transform;
+                const localPos = transform.worldTransform.applyInverse(globalPos);
+                console.log(JSON.stringify(transform.worldTransform), globalPos.x, globalPos.y, localPos.x, localPos.y);
+                delta = { w: localPos.x - startPos.x, h: localPos.y - startPos.y };
+
+                if (delta.w > 4 || delta.h > 4) {
+                    if (tempBox && e.currentTarget) {
+                        tempBox
+                            .clear()
+                            .beginFill(0xffffff)
+                            .drawRect(0, 0, localPos.x - startPos.x + 2, localPos.y - startPos.y + 2)
+                            .endFill()
+                            .beginHole()
+                            .drawRect(1, 1, localPos.x - startPos.x, localPos.y - startPos.y)
+                            .beginHole()
+                    } else {
+                        tempBox = gameview.addChild(new Graphics());
+                        tempBox.position.set(startPos.x, startPos.y);
+                        tempBox
+                            .beginFill(0xffffff)
+                            .drawRect(0, 0, 2, 2)
+                            .endFill()
+                    }
+                }
+            }
+
+        });
+        gameview.on('pointerup', (e) => {
+
+            if (delta && tempBox) {
+                tempBox.destroy();
+
+                if (delta.w > 4 || delta.h > 4) {
+                    const newData = [startPos.x, startPos.y, delta.w, delta.h] as Coords;
+                    Modal.confirm({
+                        content: 'add this sprite?',
+                        onOk: () => {
+                            const newKey = getNextKey(this.state.selectedSpriteSheet);
+                            this.state.selectedSpriteSheet[newKey] = newData;
+                            this.setState({
+                                selectedSpriteKey: newKey
+                            });
+                            this.reloadSpriteDisplay?.();
+                        }
+                    });
+                }
+            }
+            (tempBox as any) = null;
+            (delta as any) = null;
+        });
+    }
+
+    bindMoveSprite(this: editorProps) {
+        const gameview = this.gameview!;
+        let startPos: PointXY;
+        let startSpriteCoord: Coords;
+        let startSpriteOffset: Coords;
+        let delta: { w: number, h: number };
+        let moveMode: CoordControll | false;
+
+        gameview.on('pointerdown', (e) => {
+            const currentSprite = this.getCurrentSprite?.();
+            if (currentSprite) {
+                const globalPos = e.data.global as Point; // screen?
+                const transform = e.currentTarget.transform as Transform;
+                startPos = transform.worldTransform.applyInverse(globalPos);
+                moveMode = pointInCoordsControll(startPos, currentSprite);
+                console.log('moveMode', moveMode, moveMode !== false && CoordControll[moveMode]);
+                // not selet a sprite
+                if (moveMode !== false) {
+                    delta = { w: 0, h: 0 };
+                    startSpriteCoord = [...getCoordFromTextureConfig(currentSprite)];
+                    startSpriteOffset = [...getOffsetFromTextureConfig(currentSprite)];
+                }
+            }
+        });
+        gameview.on('pointermove', (e) => {
+            if (delta && e.currentTarget) {
+                const globalPos = e.data.global as Point;
+                const transform = e.currentTarget.transform as Transform;
+                const localPos = transform.worldTransform.applyInverse(globalPos);
+                delta = { w: localPos.x - startPos.x, h: localPos.y - startPos.y };
+                const currentSpriteConfig = copyTextureConfig(this.getCurrentSprite?.()!);
+                const currentSprite = getCoordFromTextureConfig(currentSpriteConfig);
+                const currentOffset = getOffsetFromTextureConfig(currentSpriteConfig);
+                if (moveMode == CoordControll.MiddleCenter) {
+                    currentSprite[0] = startSpriteCoord[0] + delta.w;
+                    currentSprite[1] = startSpriteCoord[1] + delta.h;
+                } else {
+                    switch (moveMode) {
+                        case CoordControll.TopLeft:
+                            currentSprite[0] = startSpriteCoord[0] + delta.w;
+                            currentSprite[1] = startSpriteCoord[1] + delta.h;
+                            currentSprite[2] = startSpriteCoord[2] - delta.w;
+                            currentSprite[3] = startSpriteCoord[3] - delta.h;
+                            break;
+                        case CoordControll.TopCenter:
+                            currentSprite[1] = startSpriteCoord[1] + delta.h;
+                            currentSprite[3] = startSpriteCoord[3] - delta.h;
+                            break;
+                        case CoordControll.TopRight:
+                            currentSprite[1] = startSpriteCoord[1] + delta.h;
+                            currentSprite[2] = startSpriteCoord[2] + delta.w;
+                            currentSprite[3] = startSpriteCoord[3] - delta.h;
+                            break;
+                        case CoordControll.MiddleLeft:
+                            currentSprite[0] = startSpriteCoord[0] + delta.w;
+                            currentSprite[2] = startSpriteCoord[2] - delta.w;
+                            break;
+                        case CoordControll.MiddleRight:
+                            currentSprite[2] = startSpriteCoord[2] + delta.w;
+                            break;
+                        case CoordControll.BottomLeft:
+                            currentSprite[0] = startSpriteCoord[0] + delta.w;
+                            currentSprite[2] = startSpriteCoord[2] - delta.w;
+                            currentSprite[3] = startSpriteCoord[3] + delta.h;
+                            break;
+                        case CoordControll.BottomCenter:
+                            currentSprite[3] = startSpriteCoord[3] + delta.h;
+                            break;
+                        case CoordControll.BottomRight:
+                            currentSprite[2] = startSpriteCoord[2] + delta.w;
+                            currentSprite[3] = startSpriteCoord[3] + delta.h;
+                            break;
+                        case CoordControll.OffsetPoint:
+                            currentOffset[0] = startSpriteOffset[0] + delta.w;
+                            currentOffset[1] = startSpriteOffset[1] + delta.h;
+                            break;
+                    }
+                }
+                this.setCurrentSprite?.(currentSpriteConfig);
+            }
+        });
+        gameview.on('pointerup', (e) => {
+            const currentSprite = this.getCurrentSprite?.()!;
+            if (currentSprite) {
+                normalizeCoord(getCoordFromTextureConfig(currentSprite));
+            }
+            (startPos as any) = undefined;
+            (startSpriteCoord as any) = undefined;
+            (delta as any) = undefined;
+        });
     }
 
     componentWillUnmount(): void {

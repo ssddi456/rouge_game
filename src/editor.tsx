@@ -6,7 +6,7 @@ import {
 } from "antd";
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter, Link, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Link, Route, Routes, Navigate } from "react-router-dom";
 import "antd/dist/antd.css";
 import ButtonGroup from "antd/lib/button/button-group";
 import { AnimationEditor } from "./components/AnimationEditor";
@@ -23,20 +23,24 @@ export interface SheetInfo {
 }
 class App extends React.Component {
     render() {
+        const routes = [
+            { path: '/animation', name: 'animation', component: AnimationEditor },
+            { path: '/sprite', name: 'sprite', component: SpriteEditor },
+            { path: '/shape', name: 'shape', component: ShapeEditor },
+        ]
         return (
             <BrowserRouter>
                 <ButtonGroup>
-                    <Button>
-                        <Link to='/animation'>animation</Link>
-                    </Button>
-                    <Button>
-                        <Link to='/sprite'>sprite</Link>
-                    </Button>
+                    {routes.map((route) => (
+                        <Button>
+                            <Link to={route.path}>{route.name}</Link>
+                        </Button>
+                    ))}
                 </ButtonGroup>
                 <Routes>
-                    <Route path="/animation" element={<AnimationEditor />} />
-                    <Route path="/sprite" element={<SpriteEditor />} />
-                    <Route path="/shape" element={<ShapeEditor />} />
+                    {routes.map((route) => (
+                        <Route path={route.path} element={React.createElement(route.component)} />
+                    ))}
                 </Routes>
             </BrowserRouter>
         );

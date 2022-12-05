@@ -8,7 +8,7 @@ const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin'
 const isDevelopment = process.env.NODE_ENV !== 'production';
 const ports = {
     main: 7000,
-    editor: 7001,
+    editor: 7003,
     demos: 7002,
 };
 const entryName = {

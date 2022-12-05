@@ -120,7 +120,7 @@ app.get('/get_shape', (req, res) => {
 });
 
 app.post('/save_shape', (req, res) => {
-    fs.writeJSONSync(shapeConfig(), req.body.config);
+    fs.writeJSONSync(shapeConfig(), req.body);
     updateResource();
     res.json(resOk({}));
 });
