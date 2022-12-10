@@ -2,7 +2,9 @@ import { Row, Col, Select, message, Form, Input, Button, FormInstance } from "an
 import { Viewport } from "pixi-viewport";
 import { Application, Container, Graphics, Texture } from "pixi.js";
 import React, { Component } from "react";
+import { getBBoxOfShape, getCenterOfShape, getDirectionIntoShape, getDirectionOutOfShape, rotateShapeFromCenter } from "../shape_utitls";
 import { PointXY, TextureConfig } from "../types";
+import { Vector } from "../vector";
 import { applyEditorMixin, editorProps, withEditorMixin } from "./editorUtils";
 
 type ShapeEditorState = typeof defaultShapeEditorState;
@@ -60,7 +62,7 @@ export class ShapeEditor extends Component<ShapeEditorState> implements editorPr
             if (e.data.originalEvent.shiftKey) {
                 const globalPos = e.data.global as PointXY;
                 const currentShape = this.getCurrentShape();
-                const filtered =currentShape.filter((p, i) => {
+                const filtered = currentShape.filter((p, i) => {
                     const dx = p.x - globalPos.x;
                     const dy = p.y - globalPos.y;
                     const dist = Math.sqrt(dx * dx + dy * dy);
@@ -87,12 +89,50 @@ export class ShapeEditor extends Component<ShapeEditorState> implements editorPr
         } else {
             this.shapeView = gameview.addChild(new Graphics());
         }
-        currentShape.forEach((p, i) => {
+        const drawShape = (shape: Vector[]) => {
+            shape.forEach((p, i) => {
+                this.shapeView!
+                    .beginFill(0xFF0000)
+                    .drawCircle(p.x, p.y, 10)
+                    .endFill();
+            });
+            const center = getCenterOfShape(shape);
             this.shapeView!
-                .beginFill(0xFF0000)
-                .drawCircle(p.x, p.y, 10)
-                .endFill();
-        });
+                .lineStyle(1, 0x000000)
+                .moveTo(center.x, center.y - 10).lineTo(center.x, center.y + 10)
+                .moveTo(center.x - 10, center.y).lineTo(center.x + 10, center.y);
+        }
+        const getVectorShape = () => currentShape.map(x => new Vector(x.x, x.y));
+        const shape = getVectorShape();
+        const bbox = getBBoxOfShape(shape);
+        const center = getCenterOfShape(shape);
+        drawShape(shape);
+        
+        const padding = 20;
+        const nextLineTop = bbox.y + bbox.height + padding;
+        const rowLeft = bbox.x + bbox.width + padding;
+        // copy rotations
+        const rotatePoints = rotateShapeFromCenter(getVectorShape(), Math.PI / 6)
+            .map(x => x.add(new Vector(rowLeft * 0, nextLineTop)));
+        drawShape(rotatePoints);
+        // copy rotations
+        const rotatePoints2 = rotateShapeFromCenter(getVectorShape(), Math.PI / 2)
+            .map(x => x.add(new Vector(rowLeft * 1, nextLineTop)));
+        drawShape(rotatePoints2);
+
+        // copy scale
+        const scalePoints = getDirectionOutOfShape( getVectorShape()).map(x => x.multiplyScalar(0.5))
+            .map(x => x.add(center).add(new Vector(rowLeft * 0, nextLineTop * 2)));
+        drawShape(scalePoints);
+        // copy scale
+        const scalePoints2 = getDirectionOutOfShape(getVectorShape()).map(x => x.multiplyScalar(2))
+            .map(x => x.add(center).add(new Vector(rowLeft * 1, nextLineTop * 2)));
+        drawShape(scalePoints2);
+
+        // copy scale
+        const scalePoints3 = rotateShapeFromCenter(getDirectionOutOfShape(getVectorShape()).map(x => x.multiplyScalar(1.5)), Math.PI / 2)
+            .map(x => x.add(center).add(new Vector(rowLeft * 2, nextLineTop * 2)));
+        drawShape(scalePoints3);
     }
 
     saveShapeConfig() {

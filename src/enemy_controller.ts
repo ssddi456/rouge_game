@@ -13,6 +13,7 @@ import { LaserCrossShooter } from "./skills/LaserCrossShooter";
 import { SequenceBehavior } from "./sequance_behavior";
 import { BarrageShooter, BarrageShooterCastParams } from "./skills/BarrageShooter";
 import { ContinualShooter } from "./skills/continualShooter";
+import { ShapeShooter } from "./skills/ShapeShooter";
 
 export type controllerKey = (keyof (typeof EnemyControllerMap));
 export interface EnemyController<T extends Updatable & Disposible> {
@@ -252,6 +253,12 @@ export const EnemyControllerMap: Record<string, EnemyController<any>> = {
                 resource.thunder_hitAnimateMap.hit_effect
             );
 
+            const shapeShooter = new ShapeShooter(
+                resource.thunderAnimateMap.projectile,
+                null,
+                resource.thunder_hitAnimateMap.hit_effect
+            );
+
             const ret = {
                 behavior: new SequenceBehavior(
                     {
@@ -264,7 +271,9 @@ export const EnemyControllerMap: Record<string, EnemyController<any>> = {
                         laserShootSkill6,
 
                         barrageShooter,
-                        continualShooter
+                        continualShooter,
+
+                        shapeShooter,
                     },
                     [
                         // {
@@ -283,6 +292,13 @@ export const EnemyControllerMap: Record<string, EnemyController<any>> = {
                         //         }
                         //     }
                         // },
+                        {
+                            wait: 0, after: 240,
+                            skill: 'shapeShooter',
+                            params: {
+                                shape: resource.shapeConfig.eye
+                            }
+                        },
                         {
                             wait: 0, after: 240,
                             skill: 'continualShooter',

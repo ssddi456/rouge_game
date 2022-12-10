@@ -179,6 +179,10 @@ const ice_ball: AmmoController<IceBallAmmoParams> = {
     },
 };
 
+export interface MoveByAmmoParams {
+    last: number,
+}
+
 export const AmmoControllerMap: Record<string, AmmoController<any>> = {
     stub: {
         init(enemy) {

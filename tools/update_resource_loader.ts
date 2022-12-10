@@ -12,8 +12,10 @@ async function loadResourceMap() {
     return new Promise<{
         animations: string[], 
         sprites: string[],
+        shapes: string[],
         animationsNames: Record<string, string[]>,
         spritesNames: Record<string, string[]>
+        shapesNames: string[],
     }>(resolve => {
 
         glob("*.json", {
@@ -29,6 +31,7 @@ async function loadResourceMap() {
             const shapeExt = '.shape.json';
             const animations = files.filter(x => x.endsWith(animationExt)).map(x => path.basename(x, animationExt));
             const sprites = files.filter(x => x.endsWith(spritsExt)).map(x => path.basename(x, spritsExt));
+            const shapes = files.filter(x => x.endsWith(shapeExt)).map(x => path.basename(x, shapeExt));
 
             const animationsNames = animations.reduce((map, k) => {
                 map[k] = Object.keys(fs.readJsonSync( path.join(root, k + animationExt)));
@@ -40,15 +43,24 @@ async function loadResourceMap() {
                 return map;
             }, {} as Record<string, string[] >);
 
+            const shapesNames = Object.keys(shapes.reduce((map, k) => {
+                Object.keys(fs.readJsonSync(path.join(root, k + shapeExt)))
+                    .forEach(x => map[x] = 1);
+                return map;
+            }, {} as Record<string, 1>));
+
             console.log(
                 'animations', animations,
                 'sprites', sprites,
+                'shapes', shapes,
             );
             resolve({ 
                 animations,
                 sprites,
+                shapes,
                 animationsNames,
                 spritesNames,
+                shapesNames,
             });
         });
     });
@@ -108,7 +120,6 @@ async function updateResource() {
 
     const loadAnimateCodeTpl = (alias: string, resource: string) => `    const ${alias}AnimateMap = await loadSpriteSheet(loader, '${resource}');`;
     const loadSpriteCodeTpl = (alias: string, resource: string) => `    const ${alias}SpriteMap = await loadSprites(loader, '${resource}');`;
-    const loadShapeCodeTpl = (alias: string, resource: string) => `    const ${alias}ShapeMap = await loadShapes('${resource}');`;
 
     const declareAnimateCodeTpl = (alias: string, origin: string) => `        ${alias}AnimateMap: cloneAnimationSprites(${alias}AnimateMap) as Record<${
         resourceContent.animationsNames[origin].map(x => JSON.stringify(x)).join(' | ')
@@ -116,9 +127,9 @@ async function updateResource() {
     const declareSpriteCodeTpl = (alias: string, origin: string) => `        ${alias}SpriteMap: ${alias}SpriteMap as Record<${
         resourceContent.spritesNames[origin].map(x => JSON.stringify(x)).join(' | ')
     }, Sprite>,`;
-    const declareShapeCodeTpl = (alias: string, origin: string) => `        ${alias}ShapeMap: ${alias}ShapeMap as Record<${
-        resourceContent.spritesNames[origin].map(x => JSON.stringify(x)).join(' | ')
-    }, VectorGroup>,`;
+    const declareShapeCodeTpl = (names: string[]) => `        shapeConfig: shapeConfig as Record<${
+        names.map(x => JSON.stringify(x)).join(' | ')
+    }, Vector[]>,`;
 
     console.log(
         resourceContent.animations,
@@ -151,14 +162,14 @@ async function updateResource() {
         '',
         Object.entries(codeConfig.spritesAlias).map((entry) => loadSpriteCodeTpl(...entry)).join('\n'),
         '',
-        Object.entries(codeConfig.shapesAlias).map((entry) => loadShapeCodeTpl(...entry)).join('\n'),
+        // shape is hardcoded
         '',
         sourceCode.slice(indexLoaderCodeRange[1], indexDeclareCodeRange[0]),
         Object.keys(codeConfig.animationsAlias).map(alias => declareAnimateCodeTpl(alias, codeConfig.animationsAlias[alias])).join('\n'),
         '',
         Object.keys(codeConfig.spritesAlias).map(alias => declareSpriteCodeTpl(alias, codeConfig.spritesAlias[alias])).join('\n'),
         '',
-        Object.keys(codeConfig.shapesAlias).map(alias => declareShapeCodeTpl(alias, codeConfig.shapesAlias[alias])).join('\n'),
+        declareShapeCodeTpl(resourceContent.shapesNames),
         '',
         sourceCode.slice(indexDeclareCodeRange[1]),
     ].join('\n'))

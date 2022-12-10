@@ -1,19 +1,11 @@
-import { AnimatedSprite, Texture } from "pixi.js";
 import { getRunnerApp } from "../runnerApp";
+import { getDirectionOutOfShape } from "../shape_utitls";
 import { ShootInfo } from "../shootManager";
 import { Vector } from "../vector";
-import { ActiveSkill } from "./activeskill";
+import { BarrageShooter, BarrageShooterCastParams, defaultBarrageShooterCastParams } from "./BarrageShooter";
 
-export class BarrageShooter extends ActiveSkill {
+export class ShapeShooter extends BarrageShooter {
     shootQueue: ShootInfo[] = [];
-
-    constructor(
-        public projectile: AnimatedSprite,
-        public tail: Texture | null,
-        public hitEffect: AnimatedSprite,
-    ) {
-        super(false, 0, true);
-    }
 
     castCheck(): boolean {
         return !!this.owner && !!this.target;
@@ -80,7 +72,7 @@ export class BarrageShooter extends ActiveSkill {
         element.shooted = true;
     }
 
-    cast(_params: Partial<BarrageShooterCastParams> = {}): void {
+    cast(_params: Partial<ShapeShooterCastParams> = {}): void {
         const {
             startRad,
             endRad,
@@ -93,8 +85,9 @@ export class BarrageShooter extends ActiveSkill {
             deltaRadPerWave,
             ammoController,
             ammoControllerParams,
+            shape,
         } = {
-            ...defaultBarrageShooterCastParams,
+            ...defaultShapeShooterCastParams,
             ..._params
         }
 
@@ -104,33 +97,41 @@ export class BarrageShooter extends ActiveSkill {
         for (let index = 0; index < emitCount; index++) {
             for (let jndex = 0; jndex < waves; jndex++) {
                 const newDir = initialVector.clone().rotate(deltaRadPerWave * jndex);
-                this.shootQueue.push({
-                    frameDelay: initialDelay + jndex * delayFramePerWave,
-                    from: this.castPos.clone().add(newDir.clone().normalize().multiplyScalar(this.owner?.size || 10)),
-                    dir: newDir,
-                    shooted: false,
-                    range: distance ? (distance * 1000 / 60 / speed) : 0,
-                    damage: 1,
-                    controller: ammoController,
-                    controllerParams: ammoControllerParams,
-                });
+                const localPoses = getDirectionOutOfShape(shape);
+                for (let index = 0; index < shape.length; index++) {
+                    const pos = localPoses[index];
+                    this.shootQueue.push({
+                        frameDelay: initialDelay + jndex * delayFramePerWave,
+                        from: this.castPos.clone()
+                                .add(newDir.clone().normalize().multiplyScalar(this.owner?.size || 10))
+                                .add(pos),
+                        dir: newDir,
+                        shooted: false,
+                        range: distance ? (distance * 1000 / 60 / speed) : 0,
+                        damage: 1,
+                        controller: ammoController,
+                        controllerParams: ammoControllerParams,
+                    });
+                }
             }
             initialVector.rotate(delta);
         }
     }
 }
 
-export const defaultBarrageShooterCastParams = {
-    startRad: -Math.PI / 3,
-    endRad: Math.PI / 3,
-    emitCount: 6,
-    speed: 10,
-    distance: 0,
-    waves: 9,
-    initialDelay: 0,
-    delayFramePerWave: 15,
-    deltaRadPerWave: 0,
-    ammoController: undefined as undefined | string,
-    ammoControllerParams: undefined as any
+const defaultShapeShooterCastParams: ShapeShooterCastParams = {
+    ...defaultBarrageShooterCastParams,
+    startRad: 0,
+    endRad: 0,
+    emitCount: 1,
+    waves: 1,
+    startScale: 1,
+    endScale: 1,
+    shape: [],
 };
-export type BarrageShooterCastParams = typeof defaultBarrageShooterCastParams;
+
+export interface ShapeShooterCastParams extends BarrageShooterCastParams { 
+    shape: Vector[];
+    startScale: number,
+    endScale: number,
+};

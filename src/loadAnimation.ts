@@ -247,17 +247,29 @@ export function getImageUrl(name: string) {
     return `http://localhost:7001/public/${name}`
 }
 
-export async function loadShapes(loader: PIXI.Loader, name: string): Promise<Record<string, VectorGroup>> {
+export async function loadShapes(loader: PIXI.Loader): Promise<Record<string, Vector[]>> {
     const [
         shapeConfig,
     ] = await Promise.all([
         fetch(
-            `http://localhost:7001/get_shape?name=${encodeURIComponent(name)}`
+            `http://localhost:7001/get_shape`
         )
             .then((res) => res.json())
             .then(({ data: { config } }) => config),
     ]);
-    return shapeConfig;
+    const ret: Record<string, Vector[]> = {};
+    for (const key in shapeConfig) {
+        if (Object.prototype.hasOwnProperty.call(shapeConfig, key)) {
+            const element: (VectorGroup | VectorGroup['vectors']) = shapeConfig[key];
+            if (Array.isArray(element)) {
+                ret[key] = element.map((v) => new Vector(v.x, v.y));
+                continue;
+            } else {
+                ret[key] = element.vectors.map((v) => new Vector(v.x, v.y));
+            }
+        }
+    }
+    return ret;
 }
 
 interface VectorGroup {
@@ -354,8 +366,8 @@ export async function setupResource(app: Application,) {
     const heartAnimationSpriteMap = await loadSprites(loader, '20m2d_HeartAnimation');
 
 
-
 /** load resource end */
+    const shapeConfig = (await loadShapes(loader));
 
     await new Promise<void>(r => {
         const name1 = 'magicCircle1';
@@ -411,7 +423,7 @@ export async function setupResource(app: Application,) {
         powerupPanelSpriteMap: powerupPanelSpriteMap as Record<"0" | "1" | "2" | "3", Sprite>,
         heartAnimationSpriteMap: heartAnimationSpriteMap as Record<"0" | "1" | "2" | "3", Sprite>,
 
-
+        shapeConfig: shapeConfig as Record<"eye", Vector[]>,
 
 /** declare resource end */
         });
