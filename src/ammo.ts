@@ -230,6 +230,7 @@ export class Ammo implements IMovable, ICollisionable, Buffable {
 export class AmmoPool implements IObjectPools {
     spirte: AnimatedSprite;
     pool: Ammo[] = [];
+    queue: { till: number, args: Parameters<InstanceType<typeof AmmoPool>['emit']>}[] = [];
     lookupHelper = createFastLookup(this.pool);
 
     lastSprite: AnimatedSprite;
@@ -249,6 +250,9 @@ export class AmmoPool implements IObjectPools {
         this.lastHitEffect = hitAnimate;
     }
     
+    emitDelay(delay: number, ...args: Parameters<InstanceType<typeof AmmoPool>['emit']>) {
+        this.queue.push({ till: delay + getRunnerApp().now(), args });
+    }
 
     emit(
         direct: Vector,
@@ -383,5 +387,13 @@ export class AmmoPool implements IObjectPools {
     update() {
         this.pool.forEach(x => x.update());
         this.lookupHelper.clearEntityTypeCache();
+        const now = getRunnerApp().now();
+        this.queue = this.queue.filter(x => {
+            if (x.till <= now) {
+                this.emit(...x.args);
+                return false;
+            }
+            return true;
+        });
     }
 }

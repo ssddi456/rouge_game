@@ -89,6 +89,7 @@ export class ShapeEditor extends Component<ShapeEditorState> implements editorPr
         } else {
             this.shapeView = gameview.addChild(new Graphics());
         }
+
         const drawShape = (shape: Vector[]) => {
             shape.forEach((p, i) => {
                 this.shapeView!
@@ -107,32 +108,28 @@ export class ShapeEditor extends Component<ShapeEditorState> implements editorPr
         const bbox = getBBoxOfShape(shape);
         const center = getCenterOfShape(shape);
         drawShape(shape);
-        
+
         const padding = 20;
         const nextLineTop = bbox.y + bbox.height + padding;
         const rowLeft = bbox.x + bbox.width + padding;
-        // copy rotations
-        const rotatePoints = rotateShapeFromCenter(getVectorShape(), Math.PI / 6)
-            .map(x => x.add(new Vector(rowLeft * 0, nextLineTop)));
-        drawShape(rotatePoints);
-        // copy rotations
-        const rotatePoints2 = rotateShapeFromCenter(getVectorShape(), Math.PI / 2)
-            .map(x => x.add(new Vector(rowLeft * 1, nextLineTop)));
-        drawShape(rotatePoints2);
 
-        // copy scale
-        const scalePoints = getDirectionOutOfShape( getVectorShape()).map(x => x.multiplyScalar(0.5))
-            .map(x => x.add(center).add(new Vector(rowLeft * 0, nextLineTop * 2)));
-        drawShape(scalePoints);
-        // copy scale
-        const scalePoints2 = getDirectionOutOfShape(getVectorShape()).map(x => x.multiplyScalar(2))
-            .map(x => x.add(center).add(new Vector(rowLeft * 1, nextLineTop * 2)));
-        drawShape(scalePoints2);
+        const line2 = center.clone().add(new Vector(0, nextLineTop * 2));
+        [
+            { size: 1, pos: new Vector(0, 0) },
+            { size: 0.8, pos: new Vector(bbox.width * 0.7, bbox.height * - 0.6) },
+            { size: 0.8, pos: new Vector(bbox.width * 0.6, bbox.height * 0.7) },
+            { size: 0.5, pos: new Vector(bbox.width * 0.1, bbox.height * - 1.3) },
+            { size: 0.5, pos: new Vector(bbox.width * - 0.5, bbox.height * -0.7) },
+            { size: 0.3, pos: new Vector(bbox.width * 0.1, bbox.height * 1.2) },
+            { size: 0.2, pos: new Vector(bbox.width * 1.1, bbox.height * 0.2) },
+            { size: 0.2, pos: new Vector(bbox.width * -0.5, bbox.height * 0.6) },
+        ].forEach(({ size, pos }) => {
+            drawShape(
+                getDirectionOutOfShape(getVectorShape()).map(x => x.multiplyScalar(size))
+                    .map(x => x.add(line2).add(pos))
+            );
+        });
 
-        // copy scale
-        const scalePoints3 = rotateShapeFromCenter(getDirectionOutOfShape(getVectorShape()).map(x => x.multiplyScalar(1.5)), Math.PI / 2)
-            .map(x => x.add(center).add(new Vector(rowLeft * 2, nextLineTop * 2)));
-        drawShape(scalePoints3);
     }
 
     saveShapeConfig() {

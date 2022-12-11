@@ -294,6 +294,19 @@ export const EnemyControllerMap: Record<string, EnemyController<any>> = {
                         // },
                         {
                             wait: 0, after: 240,
+                            skill: 'continualShooter',
+                            params: {
+                                count: 1,
+                                speed: 2,
+                                distance: 600,
+                                ammoController: 'shape_bomb',
+                                ammoControllerParams: {
+                                    shape: resource.shapeConfig.eye,
+                                }
+                            }
+                        },
+                        {
+                            wait: 0, after: 240,
                             skill: 'shapeShooter',
                             params: {
                                 shape: resource.shapeConfig.eye

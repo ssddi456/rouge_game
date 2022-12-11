@@ -1,5 +1,5 @@
 import { getRunnerApp } from "../runnerApp";
-import { getDirectionOutOfShape } from "../shape_utitls";
+import { getDirectionOutOfShape, rotateShapeFromCenter } from "../shape_utitls";
 import { ShootInfo } from "../shootManager";
 import { Vector } from "../vector";
 import { BarrageShooter, BarrageShooterCastParams, defaultBarrageShooterCastParams } from "./BarrageShooter";
@@ -97,7 +97,7 @@ export class ShapeShooter extends BarrageShooter {
         for (let index = 0; index < emitCount; index++) {
             for (let jndex = 0; jndex < waves; jndex++) {
                 const newDir = initialVector.clone().rotate(deltaRadPerWave * jndex);
-                const localPoses = getDirectionOutOfShape(shape);
+                const localPoses = rotateShapeFromCenter(getDirectionOutOfShape(shape), newDir.rad() - Math.PI / 2);
                 for (let index = 0; index < shape.length; index++) {
                     const pos = localPoses[index];
                     this.shootQueue.push({

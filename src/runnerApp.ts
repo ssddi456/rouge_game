@@ -453,14 +453,16 @@ const runnerApp: EntityManager = {
                 const element = ammoPool.pool[index];
                 element.container.removeChild(element.sprite);
             }
-            ammoPool.pool.length = 0
+            ammoPool.pool.length = 0;
+            ammoPool.queue.length = 0;
         }
         if (enemyAmmoPool) {
             for (let index = 0; index < enemyAmmoPool.pool.length; index++) {
                 const element = enemyAmmoPool.pool[index];
                 element.container.removeChild(element.sprite);
             }
-            enemyAmmoPool.pool.length = 0
+            enemyAmmoPool.pool.length = 0;
+            enemyAmmoPool.queue.length = 0;
         }
         this.disposeGameView();
     }

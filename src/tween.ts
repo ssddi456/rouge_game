@@ -16,3 +16,13 @@ export default function tween(func: (this: AnimatedSprite, value: number) => voi
         return func.call(this, percent);
     }
 }
+
+// https://easings.net/
+
+export function easeInQuart(x: number): number {
+    return x * x * x * x;
+}
+
+export function easeInExpo(x: number): number {
+    return x === 0 ? 0 : Math.pow(2, 10 * x - 10);
+}
