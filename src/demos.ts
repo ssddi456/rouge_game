@@ -11,6 +11,7 @@ import { default as initAoeDemo } from './demos/aoe_demo';
 import { default as initSegmentDemo } from './demos/segment_demo';
 import { default as initEmitDemo } from './demos/emit_demo';
 import { default as initVectorDemo } from './demos/vector_demo';
+import { default as initFogBallDemo } from './demos/fog_ball_demo';
 
 import { getRunnerApp } from './runnerApp';
 import { Camera } from './camara';
@@ -125,5 +126,5 @@ runnerApp.setSession(new (class extends GameSession  {
     initSegmentDemo(app);
     initEmitDemo(app);
     initVectorDemo(app);
-
+    initFogBallDemo(app);
 })();
