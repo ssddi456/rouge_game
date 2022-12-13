@@ -19,15 +19,62 @@ const context = createDemoContext(
             const center = new Point(1500, 100);
 
             const point = animateContainer.addChild(new Graphics());
-            point
-                .lineStyle(1, 0xff0000, 1)
-                .drawCircle(0, 0, 80);
+
+            function drawMask(graphic: Graphics) {
+                const r1 = 30;
+                const r2 = 60;
+                const r3 = 90;
+
+                
+                graphic
+                    .drawCircle(0, 0, r2)
+
+                for (let index = 0; index < 6; index++) {
+                    const baseRad = index * Math.PI * 120 / 360;
+                    const rad = Math.PI * 20 / 360;
+                    const start = new Vector(r1, 0).rotate(-rad + baseRad);
+                    const end = new Vector(r1, 0).rotate(rad + baseRad);
+                    const seg1start = new Vector(r2, 0).rotate(-rad / 3 - Math.PI / 12 + baseRad);
+                    const seg1end = new Vector(r2, 0).rotate(rad / 3 - Math.PI / 12 + baseRad);
+                    const pointer = new Vector(r3, 0).rotate(0 + baseRad);
+                    
+                    graphic
+                        .moveTo(start.x, start.y)
+                        .lineTo(seg1start.x, seg1start.y)
+                        .lineTo(pointer.x, pointer.y)
+                        .lineTo(seg1end.x, seg1end.y)
+                        .lineTo(end.x, end.y)
+                }
+
+                for (let index = 0; index < 6; index++) {
+                    const baseRad = index * Math.PI * 120 / 360 + Math.PI * 60 / 360;
+                    const rad = Math.PI * 20 / 360;
+                    const start = new Vector(r1 + 10, 0).rotate(-rad + baseRad);
+                    const end = new Vector(r1 + 10, 0).rotate(rad + baseRad);
+                    const seg1start = new Vector(r2 + 20, 0).rotate(-rad / 3 - Math.PI / 36 + baseRad);
+                    const seg1end = new Vector(r2 + 20, 0).rotate(rad / 3 - Math.PI / 36 + baseRad);
+                    const pointer = new Vector(r3 + 30, 0).rotate(0 + baseRad);
+
+                    graphic
+                        .moveTo(start.x, start.y)
+                        .lineTo(seg1start.x, seg1start.y)
+                        .lineTo(pointer.x, pointer.y)
+                        .lineTo(seg1end.x, seg1end.y)
+                        .lineTo(end.x, end.y)
+                }
+            }
+
+            drawMask(point
+                .lineStyle(1, 0xff0000, 1))
+                ;
             point.position.set(center.x, center.y);
 
             const circle = animateContainer.addChild(new Graphics());
-            circle.beginFill(0xff0000, 0.4)
-                .drawCircle(0, 0, 80);
-            circle.filters = [new PIXI.filters.BlurFilter(40, 40)];
+            drawMask(circle
+                .clear()
+                .beginFill(0xff0000, 0.4));
+            circle.endFill();
+            circle.filters = [new PIXI.filters.BlurFilter(20, 20)];
             circle.position.set(center.x, center.y);
 
             const bounds = new PIXI.Rectangle(-100, -100, 100 * 2, 100 * 2);
@@ -61,35 +108,56 @@ const context = createDemoContext(
             perlinSprite.height = 200;
             container.addChild(perlinSprite);
 
-            const mask = new PIXI.Sprite(texture);
-            mask.mask = perlinSprite;
-            container.addChild(mask);
+            function makeShadeTangle({
+                scale = 1,
+                alpha = 1,
+                minRad = 20,
+                deltaRad = 10,
+            }){
+                const mask = new PIXI.Sprite(texture);
+                mask.scale.set(scale, scale);
+                mask.alpha = alpha;
+                container.addChild(mask);
+    
+                const mistSprite = animateContainer.addChild(new SimplePlane(mist, 2, 2));
+                mistSprite.width = 200;
+                mistSprite.height = 200;
+                mistSprite.mask = mask;
+                container.addChild(mistSprite);
 
-            const mistSprite = animateContainer.addChild(new SimplePlane(mist, 2, 2));
-            mistSprite.width = 200;
-            mistSprite.height = 200;
-            mistSprite.mask = mask;
+                let last = 0;
+                return {
+                    updateUV() {
+                        last++;
+                        // move the mist sprite uv
+                        const mistUvBuffer = mistSprite.geometry.buffers[1];
+                        const mistUvs = mistUvBuffer.data;
+                        const delta = 0.001 * (0.8 + Math.sin(last / 90));
+                        for (let i = 0; i < mistUvs.length; i += 2) {
+                            mistUvs[i] += delta;
+                            mistUvs[i + 1] += delta;
+                        }
+                        mistUvBuffer.update();
+                    },
+                    updatePosition() {
+                        last += Math.random() * 2;
+                        const radius = minRad + Math.sin(last / 120) * deltaRad;
+                        mask.x = Math.sin(last / 100) * radius + (1 - scale) * 100;
+                        mask.y = Math.cos(last / 100) * radius + (1 - scale) * 100;
+                    }
+                }
+            }
 
-
-            const mask2 = new PIXI.Sprite(texture);
-            mask2.mask = perlinSprite;
-            mask2.scale.set(0.8, 0.8);
-            mask2.alpha = 0.3;
-            container.addChild(mask2);
-
-            const mistSprite2 = animateContainer.addChild(new SimplePlane(mist, 2, 2));
-            mistSprite2.width = 200;
-            mistSprite2.height = 200;
-            mistSprite2.mask = mask2;
-
-            container.addChild(mistSprite);
-            container.addChild(mistSprite2);
-
-            let last = 0;
-            let last2 = 0;
+            const tangle1 = makeShadeTangle({});
+            const tangle2 = makeShadeTangle({
+                scale: 0.8,
+                alpha: 0.6,
+            });
+            const tangle3 = makeShadeTangle({
+                scale: 0.6,
+                alpha: 0.6,
+            });
             return function () {
-                last ++;
-                last2 += Math.random() * 2;
 
                 const uvBuffer = perlinSprite.geometry.buffers[1];
                 const uvs = uvBuffer.data;
@@ -99,21 +167,14 @@ const context = createDemoContext(
                     uvs[i + 1] += 0.001;
                 }
                 uvBuffer.update();
+                tangle1.updateUV();
 
-                // move the mist sprite uv
-                const mistUvBuffer = mistSprite.geometry.buffers[1];
-                const mistUvs = mistUvBuffer.data;
-                const delta = 0.001 * (0.4 + Math.sin(last / 90));
-                for (let i = 0; i < mistUvs.length; i += 2) {
-                    mistUvs[i] += delta;
-                    mistUvs[i + 1] += delta;
-                }
-                mistUvBuffer.update();
+                tangle2.updatePosition();
+
+                tangle3.updatePosition();
 
                 // move randomly in a circle, radius changes over time
-                const radius = 30 + Math.sin(last2 / 100) * 20;
-                mask2.x = Math.sin(last2 / 100) * radius;
-                mask2.y = Math.cos(last2 / 100) * radius;
+
 
             }
         }
