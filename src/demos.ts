@@ -12,6 +12,7 @@ import { default as initSegmentDemo } from './demos/segment_demo';
 import { default as initEmitDemo } from './demos/emit_demo';
 import { default as initVectorDemo } from './demos/vector_demo';
 import { default as initFogBallDemo } from './demos/fog_ball_demo';
+import { default as initTentacleDemo } from './demos/tentacle_demo';
 
 import { getRunnerApp } from './runnerApp';
 import { Camera } from './camara';
@@ -116,15 +117,16 @@ runnerApp.setSession(new (class extends GameSession  {
         runnerApp.updateAOE();
     });
 
-    // initPlayerAttack(app);
-    // initAmmoDemo(app);
-    // initRopeDemo(app);
-    // initIkDemo(app);
-    // initBowDemo(app);
-    // initTreeDemo(app);
-    // initAoeDemo(app);
-    // initSegmentDemo(app);
-    // initEmitDemo(app);
-    // initVectorDemo(app);
+    initPlayerAttack(app);
+    initAmmoDemo(app);
+    initRopeDemo(app);
+    initIkDemo(app);
+    initBowDemo(app);
+    initTreeDemo(app);
+    initAoeDemo(app);
+    initSegmentDemo(app);
+    initEmitDemo(app);
+    initVectorDemo(app);
     initFogBallDemo(app);
+    initTentacleDemo(app);
 })();
