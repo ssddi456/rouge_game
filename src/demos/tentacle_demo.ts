@@ -52,42 +52,73 @@ const context = createDemoContext(
                 { rotate: 0, length: segLength },
             ];
 
-            const segLength1 = 60;
-
+            const segLength1 = 80;
             const segs4 = [
                 { rotate: 0, length: segLength1 },
-                { rotate: 0, length: segLength1 * 0.9 },
-                { rotate: 0, length: segLength1 * 0.8 },
-                { rotate: 0, length: segLength1 * 0.7 },
+                { rotate: 0, length: segLength1 },
+                { rotate: 0, length: segLength1 },
+                { rotate: 0, length: segLength1 },
+                { rotate: 0, length: segLength1 },
+                { rotate: 0, length: segLength1 },
             ];
+            const segs4_1 = [
+                { rotate: 0, length: segLength1 },
+                { rotate: 0, length: segLength1 },
+                { rotate: 0, length: segLength1 },
+                { rotate: 0, length: segLength1 },
+                { rotate: 0, length: segLength1 },
+                { rotate: 0, length: segLength1 },
+            ];
+            function updateTentacleDragForceSegs(segs: { rotate: number, length: number }[], debug: boolean = false) {
+                const segCount = segs.length - 1;
+                const startRad = Math.PI * 1 / 4;
+                const waveCount = 0.8;
+                const infos = debug ? [] as number[] : undefined;
 
-            function updateTentacleSwingSegs(root: Vector, target: Vector, startRad: number, segs: { rotate: number, length: number }[]) {
-                const rad = Vector.AB(root, target).rad();
+                for (let index = 0; index < segs.length; index++) {
+                    const element = segs[index];
+                    if (debug) {
+                        infos!.push(Math.sin(waveCount * index / segCount * Math.PI * 2 + startRad));
+                    }
+                    element.rotate -= element.rotate * 0.2 * Math.cos(waveCount * index / segCount * Math.PI * 2 + startRad);
+                }
+                if (debug) {
+                    console.log(...infos!);
+                }
+            }
+
+            function updateTentacleSwingSegs(startRad: number, segs: { rotate: number, length: number }[], debug: boolean = false) {
                 const segCount = segs.length - 1;
 
                 const waveRad = 0.05 * Math.PI;
                 const waveCount = 0.8;
-                
+                const infos = debug ? [] as number[] : undefined;
                 for (let index = 0; index < segs.length; index++) {
                     const element = segs[index];
-                    element.rotate = rad + waveRad * Math.sin(waveCount * index / segCount * Math.PI * 2 + startRad);
+                    if (debug) {
+                        infos!.push(waveRad * Math.sin(waveCount * index / segCount * Math.PI * 2 + startRad));
+                    }
+                    element.rotate += waveRad * Math.sin(waveCount * index / segCount * Math.PI * 2 + startRad);
+                }
+                if (debug) {
+                    console.log(...infos!);
                 }
             }
 
 
-            function drawPoint(graphic: Graphics, point: Vector, color: number = 0x00ff00, radius: number = 5 ) {
+            function drawPoint(graphic: Graphics, point: Vector, color: number = 0x00ff00, radius: number = 5) {
                 graphic.beginFill(color);
                 graphic.drawCircle(point.x, point.y, radius);
                 graphic.endFill();
             }
 
 
-            updateTentacleSegs(root, target, segs);
-            updateTentacleSegs(root, target2, segs1);
-            updateTentacleSegs(root, target3, segs2);
-            updateTentacleSegs(root, target2, segs3);
-
-            updateTentacleSwingSegs(root, target3, 0, segs4);
+            // updateTentacleSegs(root, target, segs);
+            // updateTentacleSegs(root, target2, segs1);
+            // updateTentacleSegs(root, target3, segs2);
+            // updateTentacleSegs(root, target2, segs3);
+            updateTentacleDragForceSegs(segs4, true);
+            updateTentacleSwingSegs(0, segs4);
             const segsEl = animateContainer.addChild(new Graphics());
 
 
@@ -97,6 +128,7 @@ const context = createDemoContext(
             // drawSegs(segsEl, root, segs2);
             // drawSegs(segsEl, root, segs3);
             drawSegs(segsEl, root, segs4);
+            // drawSegs(segsEl, root, segs4_1);
             drawPoint(segsEl, target2);
 
             const targetEl = animateContainer.addChild(new Graphics());
@@ -106,12 +138,17 @@ const context = createDemoContext(
             let last = 0;
             let startRad = 0;
             return function () {
-                last ++;
+                last++;
                 startRad += 0.1 * Math.PI / 6;
-                updateTentacleSwingSegs(root, target3, startRad, segs4);
+                updateTentacleSegs(root, target3, segs4);
+                updateTentacleSegs(root, target3, segs4_1);
+
+                updateTentacleDragForceSegs(segs4);
+                updateTentacleSwingSegs(startRad, segs4);
 
                 segsEl.clear()
                 drawSegs(segsEl, root, segs4);
+                // drawSegs(segsEl, root, segs4_1);
                 drawPoint(segsEl, target2);
 
             }
