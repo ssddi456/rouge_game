@@ -69,6 +69,7 @@ const context = createDemoContext(
                 { rotate: 0, length: segLength1 },
                 { rotate: 0, length: segLength1 },
             ];
+
             function updateTentacleDragForceSegs(segs: { rotate: number, length: number }[], debug: boolean = false) {
                 const segCount = segs.length - 1;
                 const startRad = Math.PI * 1 / 4;
@@ -85,6 +86,20 @@ const context = createDemoContext(
                 if (debug) {
                     console.log(...infos!);
                 }
+            }
+
+            function updateTentacleBackAndForward(segs: { rotate: number, length: number }[], dir: number, debug: boolean = false) {
+                if (dir == 0) {
+                    return;
+                }
+
+                const len = segs.length;
+                for (let index = 0; index < segs.length; index++) {
+                    const percent = dir * Math.cos(index / (len - 1) * Math.PI) * (len - 1 - index) / (len - 1);
+                    console.log('movingSegIndex percent', index, percent);
+                    segs[index].rotate -= segs[index].rotate * percent;
+                }
+
             }
 
             function updateTentacleSwingSegs(startRad: number, segs: { rotate: number, length: number }[], debug: boolean = false) {
@@ -112,17 +127,35 @@ const context = createDemoContext(
                 graphic.endFill();
             }
 
+            function drawCurve(graphic: Graphics, func: (k: number) => number) {
+                graphic.lineStyle(1, 0x00fff0);
+                graphic.moveTo(0, 0);
+                graphic.lineTo(1300, 0);
+
+                graphic.lineStyle(1, 0x00ff00);
+                graphic.moveTo(0, func(0));
+                for (let index = 0; index < 1252; index++) {
+                    const k = index;
+                    graphic.lineTo(k, func(k) * 20);
+                }
+
+            }
 
             // updateTentacleSegs(root, target, segs);
             // updateTentacleSegs(root, target2, segs1);
             // updateTentacleSegs(root, target3, segs2);
             // updateTentacleSegs(root, target2, segs3);
+            updateTentacleSegs(root, target3, segs4)
             updateTentacleDragForceSegs(segs4, true);
-            updateTentacleSwingSegs(0, segs4);
+            updateTentacleBackAndForward(segs4, 0);
+            // updateTentacleSwingSegs(0, segs4);
             const segsEl = animateContainer.addChild(new Graphics());
+            const segsEl1 = animateContainer.addChild(new Graphics());
+            segsEl1.position.set(100, 300);
+            segsEl1.clear();
+            drawCurve(segsEl1, (last) => Math.sin(last / 10) - Math.cos(2 * last / 10) + 1 / 2);
 
-
-            segsEl.clear()
+            segsEl.clear();
             // drawSegs(segsEl, root, segs);
             // drawSegs(segsEl, root, segs1);
             // drawSegs(segsEl, root, segs2);
@@ -141,10 +174,11 @@ const context = createDemoContext(
                 last++;
                 startRad += 0.1 * Math.PI / 6;
                 updateTentacleSegs(root, target3, segs4);
-                updateTentacleSegs(root, target3, segs4_1);
+                // updateTentacleSegs(root, target3, segs4_1);
 
                 updateTentacleDragForceSegs(segs4);
-                updateTentacleSwingSegs(startRad, segs4);
+                updateTentacleBackAndForward(segs4, - (Math.sin(last / 10) - Math.cos(2 * last / 10) + 1 / 2));
+                // updateTentacleSwingSegs(startRad, segs4);
 
                 segsEl.clear()
                 drawSegs(segsEl, root, segs4);
