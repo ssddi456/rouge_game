@@ -105,7 +105,7 @@ def pick_color_hsv(name):
     hMin = sMin = vMin = hMax = sMax = vMax = 0
     phMin = psMin = pvMin = phMax = psMax = pvMax = 0
 
-    img = cv2.imread(('../src/assets/%s.png' % name))
+    img = cv2.imread(('../src/assets/%s.png' % name), cv2.IMREAD_UNCHANGED)
 
     output = img
     waitTime = 33
@@ -182,7 +182,7 @@ def pick_color_rgb(name):
     rMin = bMin = gMin = rMax = bMax = gMax = 0
     prMin = pbMin = pgMin = prMax = pbMax = pgMax = 0
 
-    img = cv2.imread(('../src/assets/%s.png' % name))
+    img = cv2.imread(('../src/assets/%s.png' % name), cv2.IMREAD_UNCHANGED)
 
     waitTime = 33
     b_channel, g_channel, r_channel = cv2.split(img)
@@ -231,8 +231,7 @@ def pick_color_rgb(name):
 
 def process_sheet(name):
     img = cv2.imread(
-        ('../src/assets/%s.png' % name))
-    # print("%s" % name)
+        ('../src/assets/%s.png' % name), cv2.IMREAD_UNCHANGED)
     # get color at y, x
     # print(img[52][28])
 
@@ -328,14 +327,20 @@ def process_sheet2(name, low, high):
 
 def process_rgba(name, low, high):
     img = cv2.imread(
-        ('../src/assets/%s.png' % name))
-    b_channel, g_channel, r_channel = cv2.split(img)
-
+        ('../src/assets/%s.png' % name), cv2.IMREAD_UNCHANGED)
+    b_channel, g_channel, r_channel, oa_channel = cv2.split(img)
+    # test_oa = cv2.merge((oa_channel, oa_channel, oa_channel, oa_channel))
+    # cv2.imshow("test_oa", test_oa)
+    _img = cv2.cvtColor(img, cv2.COLOR_RGBA2RGB)
     mask = cv2.bitwise_not(cv2.inRange(
-        img,
+        _img,
         np.array(low, dtype="uint8"),
         np.array(high, dtype="uint8")
     ))
+
+    test_oa = cv2.merge((mask, mask, mask, mask))
+    cv2.namedWindow("test_oa", cv2.WINDOW_NORMAL)
+    cv2.imshow("test_oa", test_oa)
 
     img_rgba = cv2.merge((b_channel, g_channel, r_channel, mask))
 
@@ -343,14 +348,14 @@ def process_rgba(name, low, high):
         ('../src/assets/%s.rgba.png' % name), img_rgba)
 
     cv2.namedWindow("img_rgba", cv2.WINDOW_NORMAL)
-    cv2.imshow("img_rgba", img_rgba)
+    cv2.imshow("img_rgba", img)
 
     if cv2.waitKey(0):
 
         cv2.destroyAllWindows()
 
 
-pick_color_rgb('Nintendo Switch - Disgaea 4 - Succubus')
+# pick_color_rgb('Nintendo Switch - Disgaea 4 - Succubus')
 
 # process_rgba('Nintendo Switch - Disgaea 4 - Succubus',
 #              [202, 138, 100], [209, 141, 103])
@@ -361,5 +366,8 @@ pick_color_rgb('Nintendo Switch - Disgaea 4 - Succubus')
 # process_sheet('Nintendo Switch - Disgaea 5 Complete - Weapons Bow')
 # process_sheet('Nintendo Switch - Disgaea 5 Complete - Weapons Gun')
 # process_sheet('Nintendo Switch - Disgaea 5 Complete - Miscellaneous Monsters')
+# process_sheet('Nintendo Switch - Disgaea 5 Complete - Weapons Spear')
 
-
+process_rgba('Nintendo Switch - Disgaea 5 Complete - Weapons Spear',
+             [75, 165, 84], 
+             [75, 165, 85])

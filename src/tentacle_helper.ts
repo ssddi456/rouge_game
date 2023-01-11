@@ -28,9 +28,14 @@ export function drawSegs(graphic: Graphics, root: Vector, segs: { rotate: number
     }
 }
 
+export function drawPoint(graphic: Graphics, point: Vector, color: number = 0x00ff00, radius: number = 5) {
+    graphic.beginFill(color);
+    graphic.drawCircle(point.x, point.y, radius);
+    graphic.endFill();
+}
 
-export function updateTentacleSegs(root: Vector, target: Vector, segs: { rotate: number, length: number }[]) {
-    const dir = target.clone().sub(root);
+export function updateTentacleSegs(dir: Vector, segs: { rotate: number, length: number }[], mirrorDir: number = 1) {
+
     const dirLength = dir.length;
     const dirRotate = dir.rad();
     const segsLength = segs.reduce((prev, curr) => prev + curr.length, 0);
@@ -59,14 +64,14 @@ export function updateTentacleSegs(root: Vector, target: Vector, segs: { rotate:
                     // (index - 1) / (halfCount - 1)
                     const refactor = halfCount > 1 ? (maxReFactor * Math.cos(Math.PI * (index - 1) / (halfCount - 1))) : 0;
                     const segsRotatePerSeg = Math.acos(deltaLength * (1 - refactor) / segLength);
-                    element.rotate = segsRotatePerSeg + dirRotate;
+                    element.rotate = mirrorDir * segsRotatePerSeg + dirRotate;
                     if (isNaN(element.rotate)) {
                         // debugger
                     }
                 } else {
                     const refactor = halfCount > 1 ? (maxReFactor * Math.cos(Math.PI * index / (halfCount - 1))) : 0;
                     const segsRotatePerSeg = Math.acos(deltaLength * (1 - refactor) / segLength);
-                    element.rotate = - segsRotatePerSeg + dirRotate;
+                    element.rotate = - mirrorDir *  segsRotatePerSeg + dirRotate;
                     if (isNaN(element.rotate)) {
                         // debugger
                     }
@@ -87,11 +92,11 @@ export function updateTentacleSegs(root: Vector, target: Vector, segs: { rotate:
                     // (index - 2) / (halfCount - 1)
                     const refactor = halfCount > 1 ? (maxReFactor * Math.cos(Math.PI * (index - 2) / (halfCount - 1))) : 0;
                     const segsRotatePerSeg = Math.acos(deltaLength * (1 - refactor) / segLength);
-                    element.rotate = segsRotatePerSeg * dir + dirRotate;
+                    element.rotate = mirrorDir * segsRotatePerSeg * dir + dirRotate;
                 } else if (index < (segs.length - 1) / 2) {
                     const refactor = halfCount > 1 ? (maxReFactor * Math.cos(Math.PI * index / (halfCount - 1))) : 0;
                     const segsRotatePerSeg = Math.acos(deltaLength * (1 - refactor) / segLength);
-                    element.rotate = - segsRotatePerSeg * dir + dirRotate;
+                    element.rotate = - mirrorDir * segsRotatePerSeg * dir + dirRotate;
                 } else {
                     element.rotate = dirRotate;
                 }
