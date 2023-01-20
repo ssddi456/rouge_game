@@ -115,16 +115,20 @@ export class ForestLevel extends Level {
         runnerApp.setDroplets(droplets);
         this.droplets = droplets;
 
-        const camera = new Camera(player, new Vector(
-            app.view.width,
-            app.view.height,
-        ));
+        const camera = new Camera(player, {
+            get x() {
+                return app.view.width;
+            },
+            get y() {
+                return app.view.height;
+            }
+        });
         runnerApp.setCamera(camera);
         this.camera = camera;
 
         const forest = new Forest(treeAnimateMap, gameView);
         this.forest = forest;
-
+        // should use camara size to collision with blocks
         const blockContext = createBlockContext({
             blockWidth: app.view.width,
             blockHeight: app.view.height,

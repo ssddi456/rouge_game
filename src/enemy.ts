@@ -479,7 +479,7 @@ export class EnemyPool extends UpdatableObject implements IObjectPools {
         const app = getRunnerApp();
         const player = app.getPlayer();
         const gameView = app.getGameView();
-        const radius = 1.2 * Math.max(gameView.width, gameView.height);
+        const radius = 1.2 * Math.max((gameView as any).worldWidth, (gameView as any).worldHeight);
 
         const n = Math.floor(app.now() / 20e3) + 4;
 

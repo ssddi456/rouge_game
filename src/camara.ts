@@ -12,7 +12,7 @@ export class Camera {
 
     constructor(
         player: Player,
-        public size: Vector,
+        public size: {x: number, y: number},
     ) {
         this.prevPlayerPos.setV(player.position);
     }

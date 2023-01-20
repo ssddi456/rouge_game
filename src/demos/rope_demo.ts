@@ -1,5 +1,4 @@
 import { AnimatedSprite, Application, Container, Geometry, Graphics, Point, Renderer, RopeGeometry, SCALE_MODES, SimplePlane, SimpleRope, Texture, WRAP_MODES } from "pixi.js";
-import { Camera } from "../camara";
 import { CountDown } from "../countdown";
 import { loadSpriteSheet } from "../loadAnimation";
 import { genWireframe } from "../mesh_utils";

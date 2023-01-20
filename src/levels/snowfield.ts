@@ -93,7 +93,7 @@ export class SnowFieldLevel extends Level {
         curserG.beginFill(0xffffff);
         curserG.drawCircle(0, 0, 10);
         curserG.endFill();
-        
+
         const curserT = app.renderer.generateTexture(curserG);
         curserG.destroy();
         const dropS = new Sprite(curserT);
@@ -107,10 +107,14 @@ export class SnowFieldLevel extends Level {
         runnerApp.setDroplets(droplets);
         this.droplets = droplets;
 
-        const camera = new Camera(player, new Vector(
-            app.view.width,
-            app.view.height,
-        ));
+        const camera = new Camera(player, {
+            get x() {
+                return app.view.width;
+            },
+            get y() {
+                return app.view.height;
+            }
+        });
         runnerApp.setCamera(camera);
         this.camera = camera;
 

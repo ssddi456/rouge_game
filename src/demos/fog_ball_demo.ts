@@ -1,6 +1,5 @@
 import { AnimatedSprite, Container, DisplayObject, Graphics, Point, Renderer, SimplePlane, Sprite, Texture } from "pixi.js";
 import * as PIXI from 'pixi.js';
-import { Camera } from "../camara";
 import { CountDown } from "../countdown";
 import { getImageUrl, loadSpriteSheet } from "../loadAnimation";
 import { getRunnerApp } from "../runnerApp";

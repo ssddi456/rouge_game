@@ -1,7 +1,7 @@
 import * as PIXI from 'pixi.js'
 import './user_input';
 
-import { Viewport } from 'pixi-viewport'
+// import { Viewport } from 'pixi-viewport'
 import { getImageUrl, setupResource } from './loadAnimation';
 import { getRunnerApp } from './runnerApp';
 import { Stage } from '@pixi/layers';
@@ -31,7 +31,7 @@ document.documentElement.style.padding = "0";
 const app = new PIXI.Application({
     width: window.innerWidth,
     height: window.innerHeight,
-    backgroundColor: 0x1099bb,
+    backgroundColor: 0x000000,
 });
 
 // The application will create a canvas element for you that you
@@ -41,13 +41,32 @@ document.body.appendChild(app.view);
 app.stage = new Stage();
 app.stage.sortableChildren = true;
 // create viewport
-const gameView = new Viewport({
-    screenWidth: window.innerWidth,
-    screenHeight: window.innerHeight,
-    worldWidth: window.innerWidth,
-    worldHeight: window.innerHeight,
+// const gameView = new Viewport({
+//     screenWidth: window.innerWidth,
+//     screenHeight: window.innerHeight,
+//     worldWidth: window.innerWidth,
+//     worldHeight: window.innerHeight,
 
-    interaction: app.renderer.plugins.interaction // the interaction module is important for wheel to work properly when renderer.view is placed or scaled
+//     interaction: app.renderer.plugins.interaction // the interaction module is important for wheel to work properly when renderer.view is placed or scaled
+// });
+
+const gameView = new Container();
+
+(gameView as any).worldWidth = window.innerWidth;
+(gameView as any).worldHeight = window.innerHeight;
+
+window.addEventListener('resize', () => {
+    (gameView as any).worldWidth = window.innerWidth;
+    (gameView as any).worldHeight = window.innerHeight;
+    app.resizeTo = window;
+    app.resize();
+
+    // app.view.width = window.innerWidth;
+    // app.view.height =  window.innerHeight;
+
+
+}, {
+    passive: true
 });
 
 gameView.sortableChildren = true;

@@ -1,5 +1,4 @@
 import { AnimatedSprite, Container, Graphics, Mesh, MeshMaterial, PlaneGeometry, Point, Renderer, SimplePlane, Texture } from "pixi.js";
-import { Camera } from "../camara";
 import { CountDown } from "../countdown";
 import { loadSpriteSheet } from "../loadAnimation";
 import { getRunnerApp } from "../runnerApp";

@@ -2,7 +2,6 @@ import { Container, Application, TilingSprite } from "pixi.js";
 import { Level } from "../level";
 import { HotClass } from "../helper/class_reloader";
 import { Group } from "@pixi/layers";
-import { Camera } from "../camara";
 import { DropletPool } from "../droplet";
 import { EnemyPool } from "../enemy";
 import { GameSession } from "../game_session";

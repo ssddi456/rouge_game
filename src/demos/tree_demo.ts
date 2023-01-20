@@ -1,5 +1,4 @@
 import { AnimatedSprite, Graphics, Sprite, Text, Texture } from "pixi.js";
-import { Camera } from "../camara";
 import { CountDown } from "../countdown";
 import { loadAnimation, loadSpriteSheet } from "../loadAnimation";
 import { getRunnerApp } from "../runnerApp";
