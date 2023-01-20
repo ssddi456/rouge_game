@@ -84,9 +84,9 @@ module.exports = function ({ entry }) {
                                     },
                                 },
                             },
-                            plugin: (m, loader) => new VisibleEditorTransformer({
-                                fileName: loader.resourcePath
-                            }).visitProgram(m),
+                            // plugin: (m, loader) => new VisibleEditorTransformer({
+                            //     fileName: loader.resourcePath
+                            // }).visitProgram(m),
                         },
                     },
                 },
